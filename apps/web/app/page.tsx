@@ -1,6 +1,7 @@
 import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
+import { Button } from "@heroui/react";
 import styles from "./page.module.css";
+import { HomeClient } from "./home-client";
 
 type Props = Omit<ImageProps, "src"> & {
   srcLight: string;
@@ -63,9 +64,10 @@ export default function Home() {
             Read our docs
           </a>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
+        <Button className={styles.secondary}>
+          HeroUI button
         </Button>
+        <HomeClient />
       </main>
       <footer className={styles.footer}>
         <a
