@@ -1,0 +1,17 @@
+https://better-auth.com/llms.txt
+https://better-auth.com/docs/authentication/email-password
+https://better-auth.com/docs/authentication/google
+https://better-auth.com/docs/integrations/hono
+https://better-auth.com/docs/plugins/admin
+https://better-auth.com/docs/plugins/open-api
+
+https://hono.dev/llms.txt
+https://hono.dev/docs/helpers/streaming
+
+https://heroui.com/react/llms.txt
+https://heroui.com/react/llms-components.txt
+https://heroui.com/en/docs/react/getting-started/quick-start
+https://heroui.com/en/docs/react/getting-started/design-principles
+https://heroui.com/en/docs/react/getting-started/colors
+https://heroui.com/en/docs/react/getting-started/theming
+https://heroui.com/en/docs/react/getting-started/dark-mode
