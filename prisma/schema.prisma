@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id                 String      @id
+  name               String
+  email              String
+  email_verified     Boolean     @default(false)
+  image              String?
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+  two_factor_enabled Boolean?    @default(false)
+  role               String      @default("user")
+  banned             Boolean     @default(false)
+  ban_reason         String?
+  ban_expires        DateTime?
+  username           String?
+  display_username   String?
+  sessions           Session[]
+  accounts           Account[]
+  two_factors        TwoFactor[]
+
+  @@unique([email])
+  @@unique([username])
+  @@map("users")
+}
+
+model Session {
+  id          String   @id
+  expires_at  DateTime
+  token       String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  ip_address  String?
+  user_agent  String?
+  impersonated_by String?
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([user_id])
+  @@map("sessions")
+}
+
+model Account {
+  id                      String    @id
+  account_id              String
+  provider_id             String
+  user_id                 String
+  user                    User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  access_token            String?
+  refresh_token           String?
+  id_token                String?
+  access_token_expires_at DateTime?
+  refresh_token_expires_at DateTime?
+  scope                   String?
+  password                String?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  @@index([user_id])
+  @@map("accounts")
+}
+
+model Verification {
+  id          String   @id
+  identifier  String
+  value       String
+  expires_at  DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+model TwoFactor {
+  id            String   @id
+  secret        String
+  backup_codes   String
+  user_id       String
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  verified      Boolean? @default(true)
+
+  @@index([secret])
+  @@index([user_id])
+  @@map("two_factors")
+}
