@@ -17,7 +17,7 @@ Tài liệu tổng quan kế hoạch xây dựng hệ thống Nexus. Mỗi phase
 
 | # | Phase | Status | Effort | Detail Link |
 |---|---|---|---|---|
-| 1 | Database & API Setup | Pending | 3h | [Phase 1](./phase-01-database-api-setup.md) |
+| 1 | Database & Core API Setup | Completed | 3h | [Phase 1](./phase-01-database-api-setup.md) |
 | 2 | Auth & Layout Setup | Pending | 2h | [Phase 2](./phase-02-auth-layout-setup.md) |
 | 3 | Landing & Packages | Pending | 2h | [Phase 3](./phase-03-landing-packages.md) |
 | 4 | Conversational Intake | Pending | 4h | [Phase 4](./phase-04-conversational-intake.md) |
@@ -62,7 +62,7 @@ Tài liệu tổng quan kế hoạch xây dựng hệ thống Nexus. Mỗi phase
 #### Confirmed Decisions
 - Google Drive: Chỉ lưu URL link.
 - Pricing/Packages: Lưu động trong database.
-- AI Models: Hỗ trợ đa nhà cung cấp OpenAI + Gemini.
+- AI Models: Hỗ trợ cả OpenAI và Gemini qua Vercel AI SDK. Ưu tiên Gemini (`GEMINI_API_KEY`, `GEMINI_MODEL_LLM`) cho chatbot và phản biện chính. Dùng OpenAI làm dự phòng với `V98_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL_LLM`.
 - SLA: Mặc định 24h - 48h kèm đếm ngược.
 
 #### Action Items

@@ -7,7 +7,7 @@
 
 ## Overview
 - **Priority**: P2
-- **Status**: Pending
+- **Status**: Completed
 - **Description**: Khởi tạo cấu trúc các bảng nghiệp vụ trong PostgreSQL và chuẩn bị router Hono backend.
 - **Estimated Effort**: 3h
 
@@ -41,11 +41,11 @@
 4. Đăng ký router mới vào `index.ts` của Hono.
 
 ## Todo List
-- [ ] Cập nhật file `schema.prisma` kèm model `ServicePackage` và các quan hệ khóa ngoại.
-- [ ] Thiết lập các index `@index` trên khóa ngoại.
-- [ ] Thực hiện DB migration.
-- [ ] Generate Prisma Client.
-- [ ] Khởi tạo route cases cơ bản.
+- [x] Cập nhật file `schema.prisma` kèm model `ServicePackage` và các quan hệ khóa ngoại.
+- [x] Thiết lập các index `@index` trên khóa ngoại.
+- [x] Thực hiện DB migration.
+- [x] Generate Prisma Client.
+- [x] Khởi tạo route cases cơ bản.
 
 ## Success Criteria
 - Lệnh migrate chạy thành công không có lỗi.
