@@ -30,65 +30,71 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-16 py-8">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center text-center gap-6 max-w-3xl mx-auto py-10 md:py-16">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight font-display leading-tight">
-          Phản biện và tìm lỗi ý tưởng khởi nghiệp theo checkpoint môn học
-        </h1>
-        <p className="text-lg text-default-500 max-w-2xl">
-          Hệ thống hỗ trợ phản biện tự động bằng AI kết hợp với mentor đánh giá chuyên sâu. 
-          Giúp sinh viên chỉ ra các điểm thiếu sót, thông tin mơ hồ và tối ưu hóa tài liệu checkpoint dự án.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 mt-2">
-          {/* Rule 5: Duy nhất nút này là Primary/Solid */}
-          <Link
-            href="/dashboard/intake"
-            className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-bold text-base transition-colors shadow-sm"
-          >
-            Bắt đầu dự án ngay
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <a
-            href="#pricing"
-            className="inline-flex items-center justify-center h-12 px-8 rounded-md border border-default-300 hover:border-orange-500/40 text-default-700 hover:bg-default-50 font-semibold text-base transition-colors"
-          >
-            Xem bảng giá dịch vụ
-          </a>
-        </div>
-      </section>
+    <div className="relative w-full">
+      {/* Premium Background Mesh Glows */}
+      <div className="absolute top-[-100px] left-[50%] -translate-x-[50%] w-[600px] h-[350px] rounded-full bg-gradient-to-b from-accent/15 to-transparent blur-[120px] pointer-events-none -z-10" />
+      <div className="absolute top-[400px] right-[-200px] w-[400px] h-[400px] rounded-full bg-accent/5 blur-[150px] pointer-events-none -z-10" />
+      <div className="absolute bottom-[200px] left-[-200px] w-[500px] h-[500px] rounded-full bg-amber-500/5 blur-[160px] pointer-events-none -z-10" />
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <Card className="border border-default-200/50" variant="default">
-          <Card.Content className="p-6 flex flex-col gap-3">
-            <Zap className="w-8 h-8 text-orange-500" />
-            <h3 className="text-lg font-bold font-display text-default-800">Phản biện AI chuẩn cấu trúc</h3>
-            <p className="text-sm text-default-500 leading-relaxed">
-              Nhận kết quả phân tích nhanh chóng chỉ rõ: Vấn đề (Field), Trạng thái (Status), Bằng chứng (Evidence), Lý do (Reason) và Câu hỏi thảo luận chi tiết.
-            </p>
-          </Card.Content>
-        </Card>
+      <div className="flex flex-col gap-28 py-12 relative z-10">
+        {/* Hero Section */}
+        <section className="flex flex-col items-center text-center gap-8 max-w-4xl mx-auto py-12 md:py-24">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight font-display leading-[1.1] max-w-3xl">
+            Phản biện & tìm lỗi ý tưởng theo{" "}
+            <span className="text-gradient-gold block mt-2 md:inline md:mt-0">checkpoint môn học</span>
+          </h1>
+          <p className="text-lg md:text-xl text-default-500 max-w-3xl leading-relaxed">
+            Hệ thống hỗ trợ phản biện tự động bằng AI kết hợp với mentor đánh giá chuyên sâu. 
+            Giúp sinh viên chỉ ra các điểm thiếu sót, thông tin mơ hồ và tối ưu hóa tài liệu checkpoint dự án.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-5 mt-6 w-full sm:w-auto px-4">
+            <Link
+              href="/dashboard/intake"
+              className="inline-flex items-center justify-center gap-2.5 h-14 px-10 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-extrabold text-lg transition-all shadow-md hover:shadow-xl active:scale-[0.97] duration-250 w-full sm:w-auto"
+            >
+              Bắt đầu dự án ngay
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <a
+              href="#pricing"
+              className="inline-flex items-center justify-center h-14 px-10 rounded-xl border border-default-300 hover:border-accent/40 text-default-700 hover:bg-default-50/50 font-bold text-lg transition-all active:scale-[0.97] duration-250 w-full sm:w-auto"
+            >
+              Xem bảng giá dịch vụ
+            </a>
+          </div>
+        </section>
 
-        <Card className="border border-default-200/50" variant="default">
-          <Card.Content className="p-6 flex flex-col gap-3">
-            <Award className="w-8 h-8 text-orange-500" />
-            <h3 className="text-lg font-bold font-display text-default-800">Đội ngũ Mentor kiểm duyệt</h3>
-            <p className="text-sm text-default-500 leading-relaxed">
-              Báo cáo AI được đọc, chỉnh sửa và đóng góp ý kiến thực tế bởi Supporter giàu kinh nghiệm trước khi gửi đến bạn, đảm bảo tính thiết thực cao nhất.
-            </p>
-          </Card.Content>
-        </Card>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto w-full px-4">
+          <Card className="border border-default-200/50 shadow-sm bg-surface/50 backdrop-blur-md rounded-2xl hover:-translate-y-1.5 duration-300 transition-transform" variant="default">
+            <Card.Content className="p-8 flex flex-col gap-4">
+              <Zap className="w-10 h-10 text-accent" />
+              <h3 className="text-xl font-bold font-display text-default-800">Phản biện AI chuẩn cấu trúc</h3>
+              <p className="text-base text-default-500 leading-relaxed">
+                Nhận kết quả phân tích nhanh chóng chỉ rõ: Vấn đề (Field), Trạng thái (Status), Bằng chứng (Evidence), Lý do (Reason) và Câu hỏi thảo luận chi tiết.
+              </p>
+            </Card.Content>
+          </Card>
 
-        <Card className="border border-default-200/50" variant="default">
-          <Card.Content className="p-6 flex flex-col gap-3">
-            <Shield className="w-8 h-8 text-orange-500" />
-            <h3 className="text-lg font-bold font-display text-default-800">Thời gian cam kết rõ ràng</h3>
-            <p className="text-sm text-default-500 leading-relaxed">
-              Bộ đếm ngược SLA trên dashboard giúp bạn luôn nắm được khi nào nhận được phản hồi, tối ưu hóa tốc độ chuẩn bị bài nộp Checkpoint.
-            </p>
-          </Card.Content>
-        </Card>
-      </section>
+          <Card className="border border-default-200/50 shadow-sm bg-surface/50 backdrop-blur-md rounded-2xl hover:-translate-y-1.5 duration-300 transition-transform" variant="default">
+            <Card.Content className="p-8 flex flex-col gap-4">
+              <Award className="w-10 h-10 text-accent" />
+              <h3 className="text-xl font-bold font-display text-default-800">Đội ngũ Mentor kiểm duyệt</h3>
+              <p className="text-base text-default-500 leading-relaxed">
+                Báo cáo AI được đọc, chỉnh sửa và đóng góp ý kiến thực tế bởi Supporter giàu kinh nghiệm trước khi gửi đến bạn, đảm bảo tính thiết thực cao nhất.
+              </p>
+            </Card.Content>
+          </Card>
+
+          <Card className="border border-default-200/50 shadow-sm bg-surface/50 backdrop-blur-md rounded-2xl hover:-translate-y-1.5 duration-300 transition-transform" variant="default">
+            <Card.Content className="p-8 flex flex-col gap-4">
+              <Shield className="w-10 h-10 text-accent" />
+              <h3 className="text-xl font-bold font-display text-default-800">Thời gian cam kết rõ ràng</h3>
+              <p className="text-base text-default-500 leading-relaxed">
+                Bộ đếm ngược SLA trên dashboard giúp bạn luôn nắm được khi nào nhận được phản hồi, tối ưu hóa tốc độ chuẩn bị bài nộp Checkpoint.
+              </p>
+            </Card.Content>
+          </Card>
+        </section>
 
       {/* Pricing packages Section */}
       <section id="pricing" className="border-t border-default-100 pt-16">
@@ -109,18 +115,18 @@ export default function HomePage() {
         </div>
         <Accordion variant="surface">
           {faqItems.map((item, idx) => (
-            <Accordion.Item key={idx} className="border border-default-200/50 rounded-lg p-2">
+            <Accordion.Item key={idx} className="border border-default-200/50 rounded-lg p-3">
               <Accordion.Heading>
-                <Accordion.Trigger className="flex items-center w-full justify-between py-2 text-left">
-                  <div className="flex items-center gap-2">
-                    <HelpCircle className="w-4 h-4 text-orange-500 shrink-0" />
-                    <span className="font-bold text-default-800 font-display text-sm">{item.title}</span>
+                <Accordion.Trigger className="flex items-center w-full justify-between py-3 text-left">
+                  <div className="flex items-center gap-3">
+                    <HelpCircle className="w-5 h-5 text-accent shrink-0" />
+                    <span className="font-bold text-default-850 font-display text-base">{item.title}</span>
                   </div>
                   <Accordion.Indicator />
                 </Accordion.Trigger>
               </Accordion.Heading>
               <Accordion.Panel>
-                <Accordion.Body className="text-sm text-default-500 leading-relaxed pb-4 px-2">
+                <Accordion.Body className="text-sm md:text-base text-default-500 leading-relaxed pb-4 px-3">
                   {item.content}
                 </Accordion.Body>
               </Accordion.Panel>
@@ -128,6 +134,7 @@ export default function HomePage() {
           ))}
         </Accordion>
       </section>
+    </div>
     </div>
   );
 }

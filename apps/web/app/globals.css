@@ -18,158 +18,88 @@
   .light,
   [data-theme="light"] {
     /* ------------------------------------------------------------------------
-       [ACTIVE] OPTION 1: CALM UI GOOGLE-STYLE (Màu nền dịu nhẹ, Accent Cam Google)
+       [ACTIVE] LUXURY GLASS SYSTEM (Stone + Gold)
        ------------------------------------------------------------------------ */
-    --background: #f8f9fa; /* Xám nhạt Google */
-    --foreground: #1f2937; /* Slate-800 */
+    --background: #FAF9F6; /* Warm Alabaster */
+    --foreground: #1C1917; /* Stone-900 */
     
-    --surface: #ffffff; /* Card background */
-    --surface-secondary: #f1f3f4;
-    --surface-tertiary: #e8eaed;
+    --surface: #ffffff; 
+    --surface-secondary: #FAF8F5; /* Warm secondary surface */
+    --surface-tertiary: #F5F2EB; /* Warm tertiary surface */
     --overlay: #ffffff;
     
-    --muted: #5f6368; /* Slate-500 equivalent */
-    --border: #dadce0;
-    --separator: #e8eaed;
+    --muted: #6B6661; /* Stone-500 equivalent */
+    --border: rgba(28, 25, 23, 0.08); /* Translucent warm border */
+    --separator: rgba(28, 25, 23, 0.04);
     
-    /* Primary Accent Color (Orange Google News #e37400) */
-    --accent: #e37400; 
+    /* Primary Accent Color (Rich Gold Amber-700) */
+    --accent: #B45309; 
     --accent-foreground: #ffffff;
     
     /* Form fields */
     --field-background: #ffffff;
-    --field-border: #dadce0;
+    --field-border: rgba(28, 25, 23, 0.12);
     --field-border-width: 1px;
-    --field-radius: 0.375rem;
+    --field-radius: 0.5rem;
     
-    /* Success Color (Google Green #137333) */
-    --success: #137333;
+    /* Success Color */
+    --success: #15803d;
     --success-foreground: #ffffff;
     
-    /* Warning Color (Google Amber #f9ab00) */
-    --warning: #f9ab00;
+    /* Warning Color */
+    --warning: #b45309;
     --warning-foreground: #ffffff;
     
-    /* Danger Color (Google Red #c5221f) */
-    --danger: #c5221f;
+    /* Danger Color */
+    --danger: #b91c1c;
     --danger-foreground: #ffffff;
     
     /* General spacing & border */
-    --radius: 0.375rem;
+    --radius: 0.5rem;
     --border-width: 1px;
     
-    /* Flat Design Shadows (Calm UI) */
-    --surface-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.05);
-    --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-
-    /* ------------------------------------------------------------------------
-       [BACKUP] OPTION 2: VIBRANT BRAND HIGHLIGHTS (Nền đen/trắng, màu nổi bật)
-       Để sử dụng: comment phần Option 1 ở trên và uncomment phần này
-       ------------------------------------------------------------------------
-    --background: #ffffff; 
-    --foreground: #000000; 
-    
-    --surface: #ffffff; 
-    --surface-secondary: #f3f4f6; 
-    --surface-tertiary: #e5e7eb; 
-    --overlay: #ffffff;
-    
-    --muted: #4b5563; 
-    --border: #e5e7eb; 
-    --separator: #f3f4f6; 
-    
-    --accent: #0b409e; 
-    --accent-foreground: #ffffff;
-    
-    --field-background: #ffffff;
-    --field-border: #e5e7eb;
-    --field-radius: 0.375rem;
-    
-    --success: #22ad46;
-    --success-foreground: #ffffff;
-    --warning: #f36f21;
-    --warning-foreground: #ffffff;
-    --danger: #d93025;
-    --danger-foreground: #ffffff;
-    
-    --radius: 0.375rem;
-    --border-width: 1px;
-    
-    --surface-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    ------------------------------------------------------------------------ */
+    /* Elegant soft shadow */
+    --surface-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.06), 0 2px 8px -1px rgba(28, 25, 23, 0.03);
+    --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   }
 
   .dark,
   [data-theme="dark"] {
     /* ------------------------------------------------------------------------
-       [ACTIVE] OPTION 1: CALM UI GOOGLE-STYLE - DARK MODE (Accent Cam Sáng)
+       [ACTIVE] LUXURY GLASS SYSTEM - DARK MODE
        ------------------------------------------------------------------------ */
-    --background: #121212; /* Xám đậm tối giản */
-    --foreground: #e8eaed; /* Soft white */
+    --background: #0C0A09; /* Deep Warm Obsidian */
+    --foreground: #F5F5F4; /* Soft warm white */
     
-    --surface: #1e1e1e; /* Lighter container background */
-    --surface-secondary: #2d2f31;
-    --surface-tertiary: #303134;
-    --overlay: #1e1e1e;
+    --surface: #1C1917; /* Stone-900 */
+    --surface-secondary: #292524; /* Stone-800 */
+    --surface-tertiary: #44403C; /* Stone-700 */
+    --overlay: #1C1917;
     
-    --muted: #9aa0a6;
-    --border: #3c4043;
-    --separator: #2d3134;
+    --muted: #A8A29E; /* Stone-400 */
+    --border: rgba(245, 245, 244, 0.08); /* Translucent soft light border */
+    --separator: rgba(245, 245, 244, 0.04);
     
-    /* Brighter Orange for dark contrast */
-    --accent: #ffb066; 
-    --accent-foreground: #121212;
+    /* Bright Gold for dark contrast */
+    --accent: #F59E0B; 
+    --accent-foreground: #0C0A09;
     
     /* Form fields */
-    --field-background: #1e1e1e;
-    --field-border: #3c4043;
+    --field-background: #1C1917;
+    --field-border: rgba(245, 245, 244, 0.12);
     --field-border-width: 1px;
     
     /* Status Colors in Dark Mode */
-    --success: #81c995;
-    --success-foreground: #121212;
-    --warning: #fdd663;
-    --warning-foreground: #121212;
-    --danger: #f28b82;
-    --danger-foreground: #121212;
-    
-    /* Shadows - Disabled/flat in Dark Mode */
-    --surface-shadow: none;
-    --field-shadow: none;
-
-    /* ------------------------------------------------------------------------
-       [BACKUP] OPTION 2: VIBRANT BRAND HIGHLIGHTS - DARK MODE
-       Để sử dụng: comment phần Option 1 ở trên và uncomment phần này
-       ------------------------------------------------------------------------
-    --background: #000000; 
-    --foreground: #ffffff; 
-    
-    --surface: #121212; 
-    --surface-secondary: #1a1a1a;
-    --surface-tertiary: #262626;
-    --overlay: #121212;
-    
-    --muted: #9ca3af; 
-    --border: #262626;
-    --separator: #1a1a1a;
-    
-    --accent: #3b82f6; 
-    --accent-foreground: #ffffff;
-    
-    --field-background: #121212;
-    --field-border: #262626;
-    
     --success: #4ade80;
-    --success-foreground: #000000;
-    --warning: #fb923c;
-    --warning-foreground: #000000;
+    --success-foreground: #0c0a09;
+    --warning: #fbbf24;
+    --warning-foreground: #0c0a09;
     --danger: #f87171;
-    --danger-foreground: #000000;
+    --danger-foreground: #0c0a09;
     
-    --surface-shadow: none;
+    /* Shadows - Soft ambient glow */
+    --surface-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
     --field-shadow: none;
-    ------------------------------------------------------------------------ */
   }
 
   /* Map font-display to headings by default */
@@ -206,21 +136,7 @@ a {
   text-decoration: none;
 }
 
-/* ==========================================================================
-   UI/UX PRO MAX - CHUẨN UX GOOGLE CALM & ACCESSIBILITY (A11Y)
-   ========================================================================== */
 
-/* Tránh giật lag, chuyển động mượt mà cho các hover/active states */
-a,
-button,
-select,
-input,
-textarea,
-[role="button"] {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-}
 
 /* Ép con trỏ pointer cho tất cả các thành phần có thể tương tác */
 a,
@@ -260,4 +176,19 @@ input[type="reset"] {
 
 .dark .imgDark {
   display: unset;
+}
+
+/* Text gradient helper — used in page.tsx */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #B45309 0%, #D97706 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .text-gradient-gold {
+  background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #FEF08A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

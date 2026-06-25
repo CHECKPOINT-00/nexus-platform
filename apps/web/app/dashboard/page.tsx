@@ -86,35 +86,35 @@ export default function UserDashboard() {
   const hasCases = cases && cases.length > 0;
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+    <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto py-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-bold font-display text-default-800">Dự án của bạn</h1>
-          <p className="text-sm text-default-500 mt-0.5">
+          <h1 className="text-3xl font-black font-display tracking-tight text-default-800">Dự án của bạn</h1>
+          <p className="text-base text-default-500 mt-1">
             Xem danh sách các dự án phản biện và tình trạng phản hồi.
           </p>
         </div>
         {hasCases && (
           <Link
             href="/dashboard/intake"
-            className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm transition-colors shadow-sm"
+            className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base transition-all shadow-md hover:shadow-lg active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             Tạo dự án mới
           </Link>
         )}
       </div>
 
       {hasCases ? (
-        <div className="border border-default-200/50 rounded-lg overflow-hidden bg-surface">
+        <div className="border border-default-200/60 rounded-xl overflow-hidden bg-surface shadow-md">
           <Table aria-label="Danh sách dự án">
             <TableHeader>
-              <TableColumn>MÃ DỰ ÁN</TableColumn>
-              <TableColumn>TÊN NHÓM</TableColumn>
-              <TableColumn>MÔN HỌC / BÀI TẬP</TableColumn>
-              <TableColumn>TRẠNG THÁI</TableColumn>
-              <TableColumn>NGÀY TẠO</TableColumn>
-              <TableColumn className="w-12"></TableColumn>
+              <TableColumn className="text-sm font-bold py-4">MÃ DỰ ÁN</TableColumn>
+              <TableColumn className="text-sm font-bold py-4">TÊN NHÓM</TableColumn>
+              <TableColumn className="text-sm font-bold py-4">MÔN HỌC / BÀI TẬP</TableColumn>
+              <TableColumn className="text-sm font-bold py-4">TRẠNG THÁI</TableColumn>
+              <TableColumn className="text-sm font-bold py-4">NGÀY TẠO</TableColumn>
+              <TableColumn className="w-12 py-4"></TableColumn>
             </TableHeader>
             <TableBody>
               {cases.map((c) => (
@@ -123,18 +123,18 @@ export default function UserDashboard() {
                   className="hover:bg-default-100/50 cursor-pointer transition-colors"
                   onClick={() => router.push(`/dashboard/case/${c.id}`)}
                 >
-                  <TableCell className="font-mono font-bold text-default-800 text-sm">
+                  <TableCell className="font-mono font-bold text-default-800 text-base py-4">
                     {c.case_code}
                   </TableCell>
-                  <TableCell className="text-sm text-default-700">{c.team_name || "Chưa đặt tên"}</TableCell>
-                  <TableCell className="text-sm text-default-700">{c.course_context || "Không rõ"}</TableCell>
-                  <TableCell>{renderStatus(c)}</TableCell>
-                  <TableCell className="text-xs text-default-400">
+                  <TableCell className="text-base text-default-700 py-4">{c.team_name || "Chưa đặt tên"}</TableCell>
+                  <TableCell className="text-base text-default-700 py-4">{c.course_context || "Không rõ"}</TableCell>
+                  <TableCell className="py-4">{renderStatus(c)}</TableCell>
+                  <TableCell className="text-xs text-default-400 py-4">
                     {new Date(c.created_at).toLocaleDateString("vi-VN")}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
                     <Button isIconOnly variant="ghost" size="sm">
-                      <ArrowRight className="w-4 h-4 text-default-400" />
+                      <ArrowRight className="w-5 h-5 text-default-400" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -144,19 +144,19 @@ export default function UserDashboard() {
         </div>
       ) : (
         /* Empty State (Rule 16 & 37) */
-        <div className="flex flex-col items-center text-center justify-center p-12 border border-dashed border-default-300 rounded-lg bg-surface min-h-[350px] max-w-xl mx-auto">
-          <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-full mb-4">
-            <ClipboardList className="w-8 h-8 text-orange-600 dark:text-orange-500" />
+        <div className="flex flex-col items-center text-center justify-center p-16 border border-default-200/60 rounded-2xl bg-surface shadow-md min-h-[420px] max-w-2xl mx-auto my-6">
+          <div className="bg-accent/10 p-5 rounded-full mb-6">
+            <ClipboardList className="w-10 h-10 text-accent" />
           </div>
-          <h2 className="text-lg font-bold font-display text-default-800 mb-2">
+          <h2 className="text-xl font-bold font-display text-default-850 mb-3">
             Chưa có dự án phản biện nào
           </h2>
-          <p className="text-sm text-default-500 mb-6 leading-relaxed">
+          <p className="text-base text-default-500 mb-8 leading-relaxed max-w-sm">
             Bạn cần gửi thông tin ý tưởng và liên kết tài liệu Checkpoint để bắt đầu nhận phản biện từ hệ thống và supporter.
           </p>
           <Link
             href="/dashboard/intake"
-            className="inline-flex items-center justify-center h-10 px-8 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm transition-colors shadow-sm"
+            className="inline-flex items-center justify-center h-12 px-8 rounded-lg bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base transition-all shadow-md hover:shadow-lg active:scale-95"
           >
             Bắt đầu dự án phản biện đầu tiên
           </Link>

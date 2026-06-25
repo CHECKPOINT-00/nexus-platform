@@ -45,35 +45,51 @@ export function PricingCards() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-10">
-      {packages?.map((pkg) => {
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-12 w-full max-w-4xl mx-auto px-4">
+      {packages?.map((pkg, idx) => {
         const isFree = pkg.price === 0;
+        // Dynamically highlight the second plan (idx === 1) as the recommended one
+        const isFeatured = idx === 1;
+
         return (
           <Card
             key={pkg.id}
-            className="border border-default-200/60 transition-all hover:border-orange-500/40 flex flex-col justify-between"
+            className={`border transition-all flex flex-col justify-between hover:scale-[1.03] duration-300 relative ${
+              isFeatured 
+                ? "border-accent ring-2 ring-accent/20 shadow-lg scale-[1.02] bg-surface" 
+                : "border-default-200/60 shadow-sm bg-surface/80 backdrop-blur-md"
+            }`}
           >
-            <Card.Header className="flex flex-col items-start gap-1 p-6">
-              <Card.Title className="text-lg font-bold font-display text-default-800">
+            {isFeatured && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-extrabold text-xs px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm z-20 whitespace-nowrap">
+                Khuyên dùng
+              </span>
+            )}
+            <Card.Header className="flex flex-col items-start gap-2 p-8 pb-6">
+              <Card.Title className="text-xl font-bold font-display text-default-800">
                 {pkg.name}
               </Card.Title>
-              <span className="text-2xl font-black mt-2 font-display text-orange-600 dark:text-orange-500">
+              <span className="text-3xl font-black mt-2 font-display text-accent">
                 {formatCurrency(pkg.price)}
               </span>
             </Card.Header>
             <hr className="border-t border-default-200/50 w-full" />
-            <Card.Content className="p-6 flex-1 flex flex-col justify-between gap-6">
-              <ul className="flex flex-col gap-3">
+            <Card.Content className="p-8 flex-1 flex flex-col justify-between gap-8">
+              <ul className="flex flex-col gap-4">
                 {pkg.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-default-600">
-                    <Check className="w-4 h-4 text-success-500 shrink-0 mt-0.5" />
+                  <li key={idx} className="flex items-start gap-3 text-base text-default-600">
+                    <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link
                 href="/dashboard/intake"
-                className="inline-flex items-center justify-center h-10 w-full font-semibold border border-default-300 hover:border-orange-500/40 mt-auto rounded-md text-sm text-default-700 bg-background hover:bg-default-50 transition-colors"
+                className={`inline-flex items-center justify-center h-12 w-full font-bold mt-auto rounded-lg text-base shadow-sm active:scale-95 transition-all duration-200 ${
+                  isFeatured
+                    ? "bg-accent hover:bg-accent/90 text-accent-foreground"
+                    : "border border-default-300 hover:border-accent/40 text-default-700 bg-background hover:bg-default-50 hover:text-accent"
+                }`}
               >
                 {isFree ? "Dùng thử miễn phí" : "Đăng ký dịch vụ"}
               </Link>

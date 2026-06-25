@@ -82,7 +82,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-display text-xl font-bold tracking-tight text-orange-600 dark:text-orange-500">
+            <span className="font-display text-2xl font-black tracking-tight text-gradient-gold">
               Nexus
             </span>
           </Link>
@@ -101,7 +101,7 @@ export function Navbar() {
               onPress={() => setTheme(activeTheme === "dark" ? "light" : "dark")}
             >
               {activeTheme === "dark" ? (
-                <Sun className="w-5 h-5 text-orange-400" />
+                <Sun className="w-5 h-5 text-amber-500" />
               ) : (
                 <Moon className="w-5 h-5 text-default-600" />
               )}
