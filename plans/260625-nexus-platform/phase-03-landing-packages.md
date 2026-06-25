@@ -33,6 +33,11 @@
   - **Clarity over Decoration & Plain Language (Rules 3 & 13)**: Loại bỏ hoàn toàn các slogan tiếp thị mơ hồ. Slogan chính: *"Phản biện và tìm lỗi ý tưởng khởi nghiệp theo checkpoint môn học"*.
   - **Button Variants**: Nút bấm "Bắt đầu ngay" sử dụng `color="primary" variant="solid"`. Nút bấm FAQ và thông tin các gói sử dụng `color="default" variant="bordered"` để đảm bảo quy tắc "Một màn hình, một hành động chính".
 
+## Màn hình & UX Components
+- **Màn hình Landing Page giới thiệu dịch vụ**
+  - **Đường dẫn (Route)**: `/`
+  - **Mục tiêu UX chính**: Trình bày rõ ràng công dụng của Nexus, các gói cước và giải đáp FAQ bằng ngôn ngữ thực dụng, dễ hiểu.
+  - **Các Component HeroUI**: `<Card>`, `<CardBody>`, `<Button>`, `<Accordion>`, `<AccordionItem>`, `<Chip>`.
 
 ## Architecture
 - **CSS System**: Tailwind CSS & Vanilla CSS modules.

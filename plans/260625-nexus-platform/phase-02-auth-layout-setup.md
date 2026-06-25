@@ -39,6 +39,15 @@
     - Lý do: *"Bạn cần gửi thông tin ý tưởng và liên kết tài liệu Checkpoint để bắt đầu nhận phản biện từ hệ thống và supporter."*
     - CTA chính duy nhất: **"Bắt đầu dự án phản biện đầu tiên"** (`color="primary" variant="solid"`) dẫn tới trang đăng ký Intake.
 
+## Màn hình & UX Components
+- **Màn hình Đăng nhập & Đăng ký**
+  - **Đường dẫn (Route)**: `/auth`
+  - **Mục tiêu UX chính**: Hỗ trợ đăng nhập nhanh chóng bằng Email/Password hoặc Google OAuth bằng giao diện tối giản nhất.
+  - **Các Component HeroUI**: `<Card>`, `<CardHeader>`, `<CardBody>`, `<Input>`, `<Button>`, `<Divider>`.
+- **Màn hình Layout Chung (Header & Nav)**
+  - **Đường dẫn (Route)**: Layout toàn cục (`/`)
+  - **Mục tiêu UX chính**: Điều hướng nhanh, hiển thị rõ vị trí người dùng đang đứng, hỗ trợ đổi theme.
+  - **Các Component HeroUI**: `<Navbar>`, `<NavbarBrand>`, `<NavbarContent>`, `<NavbarItem>`, `<Link>`, `<Dropdown>`, `<DropdownTrigger>`, `<Avatar>`, `<DropdownMenu>`, `<DropdownItem>`, `<Breadcrumbs>`, `<BreadcrumbItem>`.
 
 ## Architecture
 - **Auth Client**: Better Auth Web Client.

@@ -29,6 +29,15 @@
   - **Payment Status Banner**: Học viên khi bị từ chối sẽ thấy banner đỏ dịu nổi bật trên Workspace kèm lý do cụ thể và CTA phụ để đăng tải lại: *"Minh chứng bị từ chối: [Lý do từ chối]. Vui lòng tải lên ảnh minh chứng mới để tiếp tục"*
   - **File upload UX (Rule 20)**: Hiển thị thanh tiến trình tải lên (upload progress bar) kèm icon file thu nhỏ. Nếu tải lên thành công, hiển thị check xanh; nếu thất bại, hiển thị dòng text xử lý lỗi cụ thể.
 
+## Màn hình & UX Components
+- **Màn hình Đăng tải Minh chứng (Sinh viên)**
+  - **Đường dẫn (Route)**: Dạng Drawer/Modal trực tiếp trên màn hình Workspace `/dashboard/case/[id]`
+  - **Mục tiêu UX chính**: Hướng dẫn thông tin tài khoản chuyển khoản và hỗ trợ tải ảnh minh chứng chuyển khoản lên nhanh chóng.
+  - **Các Component HeroUI**: `<Drawer>`, `<DrawerContent>`, `<DrawerHeader>`, `<DrawerBody>`, `<DrawerFooter>`, `<Button>`, `<Image>` (Xem ảnh minh chứng đã tải).
+- **Màn hình Duyệt Thanh toán (Admin)**
+  - **Đường dẫn (Route)**: Tab "Duyệt thanh toán" trên màn hình `/admin` hoặc trang `/admin/payments`
+  - **Mục tiêu UX chính**: Liệt kê các yêu cầu thanh toán chờ duyệt, cho phép Admin click xem ảnh minh chứng, Approve hoặc bấm Reject (yêu cầu điền lý do từ chối).
+  - **Các Component HeroUI**: `<Table>`, `<TableHeader>`, `<TableColumn>`, `<TableBody>`, `<TableRow>`, `<TableCell>`, `<Button>`, `<Modal>`, `<ModalContent>`, `<ModalHeader>`, `<ModalBody>`, `<ModalFooter>`, `<Textarea>` (Lý do từ chối).
 
 ## Architecture
 - **Payment Lifecycle**: `unpaid` -> `proof_uploaded` -> `pending_verification` -> `paid` / `rejected`.

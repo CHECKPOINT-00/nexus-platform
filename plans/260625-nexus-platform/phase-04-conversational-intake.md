@@ -39,6 +39,12 @@
   - **Scroll Behavior & Reduced Motion (Rule 18)**: Luồng chat tự động cuộn xuống dưới (scroll-to-bottom) khi có tin nhắn mới sử dụng `scroll-behavior: smooth`, tự động fallback về `scroll-behavior: auto` khi người dùng bật chế độ `prefers-reduced-motion` của hệ thống.
   - **Responsive Layout for Sidebar Progress**: Trên thiết bị di động, thanh tiến trình sidebar (bên trái) sẽ tự động ẩn và chuyển thành một thanh tiến trình ngang thu nhỏ (horizontal stepper/progress bar) ở trên cùng của trang chat để tối ưu diện tích hiển thị bong bóng chat.
 
+## Màn hình & UX Components
+- **Màn hình Đăng ký Dự án & Intake hội thoại**
+  - **Đường dẫn (Route)**: `/dashboard/intake`
+  - **Mục tiêu UX chính**: Hướng dẫn sinh viên điền thông tin dự án từng bước qua trải nghiệm chat có cấu trúc kết hợp điền form tự động và xác thực tài liệu.
+  - **Các Component HeroUI**: `<Card>`, `<CardBody>`, `<CardHeader>`, `<Textarea>`, `<Button>`, `<CircularProgress>` (Thanh tiến trình stepper), `<Input>` (Google Drive input), `<Select>`, `<SelectItem>`.
+  - **Ngăn kéo (Drawer) Thanh toán (khi case ở trạng thái unpaid)**: `<Drawer>`, `<DrawerContent>`, `<DrawerHeader>`, `<DrawerBody>`, `<DrawerFooter>`, `<Button>` (Tải ảnh chụp giao dịch).
 
 ## Architecture
 - **Frontend Stepper**: State-machine client-side React + Drive Link Pattern Regex Validator.

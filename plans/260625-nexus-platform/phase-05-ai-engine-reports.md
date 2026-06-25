@@ -36,6 +36,11 @@
   - **Design for Trust (Rule 11)**: Hiển thị một banner tuyên bố trách nhiệm rõ ràng ở đầu và cuối báo cáo nháp/chính thức: *"Phản tích này được thực hiện dựa trên tiêu chí Checkpoint. Kết quả cuối cùng vẫn cần sự thảo luận và hướng dẫn từ supporter của bạn để tối ưu."*
   - **Report Card Layout**: Mỗi lỗi phát hiện (Finding) được render thành 1 card riêng biệt, phân loại theo độ nghiêm trọng (ví dụ: Màu cam nhẹ cho 'Thiếu thông tin', Màu vàng nhạt cho 'Chưa rõ ràng').
 
+## Màn hình & UX Components
+- **Màn hình Supporter Review nháp báo cáo của AI**
+  - **Đường dẫn (Route)**: `/supporter/case/[id]/review`
+  - **Mục tiêu UX chính**: Hỗ trợ Supporter kiểm duyệt nhanh báo cáo do AI tự động tạo nháp, thực hiện chỉnh sửa trực tiếp nội dung trước khi chính thức phê duyệt gửi cho sinh viên.
+  - **Các Component HeroUI**: `<Card>`, `<CardBody>`, `<CardHeader>`, `<Textarea>`, `<Button>`, `<Chip>` (Hiển thị các tag cảnh báo độ nghiêm trọng), `<Accordion>`, `<AccordionItem>` (Thu gọn/mở rộng chi tiết giải thích).
 
 ## Architecture
 - **Provider**: OpenAI API (`@ai-sdk/openai`) & Gemini API (`@ai-sdk/google`) qua Vercel AI SDK.

@@ -47,6 +47,23 @@
   - **Keyboard Focus States (Rule 18)**: Mọi phần tử tương tác (button, input, tab, select) phải hiển thị đường viền nổi bật (focus ring màu Accent) khi được định vị bằng bàn phím (sử dụng tiện ích `focus-visible` đã tích hợp ở globals.css) nhằm đáp ứng tiêu chuẩn tiếp cận WCAG.
   - **No Empty Space Placeholder (Rule 16)**: Đối với timeline, nếu chưa có hoạt động nào, hoặc đối với tab báo cáo nếu AI chưa phân tích xong, luôn hiển thị Empty State mô tả chi tiết: trạng thái hiện tại là gì, lý do và gợi ý hành động tiếp theo của người dùng (ví dụ: *"Báo cáo phản biện đang được khởi tạo bởi AI, vui lòng đợi trong giây lát..."*).
 
+## Màn hình & UX Components
+- **Màn hình User Dashboard (Trang chủ Sinh viên)**
+  - **Đường dẫn (Route)**: `/dashboard`
+  - **Mục tiêu UX chính**: Quản lý danh sách case của nhóm, trạng thái case (Unpaid, Paid, Auditing, Done) và thao tác tạo dự án mới nhanh.
+  - **Các Component HeroUI**: `<Table>`, `<TableHeader>`, `<TableColumn>`, `<TableBody>`, `<TableRow>`, `<TableCell>`, `<Chip>` (Hiển thị trạng thái), `<Button>` (Tạo dự án).
+- **Màn hình Case Workspace (Chi tiết dự án - Sinh viên và Supporter)**
+  - **Đường dẫn (Route)**: `/dashboard/case/[id]`
+  - **Mục tiêu UX chính**: Hiển thị dòng thời gian, xem tài liệu nộp, nhận xét của AI/Supporter, phản hồi làm rõ và trao đổi thảo luận.
+  - **Các Component HeroUI**: `<Tabs>`, `<Tab>` (Tách biệt dữ liệu đầu vào, kết quả phản biện và thảo luận), `<Card>`, `<CardBody>`, `<Accordion>`, `<AccordionItem>`, `<Select>`, `<SelectItem>` (Chọn phiên bản nộp), `<Textarea>`, `<Button>`, `<Chip>`, `<Avatar>`.
+- **Màn hình Supporter Queue (Hàng chờ Supporter)**
+  - **Đường dẫn (Route)**: `/supporter`
+  - **Mục tiêu UX chính**: Liệt kê các case được assign, quản lý thời gian phản hồi SLA, truy cập nhanh review báo cáo.
+  - **Các Component HeroUI**: `<Table>`, `<TableHeader>`, `<TableColumn>`, `<TableBody>`, `<TableRow>`, `<TableCell>`, `<Chip>` (Trạng thái/SLA), `<Button>`.
+- **Màn hình Admin Console (Điều phối và Quản trị)**
+  - **Đường dẫn (Route)**: `/admin`
+  - **Mục tiêu UX chính**: Xem toàn bộ các case trong hệ thống, phân công supporter phụ trách nhanh chóng.
+  - **Các Component HeroUI**: `<Table>`, `<TableHeader>`, `<TableColumn>`, `<TableBody>`, `<TableRow>`, `<TableCell>`, `<Select>`, `<SelectItem>` (Gán supporter).
 
 ## Architecture
 - **State Management**: TanStack Query (React Query) v5.
