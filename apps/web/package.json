@@ -15,6 +15,7 @@
     "@heroui/styles": "^3.0.0",
     "@tanstack/react-query": "^5.90.6",
     "@tanstack/react-virtual": "^3.13.13",
+    "axios": "^1.18.1",
     "better-auth": "^1.6.20",
     "dotenv": "^17.2.3",
     "next": "16.2.0",
