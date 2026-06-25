@@ -18,83 +18,83 @@
   .light,
   [data-theme="light"] {
     /* ------------------------------------------------------------------------
-       [ACTIVE] OPTION 2: VIBRANT BRAND HIGHLIGHTS (Nền đen/trắng, màu nổi bật)
+       [ACTIVE] OPTION 1: CALM UI GOOGLE-STYLE (Màu nền dịu nhẹ, Accent Cam Google)
        ------------------------------------------------------------------------ */
-    --background: #ffffff; /* Trắng tinh khiết */
-    --foreground: #000000; /* Đen tuyền */
+    --background: #f8f9fa; /* Xám nhạt Google */
+    --foreground: #1f2937; /* Slate-800 */
     
     --surface: #ffffff; /* Card background */
-    --surface-secondary: #f3f4f6; /* Slate-100 */
-    --surface-tertiary: #e5e7eb; /* Slate-200 */
-    --overlay: #ffffff;
-    
-    --muted: #4b5563; /* Slate-600 */
-    --border: #e5e7eb; /* Slate-200 */
-    --separator: #f3f4f6; /* Slate-100 */
-    
-    /* Primary Accent Color (Blue #0b409e) */
-    --accent: #0b409e; 
-    --accent-foreground: #ffffff;
-    
-    /* Form fields */
-    --field-background: #ffffff;
-    --field-border: #e5e7eb;
-    --field-radius: 0.375rem;
-    
-    /* Success Color (Green #22ad46) */
-    --success: #22ad46;
-    --success-foreground: #ffffff;
-    
-    /* Warning Color (Orange #f36f21) */
-    --warning: #f36f21;
-    --warning-foreground: #ffffff;
-    
-    /* Danger Color (Red) */
-    --danger: #d93025;
-    --danger-foreground: #ffffff;
-
-    /* Spacing & border */
-    --radius: 0.375rem;
-    --border-width: 1px;
-
-    /* Shadows */
-    --surface-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-
-    /* ------------------------------------------------------------------------
-       [BACKUP] OPTION 1: CALM UI GOOGLE-STYLE (Bảng màu dịu nhẹ, chuyên nghiệp)
-       Để sử dụng: comment phần Option 2 ở trên và uncomment phần này
-       ------------------------------------------------------------------------
-    --background: #f8f9fa; 
-    --foreground: #1f2937; 
-    
-    --surface: #ffffff; 
     --surface-secondary: #f1f3f4;
     --surface-tertiary: #e8eaed;
     --overlay: #ffffff;
     
-    --muted: #5f6368; 
+    --muted: #5f6368; /* Slate-500 equivalent */
     --border: #dadce0;
     --separator: #e8eaed;
     
-    --accent: #1a73e8; 
+    /* Primary Accent Color (Orange Google News #e37400) */
+    --accent: #e37400; 
     --accent-foreground: #ffffff;
     
+    /* Form fields */
     --field-background: #ffffff;
     --field-border: #dadce0;
     --field-radius: 0.375rem;
     
+    /* Success Color (Google Green #137333) */
     --success: #137333;
     --success-foreground: #ffffff;
-    --warning: #b06000;
+    
+    /* Warning Color (Google Amber #f9ab00) */
+    --warning: #f9ab00;
     --warning-foreground: #ffffff;
+    
+    /* Danger Color (Google Red #c5221f) */
     --danger: #c5221f;
+    --danger-foreground: #ffffff;
+    
+    /* General spacing & border */
+    --radius: 0.375rem;
+    --border-width: 1px;
+    
+    /* Flat Design Shadows (Calm UI) */
+    --surface-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.05);
+    --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    /* ------------------------------------------------------------------------
+       [BACKUP] OPTION 2: VIBRANT BRAND HIGHLIGHTS (Nền đen/trắng, màu nổi bật)
+       Để sử dụng: comment phần Option 1 ở trên và uncomment phần này
+       ------------------------------------------------------------------------
+    --background: #ffffff; 
+    --foreground: #000000; 
+    
+    --surface: #ffffff; 
+    --surface-secondary: #f3f4f6; 
+    --surface-tertiary: #e5e7eb; 
+    --overlay: #ffffff;
+    
+    --muted: #4b5563; 
+    --border: #e5e7eb; 
+    --separator: #f3f4f6; 
+    
+    --accent: #0b409e; 
+    --accent-foreground: #ffffff;
+    
+    --field-background: #ffffff;
+    --field-border: #e5e7eb;
+    --field-radius: 0.375rem;
+    
+    --success: #22ad46;
+    --success-foreground: #ffffff;
+    --warning: #f36f21;
+    --warning-foreground: #ffffff;
+    --danger: #d93025;
     --danger-foreground: #ffffff;
     
     --radius: 0.375rem;
     --border-width: 1px;
     
-    --surface-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.05);
+    --surface-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     ------------------------------------------------------------------------ */
   }
@@ -102,47 +102,12 @@
   .dark,
   [data-theme="dark"] {
     /* ------------------------------------------------------------------------
-       [ACTIVE] OPTION 2: VIBRANT BRAND HIGHLIGHTS - DARK MODE
+       [ACTIVE] OPTION 1: CALM UI GOOGLE-STYLE - DARK MODE (Accent Cam Sáng)
        ------------------------------------------------------------------------ */
-    --background: #000000; /* Đen tuyền */
-    --foreground: #ffffff; /* Trắng tinh khiết */
+    --background: #121212; /* Xám đậm tối giản */
+    --foreground: #e8eaed; /* Soft white */
     
-    --surface: #121212; /* Xám đậm card */
-    --surface-secondary: #1a1a1a;
-    --surface-tertiary: #262626;
-    --overlay: #121212;
-    
-    --muted: #9ca3af; /* Slate-400 */
-    --border: #262626;
-    --separator: #1a1a1a;
-    
-    /* Brighter Accent for dark contrast */
-    --accent: #3b82f6; 
-    --accent-foreground: #ffffff;
-    
-    /* Form fields */
-    --field-background: #121212;
-    --field-border: #262626;
-    
-    /* Brighter status colors for contrast */
-    --success: #4ade80;
-    --success-foreground: #000000;
-    --warning: #fb923c;
-    --warning-foreground: #000000;
-    --danger: #f87171;
-    --danger-foreground: #000000;
-    
-    --surface-shadow: none;
-    --field-shadow: none;
-
-    /* ------------------------------------------------------------------------
-       [BACKUP] OPTION 1: CALM UI GOOGLE-STYLE - DARK MODE
-       Để sử dụng: comment phần Option 2 ở trên và uncomment phần này
-       ------------------------------------------------------------------------
-    --background: #121212; 
-    --foreground: #e8eaed; 
-    
-    --surface: #1e1e1e; 
+    --surface: #1e1e1e; /* Lighter container background */
     --surface-secondary: #2d2f31;
     --surface-tertiary: #303134;
     --overlay: #1e1e1e;
@@ -151,18 +116,54 @@
     --border: #3c4043;
     --separator: #2d3134;
     
-    --accent: #8ab4f8; 
+    /* Brighter Orange for dark contrast */
+    --accent: #ffb066; 
     --accent-foreground: #121212;
     
+    /* Form fields */
     --field-background: #1e1e1e;
     --field-border: #3c4043;
     
+    /* Status Colors in Dark Mode */
     --success: #81c995;
     --success-foreground: #121212;
     --warning: #fdd663;
     --warning-foreground: #121212;
     --danger: #f28b82;
     --danger-foreground: #121212;
+    
+    /* Shadows - Disabled/flat in Dark Mode */
+    --surface-shadow: none;
+    --field-shadow: none;
+
+    /* ------------------------------------------------------------------------
+       [BACKUP] OPTION 2: VIBRANT BRAND HIGHLIGHTS - DARK MODE
+       Để sử dụng: comment phần Option 1 ở trên và uncomment phần này
+       ------------------------------------------------------------------------
+    --background: #000000; 
+    --foreground: #ffffff; 
+    
+    --surface: #121212; 
+    --surface-secondary: #1a1a1a;
+    --surface-tertiary: #262626;
+    --overlay: #121212;
+    
+    --muted: #9ca3af; 
+    --border: #262626;
+    --separator: #1a1a1a;
+    
+    --accent: #3b82f6; 
+    --accent-foreground: #ffffff;
+    
+    --field-background: #121212;
+    --field-border: #262626;
+    
+    --success: #4ade80;
+    --success-foreground: #000000;
+    --warning: #fb923c;
+    --warning-foreground: #000000;
+    --danger: #f87171;
+    --danger-foreground: #000000;
     
     --surface-shadow: none;
     --field-shadow: none;
