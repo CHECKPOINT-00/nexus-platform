@@ -40,3 +40,4 @@ yarn-error.log*
 .omo
 # heroui-agents-md
 .heroui-docs/
+__pycache__

@@ -59,4 +59,4 @@ npm run prisma:migrate
 
 ## NOTES
 - `apps/web/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
-- `agents/rules` exists but is empty right now.
+- `.agents/rules` exists but is empty right now.
