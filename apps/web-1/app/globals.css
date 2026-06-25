@@ -1,26 +1,113 @@
 @import "tailwindcss";
+@import "@heroui/styles";
+
+
+@theme {
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-brand-subtle: var(--color-brand-subtle);
+
+  --color-accent-warm: var(--color-accent-warm);
+  --color-accent-warm-hover: var(--color-accent-warm-hover);
+  --color-accent-warm-soft: var(--color-accent-warm-soft);
+
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+
+  --color-bg-app: var(--color-bg);
+  --color-surface-app: var(--color-surface);
+  --color-surface-soft: var(--color-surface-soft);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-border-app: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-text-app: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
+
+  --font-heading: var(--font-space-grotesk), sans-serif;
+  --font-body: var(--font-dm-sans), sans-serif;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand — Teal */
+  --color-brand: #0D9488;
+  --color-brand-hover: #0F766E;
+  --color-brand-soft: #CCFBF1;
+  --color-brand-subtle: #F0FDFA;
+
+  /* Warm Accent — Orange */
+  --color-accent-warm: #F97316;
+  --color-accent-warm-hover: #EA580C;
+  --color-accent-warm-soft: #FFEDD5;
+
+  /* Status */
+  --color-success: #10B981;
+  --color-success-soft: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-soft: #FEF3C7;
+  --color-danger: #EF4444;
+  --color-danger-soft: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-soft: #DBEAFE;
+
+  /* Neutral */
+  --color-bg: #FBFAF7;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #F8FAFC;
+  --color-surface-muted: #F1F5F9;
+  --color-border: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-text: #1F2937;
+  --color-text-muted: #64748B;
+  --color-text-subtle: #94A3B8;
+
+  /* Base next-themes backgrounds for compatibility */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --color-bg: #0F172A;
+  --color-surface: #111827;
+  --color-surface-soft: #1E293B;
+  --color-surface-muted: #334155;
+  --color-border: #334155;
+  --color-border-strong: #475569;
+  --color-text: #F8FAFC;
+  --color-text-muted: #CBD5E1;
+  --color-text-subtle: #94A3B8;
+
+  --color-brand: #14B8A6;
+  --color-brand-hover: #2DD4BF;
+  --color-brand-soft: rgba(45, 212, 191, 0.16);
+  --color-brand-subtle: rgba(20, 184, 166, 0.10);
+
+  /* Status Soft Colors for Dark Theme */
+  --color-success-soft: rgba(16, 185, 129, 0.15);
+  --color-warning-soft: rgba(245, 158, 11, 0.15);
+  --color-danger-soft: rgba(239, 68, 68, 0.15);
+  --color-info-soft: rgba(59, 130, 246, 0.15);
+
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Custom global styles */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-dm-sans), sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 600;
 }

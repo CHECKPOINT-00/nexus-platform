@@ -42,3 +42,4 @@ yarn-error.log*
 .heroui-docs/
 __pycache__
 apps-web-repomix.xml
+cookie.txt
