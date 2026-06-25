@@ -1,0 +1,35 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { CaseMessage } from "@/types";
+
+export function useCaseChat(caseId: string) {
+  const queryClient = useQueryClient();
+
+  const messagesQuery = useQuery<CaseMessage[]>({
+    queryKey: ["case-messages", caseId],
+    queryFn: async () => {
+      const response = await apiClient.get(`/cases/${caseId}/messages`);
+      return response.data;
+    },
+    enabled: !!caseId,
+    refetchInterval: 5000, // Poll every 5 seconds for chat messages
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const response = await apiClient.post(`/cases/${caseId}/messages`, { content });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case-messages", caseId] });
+    },
+  });
+
+  return {
+    messages: messagesQuery.data || [],
+    isLoading: messagesQuery.isLoading,
+    error: messagesQuery.error,
+    sendMessage: sendMessageMutation.mutateAsync,
+    isSending: sendMessageMutation.isPending,
+  };
+}
