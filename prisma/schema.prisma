@@ -25,6 +25,15 @@ model User {
   accounts           Account[]
   two_factors        TwoFactor[]
 
+  // --- Business Relations ---
+  owned_cases        Case[]        @relation("OwnerCases")
+  assigned_cases     Case[]        @relation("AssignedCases")
+  case_memberships   CaseMember[]  @relation("CaseMembers")
+  approved_reports   Report[]      @relation("ReportApprover")
+  verified_payments  Payment[]     @relation("PaymentVerifier")
+  sent_messages      CaseMessage[] @relation("MessageSender")
+  acted_events       CaseEvent[]   @relation("EventActor")
+
   @@unique([email])
   @@unique([username])
   @@map("users")
@@ -90,4 +99,228 @@ model TwoFactor {
   @@index([secret])
   @@index([user_id])
   @@map("two_factors")
+}
+
+// ==========================================
+// BUSINESS MODULES MODELS
+// ==========================================
+
+model ServicePackage {
+  id          String   @id @default(uuid())
+  name        String
+  price       Int
+  features    Json
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  cases       Case[]
+  payments    Payment[]
+
+  @@map("service_packages")
+}
+
+model Case {
+  id                              String   @id @default(uuid())
+  case_code                       String   @unique
+  group_no                        String?
+  owner_auth_user_id              String
+  team_name                       String?
+  school                          String?
+  course_context                  String?
+  current_checkpoint              String?
+  package_id                      String?
+  assigned_supporter_auth_user_id String?
+  user_facing_stage               String   @default("intake")
+  internal_status                 String   @default("unassigned")
+  payment_status                  String   @default("unpaid")
+  deadline                        DateTime?
+  created_at                      DateTime @default(now())
+  updated_at                      DateTime @updatedAt
+
+  owner              User            @relation("OwnerCases", fields: [owner_auth_user_id], references: [id])
+  assigned_supporter User?           @relation("AssignedCases", fields: [assigned_supporter_auth_user_id], references: [id])
+  package            ServicePackage? @relation(fields: [package_id], references: [id])
+  
+  members            CaseMember[]
+  checkpoints        Checkpoint[]
+  lifecycle_units    LifecycleUnit[]
+  reports            Report[]
+  payments           Payment[]
+  messages           CaseMessage[]
+  events             CaseEvent[]
+  ai_jobs            AiJob[]
+
+  @@index([owner_auth_user_id])
+  @@index([assigned_supporter_auth_user_id])
+  @@index([package_id])
+  @@map("cases")
+}
+
+model CaseMember {
+  id            String   @id @default(uuid())
+  case_id       String
+  auth_user_id  String
+  role_in_team  String?
+  access_level  String   @default("member")
+  created_at    DateTime @default(now())
+
+  case          Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  user          User     @relation("CaseMembers", fields: [auth_user_id], references: [id])
+
+  @@index([case_id])
+  @@index([auth_user_id])
+  @@map("case_members")
+}
+
+model Checkpoint {
+  id                   String   @id @default(uuid())
+  case_id              String
+  checkpoint_code      String
+  checkpoint_status    String   @default("draft")
+  latest_version_no    Int      @default(1)
+  latest_assessment_no Int      @default(0)
+  drive_folder_id      String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  case                 Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  lifecycle_units      LifecycleUnit[]
+  reports              Report[]
+
+  @@index([case_id])
+  @@map("checkpoints")
+}
+
+model LifecycleUnit {
+  id                 String   @id @default(uuid())
+  case_id            String
+  checkpoint_id      String
+  unit_code          String
+  unit_type          String
+  version_no         Int      @default(1)
+  assessment_no      Int      @default(0)
+  linked_version_no  Int?
+  drive_folder_id    String?
+  content            String?  @db.Text
+  file_url           String?
+  created_at         DateTime @default(now())
+
+  case               Case       @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  checkpoint         Checkpoint @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
+  reports            Report[]
+
+  @@index([case_id])
+  @@index([checkpoint_id])
+  @@map("lifecycle_units")
+}
+
+model Report {
+  id                        String    @id @default(uuid())
+  case_id                   String
+  checkpoint_id             String
+  lifecycle_unit_id         String?
+  audit_round_id            String?
+  report_type               String
+  content_md                String    @db.Text
+  status                    String    @default("draft")
+  created_by                String
+  approved_by_auth_user_id  String?
+  sent_at                   DateTime?
+  document_id               String?
+  created_at                DateTime  @default(now())
+  updated_at                DateTime  @updatedAt
+
+  case               Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  checkpoint         Checkpoint     @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
+  lifecycle_unit     LifecycleUnit? @relation(fields: [lifecycle_unit_id], references: [id])
+  approved_by        User?          @relation("ReportApprover", fields: [approved_by_auth_user_id], references: [id])
+  events             CaseEvent[]
+
+  @@index([case_id])
+  @@index([checkpoint_id])
+  @@index([lifecycle_unit_id])
+  @@index([approved_by_auth_user_id])
+  @@map("reports")
+}
+
+model Payment {
+  id                       String    @id @default(uuid())
+  case_id                  String
+  package_id               String
+  amount                   Int
+  status                   String    @default("pending_verification")
+  proof_file_url           String?
+  rejection_reason         String?
+  verified_by_auth_user_id String?
+  verified_at              DateTime?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+
+  case        Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  package     ServicePackage @relation(fields: [package_id], references: [id])
+  verified_by User?          @relation("PaymentVerifier", fields: [verified_by_auth_user_id], references: [id])
+  events      CaseEvent[]
+
+  @@index([case_id])
+  @@index([package_id])
+  @@index([verified_by_auth_user_id])
+  @@map("payments")
+}
+
+model CaseMessage {
+  id                   String   @id @default(uuid())
+  case_id              String
+  sender_auth_user_id  String
+  sender_role_snapshot String?
+  content              String   @db.Text
+  created_at           DateTime @default(now())
+
+  case                 Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  sender               User     @relation("MessageSender", fields: [sender_auth_user_id], references: [id])
+
+  @@index([case_id])
+  @@index([sender_auth_user_id])
+  @@map("case_messages")
+}
+
+model CaseEvent {
+  id                 String   @id @default(uuid())
+  case_id            String
+  event_type         String
+  actor_auth_user_id String
+  document_id        String?
+  report_id          String?
+  audit_round_id     String?
+  payment_id         String?
+  meeting_id         String?
+  metadata_json      Json?
+  created_at         DateTime @default(now())
+
+  case                 Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  actor                User     @relation("EventActor", fields: [actor_auth_user_id], references: [id])
+  report               Report?  @relation(fields: [report_id], references: [id])
+  payment              Payment? @relation(fields: [payment_id], references: [id])
+
+  @@index([case_id])
+  @@index([actor_auth_user_id])
+  @@index([report_id])
+  @@index([payment_id])
+  @@map("case_events")
+}
+
+model AiJob {
+  id            String   @id @default(uuid())
+  case_id       String
+  job_type      String
+  status        String   @default("pending")
+  input_json    Json?
+  output_json   Json?
+  attempt_count Int      @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  case          Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@index([case_id])
+  @@map("ai_jobs")
 }
