@@ -368,7 +368,8 @@ Dùng HeroUI theo các rule sau:
 * Tabs: dùng khi các phần ngang cấp nhau
 * Stepper: dùng cho quy trình nhiều bước
 * Textarea: dùng cho câu trả lời dài
-* Toast: dùng cho phản hồi ngắn sau hành động
+* Alert: dùng để đẩy các lưu ý nổi bật lên (ví dụ: cảnh báo thanh toán, lỗi form, thông báo quan trọng)
+* Toast: dùng cho các notification, phản hồi nhanh sau hành động (ví dụ: đã lưu bản nháp, cập nhật thành công)
 * Table: dùng cho quản lý nhiều case
 
 Không lạm dụng component chỉ vì thư viện có sẵn.
