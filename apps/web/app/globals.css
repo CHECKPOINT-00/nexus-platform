@@ -10,11 +10,18 @@
 }
 
 @layer base {
+  /* ==========================================================================
+     CHỌN THEME/COLOR OPTION BẰNG CÁCH BẬT/TẮT CÁC BIẾN DƯỚI ĐÂY
+     ========================================================================== */
+
   :root,
   .light,
   [data-theme="light"] {
-    --background: #ffffff; /* Pure white */
-    --foreground: #000000; /* Pure black */
+    /* ------------------------------------------------------------------------
+       [ACTIVE] OPTION 2: VIBRANT BRAND HIGHLIGHTS (Nền đen/trắng, màu nổi bật)
+       ------------------------------------------------------------------------ */
+    --background: #ffffff; /* Trắng tinh khiết */
+    --foreground: #000000; /* Đen tuyền */
     
     --surface: #ffffff; /* Card background */
     --surface-secondary: #f3f4f6; /* Slate-100 */
@@ -45,22 +52,62 @@
     /* Danger Color (Red) */
     --danger: #d93025;
     --danger-foreground: #ffffff;
+
+    /* Spacing & border */
+    --radius: 0.375rem;
+    --border-width: 1px;
+
+    /* Shadows */
+    --surface-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    /* ------------------------------------------------------------------------
+       [BACKUP] OPTION 1: CALM UI GOOGLE-STYLE (Bảng màu dịu nhẹ, chuyên nghiệp)
+       Để sử dụng: comment phần Option 2 ở trên và uncomment phần này
+       ------------------------------------------------------------------------
+    --background: #f8f9fa; 
+    --foreground: #1f2937; 
     
-    /* General spacing & border */
+    --surface: #ffffff; 
+    --surface-secondary: #f1f3f4;
+    --surface-tertiary: #e8eaed;
+    --overlay: #ffffff;
+    
+    --muted: #5f6368; 
+    --border: #dadce0;
+    --separator: #e8eaed;
+    
+    --accent: #1a73e8; 
+    --accent-foreground: #ffffff;
+    
+    --field-background: #ffffff;
+    --field-border: #dadce0;
+    --field-radius: 0.375rem;
+    
+    --success: #137333;
+    --success-foreground: #ffffff;
+    --warning: #b06000;
+    --warning-foreground: #ffffff;
+    --danger: #c5221f;
+    --danger-foreground: #ffffff;
+    
     --radius: 0.375rem;
     --border-width: 1px;
     
-    /* Flat Design Shadows (Calm UI) */
-    --surface-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --surface-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.05);
     --field-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    ------------------------------------------------------------------------ */
   }
 
   .dark,
   [data-theme="dark"] {
-    --background: #000000; /* Pure black */
-    --foreground: #ffffff; /* Pure white */
+    /* ------------------------------------------------------------------------
+       [ACTIVE] OPTION 2: VIBRANT BRAND HIGHLIGHTS - DARK MODE
+       ------------------------------------------------------------------------ */
+    --background: #000000; /* Đen tuyền */
+    --foreground: #ffffff; /* Trắng tinh khiết */
     
-    --surface: #121212; /* Very dark grey card */
+    --surface: #121212; /* Xám đậm card */
     --surface-secondary: #1a1a1a;
     --surface-tertiary: #262626;
     --overlay: #121212;
@@ -69,7 +116,7 @@
     --border: #262626;
     --separator: #1a1a1a;
     
-    /* Brighter Accent Color for Dark mode contrast */
+    /* Brighter Accent for dark contrast */
     --accent: #3b82f6; 
     --accent-foreground: #ffffff;
     
@@ -77,7 +124,7 @@
     --field-background: #121212;
     --field-border: #262626;
     
-    /* Brighter status colors for Dark mode contrast */
+    /* Brighter status colors for contrast */
     --success: #4ade80;
     --success-foreground: #000000;
     --warning: #fb923c;
@@ -85,9 +132,41 @@
     --danger: #f87171;
     --danger-foreground: #000000;
     
-    /* Shadows - Disabled/flat in Dark Mode */
     --surface-shadow: none;
     --field-shadow: none;
+
+    /* ------------------------------------------------------------------------
+       [BACKUP] OPTION 1: CALM UI GOOGLE-STYLE - DARK MODE
+       Để sử dụng: comment phần Option 2 ở trên và uncomment phần này
+       ------------------------------------------------------------------------
+    --background: #121212; 
+    --foreground: #e8eaed; 
+    
+    --surface: #1e1e1e; 
+    --surface-secondary: #2d2f31;
+    --surface-tertiary: #303134;
+    --overlay: #1e1e1e;
+    
+    --muted: #9aa0a6;
+    --border: #3c4043;
+    --separator: #2d3134;
+    
+    --accent: #8ab4f8; 
+    --accent-foreground: #121212;
+    
+    --field-background: #1e1e1e;
+    --field-border: #3c4043;
+    
+    --success: #81c995;
+    --success-foreground: #121212;
+    --warning: #fdd663;
+    --warning-foreground: #121212;
+    --danger: #f28b82;
+    --danger-foreground: #121212;
+    
+    --surface-shadow: none;
+    --field-shadow: none;
+    ------------------------------------------------------------------------ */
   }
 
   /* Map font-display to headings by default */
