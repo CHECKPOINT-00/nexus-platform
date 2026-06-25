@@ -60,3 +60,27 @@ npm run prisma:migrate
 ## NOTES
 - `apps/web-1/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
 - `.agents/rules` exists but is empty right now.
+
+## UI-UX-PRO-MAX USAGE RULE FOR NEXUS
+ui-ux-pro-max is available as a UI/UX reference skill. It is not the source of truth.
+
+Before building a major frontend screen, optionally query ui-ux-pro-max for:
+- visual direction
+- layout pattern
+- color/typography suggestions
+- UX anti-patterns
+- Next.js/Tailwind implementation guidance
+
+Then filter all recommendations through Nexus Frontend UI/UX Design Rules v2.
+
+Never blindly apply a recommendation just because the skill returned it.
+Never let the skill override Nexus-specific requirements:
+- AI output must be explainable.
+- Trust over magic.
+- Status must be visible.
+- Student input, AI output, and supporter/admin decision must be separated.
+- UI must support revision/version workflow.
+- Student screens must not feel like admin dashboards.
+- Landing can be more creative; workspace/admin must be clearer and more restrained.
+
+Use the skill as inspiration and validation, not as a rigid generator.

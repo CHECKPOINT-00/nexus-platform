@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Theme System - Trực quan hóa thiết kế</title>
+  <!-- Google Fonts: Space Grotesk & DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables based on color-template.md */
+    :root {
+      --color-brand: #0D9488;
+      --color-brand-hover: #0F766E;
+      --color-brand-soft: #CCFBF1;
+      --color-brand-subtle: #F0FDFA;
+
+      --color-accent-warm: #F97316;
+      --color-accent-warm-hover: #EA580C;
+      --color-accent-warm-soft: #FFEDD5;
+
+      --color-success: #10B981;
+      --color-success-soft: #D1FAE5;
+
+      --color-warning: #F59E0B;
+      --color-warning-soft: #FEF3C7;
+
+      --color-danger: #EF4444;
+      --color-danger-soft: #FEE2E2;
+
+      --color-info: #3B82F6;
+      --color-info-soft: #DBEAFE;
+
+      --color-bg: #FBFAF7; /* Warm off-white */
+      --color-surface: #FFFFFF;
+      --color-surface-soft: #F8FAFC;
+      --color-surface-muted: #F1F5F9;
+
+      --color-border: #E2E8F0;
+      --color-border-strong: #CBD5E1;
+
+      --color-text: #1F2937;
+      --color-text-muted: #64748B;
+      --color-text-subtle: #94A3B8;
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(13, 148, 136, 0.05), 0 4px 6px -2px rgba(13, 148, 136, 0.03);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-full: 9999px;
+      
+      --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #0F172A;
+      --color-surface: #111827;
+      --color-surface-soft: #1E293B;
+      --color-surface-muted: #334155;
+
+      --color-border: #334155;
+      --color-border-strong: #475569;
+
+      --color-text: #F8FAFC;
+      --color-text-muted: #CBD5E1;
+      --color-text-subtle: #94A3B8;
+
+      --color-brand: #14B8A6;
+      --color-brand-hover: #2DD4BF;
+      --color-brand-soft: rgba(45, 212, 191, 0.16);
+      --color-brand-subtle: rgba(20, 184, 166, 0.10);
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Reset & Base Elements */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      transition: background-color var(--transition), color var(--transition);
+      padding: 40px 16px;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Header styling */
+    .top-header {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 768px) {
+      .top-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .brand-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-icon {
+      background: var(--color-brand-soft);
+      color: var(--color-brand);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .brand-meta h1 {
+      font-size: 1.6rem;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-meta p {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+    }
+
+    .controls-panel {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-action-top {
+      background: var(--color-surface-soft);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all var(--transition);
+    }
+
+    .btn-action-top:hover {
+      border-color: var(--color-brand);
+      background: var(--color-brand-subtle);
+      color: var(--color-brand);
+    }
+
+    /* Grids & Cards Layout */
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    @media (min-width: 1024px) {
+      .row-half {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .section-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 12px;
+      color: var(--color-text);
+    }
+
+    .section-title svg {
+      width: 22px;
+      height: 22px;
+      color: var(--color-brand);
+    }
+
+    /* Swatch Grid */
+    .swatch-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .swatch-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      font-weight: 700;
+    }
+
+    .swatches-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .swatch {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--color-surface);
+      transition: transform var(--transition), box-shadow var(--transition);
+      position: relative;
+    }
+
+    .swatch:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .swatch-color {
+      height: 70px;
+      width: 100%;
+    }
+
+    .swatch-body {
+      padding: 10px;
+    }
+
+    .swatch-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--color-text);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .swatch-var {
+      font-size: 0.65rem;
+      font-family: monospace;
+      color: var(--color-text-subtle);
+      margin-bottom: 2px;
+    }
+
+    .swatch-hex {
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: var(--color-text-muted);
+    }
+
+    .copied-indicator {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(13, 148, 136, 0.9);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
+    }
+
+    .swatch.copied .copied-indicator {
+      opacity: 1;
+    }
+
+    /* Buttons visual */
+    .button-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .button-box {
+      border: 1px dashed var(--color-border);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .button-box span {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+    }
+
+    /* Actual System Buttons styled with custom variable fallback */
+    .btn {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid transparent;
+      outline: none;
+      width: 100%;
+    }
+
+    .btn:focus-visible {
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-brand {
+      background-color: var(--color-brand);
+      color: white;
+    }
+    .btn-brand:hover {
+      background-color: var(--color-brand-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-surface);
+      border-color: var(--color-border-strong);
+      color: var(--color-text);
+    }
+    .btn-secondary:hover {
+      background-color: var(--color-surface-soft);
+      border-color: var(--color-brand);
+      color: var(--color-brand);
+    }
+
+    .btn-warm {
+      background-color: var(--color-accent-warm);
+      color: white;
+    }
+    .btn-warm:hover {
+      background-color: var(--color-accent-warm-hover);
+    }
+
+    .btn-success {
+      background-color: var(--color-success);
+      color: white;
+    }
+    .btn-success:hover {
+      background-color: #059669;
+    }
+
+    .btn-danger {
+      background-color: var(--color-danger);
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: #DC2626;
+    }
+
+    .btn-pending {
+      background-color: var(--color-warning);
+      color: white;
+    }
+    .btn-pending:hover {
+      background-color: #D97706;
+    }
+
+    /* Badges visual */
+    .badges-flex {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid transparent;
+    }
+
+    /* State badge colors based on system guidelines */
+    .badge-neutral {
+      background-color: var(--color-surface-muted);
+      color: var(--color-text-muted);
+      border-color: var(--color-border);
+    }
+
+    .badge-brand {
+      background-color: var(--color-brand-soft);
+      color: var(--color-brand-hover);
+    }
+
+    .badge-warning {
+      background-color: var(--color-warning-soft);
+      color: #B45309;
+    }
+
+    .badge-success {
+      background-color: var(--color-success-soft);
+      color: #047857;
+    }
+
+    .badge-info {
+      background-color: var(--color-info-soft);
+      color: #1D4ED8;
+    }
+
+    .badge-danger {
+      background-color: var(--color-danger-soft);
+      color: #B91C1C;
+    }
+
+    /* Alerts styling */
+    .alert-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .alert {
+      display: flex;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      border-left: 4px solid transparent;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .alert svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .alert-info {
+      background-color: var(--color-info-soft);
+      border-left-color: var(--color-info);
+      color: var(--color-text);
+    }
+    .alert-info svg { color: var(--color-info); }
+
+    .alert-success {
+      background-color: var(--color-success-soft);
+      border-left-color: var(--color-success);
+      color: var(--color-text);
+    }
+    .alert-success svg { color: var(--color-success); }
+
+    .alert-warning {
+      background-color: var(--color-warning-soft);
+      border-left-color: var(--color-warning);
+      color: var(--color-text);
+    }
+    .alert-warning svg { color: var(--color-warning); }
+
+    .alert-danger {
+      background-color: var(--color-danger-soft);
+      border-left-color: var(--color-danger);
+      color: var(--color-text);
+    }
+    .alert-danger svg { color: var(--color-danger); }
+
+    /* Interactive mockups switcher tabs */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--color-border);
+      padding-bottom: 2px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .tab-btn.active {
+      color: var(--color-brand);
+      border-bottom-color: var(--color-brand);
+    }
+
+    .mockup-viewport {
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      min-height: 380px;
+      position: relative;
+      transition: all var(--transition);
+    }
+
+    .mockup-item {
+      display: none;
+      animation: fadeIn 300ms ease-out forwards;
+    }
+
+    .mockup-item.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* MOCKUP 1: Landing Page Visuals */
+    .mockup-landing {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px 0;
+    }
+
+    .badge-promo {
+      background-color: var(--color-accent-warm-soft);
+      color: var(--color-accent-warm-hover);
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      margin-bottom: 16px;
+      border: 1px solid rgba(249, 115, 22, 0.15);
+    }
+
+    .hero-title {
+      font-size: 2.2rem;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: var(--color-text);
+    }
+
+    .hero-title span {
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-title span::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background-color: var(--color-accent-warm-soft);
+      z-index: -1;
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--color-text-muted);
+      margin-bottom: 28px;
+      max-width: 550px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    /* MOCKUP 2: Student Dashboard Visuals */
+    .mockup-dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .dashboard-card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard-card-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .dashboard-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .dcard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .dcard-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .dcard-desc {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
+    .dcard-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--color-border);
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+    }
+
+    .user-avatar-teal {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-brand);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 700;
+    }
+
+    /* MOCKUP 3: Intake Flow Visuals */
+    .mockup-intake {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .stepper-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .stepper-header::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-border);
+      z-index: 1;
+    }
+
+    .step-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      z-index: 2;
+      color: var(--color-text-muted);
+    }
+
+    .step-node.active {
+      border-color: var(--color-brand);
+      background: var(--color-brand-soft);
+      color: var(--color-brand-hover);
+    }
+
+    .step-node.completed {
+      border-color: var(--color-brand);
+      background: var(--color-brand);
+      color: white;
+    }
+
+    .intake-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-desc {
+      font-size: 0.75rem;
+      font-weight: normal;
+      color: var(--color-text-muted);
+    }
+
+    .form-control {
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      transition: all var(--transition);
+      outline: none;
+      width: 100%;
+    }
+
+    .form-control:focus {
+      border-color: var(--color-brand);
+      box-shadow: 0 0 0 3px var(--color-brand-soft);
+    }
+
+    .helper-alert-box {
+      background-color: var(--color-accent-warm-soft);
+      border-left: 3px solid var(--color-accent-warm);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      color: #7A3406; /* Dark orange */
+      line-height: 1.4;
+    }
+
+    /* MOCKUP 4: Case Workspace and critique cards */
+    .mockup-workspace {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .mockup-workspace {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .workspace-submitted {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+    }
+
+    .workspace-feedback {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .critique-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .critique-card.risk { border-left-color: var(--color-danger); }
+    .critique-card.clarify { border-left-color: var(--color-warning); }
+    .critique-card.resolved { border-left-color: var(--color-success); }
+
+    .critique-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .critique-field {
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .critique-body {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      line-height: 1.4;
+    }
+
+    .critique-evidence {
+      font-size: 0.75rem;
+      background: var(--color-surface-soft);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      font-style: italic;
+      color: var(--color-text-muted);
+    }
+
+    .critique-evidence strong {
+      font-style: normal;
+      color: var(--color-text);
+    }
+
+    .critique-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* Accessibility table */
+    .a11y-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .a11y-table th, .a11y-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .a11y-table th {
+      background: var(--color-surface-muted);
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    .a11y-preview-pill {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      display: inline-block;
+      text-align: center;
+    }
+
+    /* Notification toast styling */
+    .global-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--color-text);
+      color: var(--color-bg);
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-xl);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(150%);
+      transition: transform var(--transition);
+      z-index: 9999;
+    }
+
+    .global-toast.show {
+      transform: translateY(0);
+    }
+
+    .global-toast svg {
+      width: 18px;
+      height: 18px;
+      color: var(--color-brand);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER BAR -->
+    <header class="top-header">
+      <div class="brand-logo-area">
+        <div class="brand-logo-icon">N</div>
+        <div class="brand-meta">
+          <h1>Nexus Color Theme System</h1>
+          <p>Hệ thống bảng màu thiết lập không gian hỗ trợ định hướng ý tưởng khởi nghiệp</p>
+        </div>
+      </div>
+      
+      <div class="controls-panel">
+        <!-- Toggle Light / Dark -->
+        <button class="btn-action-top" onclick="toggleTheme()" id="theme-btn">
+          <!-- Sun Icon -->
+          <svg id="sun-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display:none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- Moon Icon -->
+          <svg id="moon-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span id="theme-btn-text">Dark Mode</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- PALETTES INTERACTIVE SWATCHES -->
+    <section class="section-card">
+      <h2 class="section-title">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+        </svg>
+        Bảng màu Hệ thống tương tác (Click swatch để copy Hex)
+      </h2>
+
+      <div class="row row-half" style="gap: 24px;">
+        
+        <!-- Brand & Accents Column -->
+        <div class="swatch-group">
+          <h3 class="swatch-title">Brand Teal & Accent Orange/Amber</h3>
+          <div class="swatches-grid">
+            
+            <!-- Brand -->
+            <div class="swatch" onclick="copyColor('#0D9488', 'var(--color-brand)')">
+              <div class="swatch-color" style="background-color: #0D9488;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Teal Primary</div>
+                <div class="swatch-var">--color-brand</div>
+                <div class="swatch-hex">#0D9488</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#0F766E', 'var(--color-brand-hover)')">
+              <div class="swatch-color" style="background-color: #0F766E;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Teal Hover</div>
+                <div class="swatch-var">--brand-hover</div>
+                <div class="swatch-hex">#0F766E</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#CCFBF1', 'var(--color-brand-soft)')">
+              <div class="swatch-color" style="background-color: #CCFBF1;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Teal Soft</div>
+                <div class="swatch-var">--brand-soft</div>
+                <div class="swatch-hex">#CCFBF1</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#F0FDFA', 'var(--color-brand-subtle)')">
+              <div class="swatch-color" style="background-color: #F0FDFA;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Teal Subtle</div>
+                <div class="swatch-var">--brand-subtle</div>
+                <div class="swatch-hex">#F0FDFA</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <!-- Accent Orange -->
+            <div class="swatch" onclick="copyColor('#F97316', 'var(--color-accent-warm)')">
+              <div class="swatch-color" style="background-color: #F97316;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Orange Warm</div>
+                <div class="swatch-var">--accent-warm</div>
+                <div class="swatch-hex">#F97316</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#EA580C', 'var(--color-accent-warm-hover)')">
+              <div class="swatch-color" style="background-color: #EA580C;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Orange Hover</div>
+                <div class="swatch-var">--warm-hover</div>
+                <div class="swatch-hex">#EA580C</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#FFEDD5', 'var(--color-accent-warm-soft)')">
+              <div class="swatch-color" style="background-color: #FFEDD5;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Orange Soft</div>
+                <div class="swatch-var">--warm-soft</div>
+                <div class="swatch-hex">#FFEDD5</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <!-- Accent Amber -->
+            <div class="swatch" onclick="copyColor('#F59E0B', 'var(--color-warning)')">
+              <div class="swatch-color" style="background-color: #F59E0B;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Amber Warning</div>
+                <div class="swatch-var">--color-warning</div>
+                <div class="swatch-hex">#F59E0B</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+            
+          </div>
+        </div>
+
+        <!-- Semantic States Column -->
+        <div class="swatch-group">
+          <h3 class="swatch-title">Semantic States (Success, Warning, Danger, Info)</h3>
+          <div class="swatches-grid">
+            
+            <!-- Success Emerald -->
+            <div class="swatch" onclick="copyColor('#10B981', 'var(--color-success)')">
+              <div class="swatch-color" style="background-color: #10B981;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Emerald OK</div>
+                <div class="swatch-var">--color-success</div>
+                <div class="swatch-hex">#10B981</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#D1FAE5', 'var(--color-success-soft)')">
+              <div class="swatch-color" style="background-color: #D1FAE5;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Emerald Soft</div>
+                <div class="swatch-var">--success-soft</div>
+                <div class="swatch-hex">#D1FAE5</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <!-- Warning Amber (Soft) -->
+            <div class="swatch" onclick="copyColor('#FEF3C7', 'var(--color-warning-soft)')">
+              <div class="swatch-color" style="background-color: #FEF3C7;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Amber Soft</div>
+                <div class="swatch-var">--warning-soft</div>
+                <div class="swatch-hex">#FEF3C7</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <!-- Danger Red -->
+            <div class="swatch" onclick="copyColor('#EF4444', 'var(--color-danger)')">
+              <div class="swatch-color" style="background-color: #EF4444;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Danger Red</div>
+                <div class="swatch-var">--color-danger</div>
+                <div class="swatch-hex">#EF4444</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#FEE2E2', 'var(--color-danger-soft)')">
+              <div class="swatch-color" style="background-color: #FEE2E2;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Danger Soft</div>
+                <div class="swatch-var">--danger-soft</div>
+                <div class="swatch-hex">#FEE2E2</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <!-- Info Blue -->
+            <div class="swatch" onclick="copyColor('#3B82F6', 'var(--color-info)')">
+              <div class="swatch-color" style="background-color: #3B82F6;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Info Blue</div>
+                <div class="swatch-var">--color-info</div>
+                <div class="swatch-hex">#3B82F6</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+
+            <div class="swatch" onclick="copyColor('#DBEAFE', 'var(--color-info-soft)')">
+              <div class="swatch-color" style="background-color: #DBEAFE;"></div>
+              <div class="swatch-body">
+                <div class="swatch-name">Info Soft</div>
+                <div class="swatch-var">--info-soft</div>
+                <div class="swatch-hex">#DBEAFE</div>
+              </div>
+              <div class="copied-indicator">Copied!</div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPONENTS SHOWCASE & STYLING RULES -->
+    <div class="row row-half">
+      
+      <!-- Component Box Left: Buttons and Badges -->
+      <section class="section-card">
+        <h2 class="section-title">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+          </svg>
+          Mẫu nút & Nhãn trạng thái (Semantic UI)
+        </h2>
+
+        <div>
+          <h3 class="swatch-title" style="margin-bottom: 12px;">Quy chuẩn màu Nút nhấn (Button Rules)</h3>
+          <div class="button-showcase">
+            <div class="button-box">
+              <button class="btn btn-brand">Tiếp tục / Gửi</button>
+              <span>Teal Primary (App CTA)</span>
+            </div>
+            <div class="button-box">
+              <button class="btn btn-secondary">Quay lại</button>
+              <span>Neutral / Outline (Trợ phụ)</span>
+            </div>
+            <div class="button-box">
+              <button class="btn btn-warm">Đăng ký ngay</button>
+              <span>Orange Warm (Landing CTA)</span>
+            </div>
+            <div class="button-box">
+              <button class="btn btn-success">Duyệt bài</button>
+              <span>Emerald OK (Context hoàn tất)</span>
+            </div>
+            <div class="button-box">
+              <button class="btn btn-danger">Từ chối / Xóa</button>
+              <span>Red Danger (Hủy bỏ/Xóa)</span>
+            </div>
+            <div class="button-box">
+              <button class="btn btn-pending">Chờ xác minh</button>
+              <span>Amber Attention</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="swatch-title" style="margin-bottom: 12px;">10 nhãn trạng thái theo quy định hệ thống (Status Badges)</h3>
+          <div class="badges-flex">
+            <span class="badge badge-neutral">Bản nháp (draft)</span>
+            <span class="badge badge-brand">Đã gửi (submitted)</span>
+            <span class="badge badge-warning">Chưa thanh toán (unpaid)</span>
+            <span class="badge badge-warning">Chờ duyệt thanh toán (pending)</span>
+            <span class="badge badge-success">Đã thanh toán (paid)</span>
+            <span class="badge badge-brand">Đang phản biện (auditing)</span>
+            <span class="badge badge-warning">Cần làm rõ (needClarification)</span>
+            <span class="badge badge-info">Đã supporter xem (reviewed)</span>
+            <span class="badge badge-success">Đã gửi báo cáo (sent)</span>
+            <span class="badge badge-danger">Bị từ chối (rejected)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Component Box Right: System Alerts -->
+      <section class="section-card">
+        <h2 class="section-title">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+          Hộp cảnh báo Hệ thống (Alert Banners)
+        </h2>
+
+        <div class="alert-container">
+          <div class="alert alert-info">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <strong>Thông báo hệ thống (Info):</strong> Bản phác thảo phản biện từ AI đang được lưu trữ tự động trong phiên làm việc.
+            </div>
+          </div>
+
+          <div class="alert alert-success">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <strong>Báo cáo hoàn tất (Success):</strong> Ý tưởng dự án của bạn đã được Supporter phê duyệt đạt chuẩn Checkpoint 1.
+            </div>
+          </div>
+
+          <div class="alert alert-warning">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div>
+              <strong>Cần làm rõ (Warning):</strong> Có một vài phản biện chưa được phản hồi làm rõ. Vui lòng cập nhật thông tin trong vòng 24h.
+            </div>
+          </div>
+
+          <div class="alert alert-danger">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <strong>Bài nộp không hợp lệ (Danger):</strong> Supporter từ chối bài kiểm tra do phát hiện sự trùng lặp nghiêm trọng trong văn bản.
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PREVIEW INTERFACE MOCKUPS CONTEXT -->
+    <section class="section-card">
+      <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+        <h2 class="section-title" style="border-bottom: none; padding-bottom: 0;">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          Trực quan hóa bối cảnh màn hình (Page-Level Color Direction)
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+          Bấm các tab bên dưới để xem sự phân bổ màu sắc cho từng màn hình cụ thể theo chiến lược trải nghiệm người học của Nexus.
+        </p>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchMockup('landing', this)">Màn hình Landing (Marketing & Ấm áp)</button>
+        <button class="tab-btn" onclick="switchMockup('dashboard', this)">Workspace Học viên (Hỗ trợ & Điềm tĩnh)</button>
+        <button class="tab-btn" onclick="switchMockup('intake', this)">Luồng Nhập liệu (Hướng dẫn tận tâm)</button>
+        <button class="tab-btn" onclick="switchMockup('workspace', this)">Màn Phản Biện & Đánh giá (Rõ ràng khoa học)</button>
+      </div>
+
+      <!-- Viewport content -->
+      <div class="mockup-viewport" id="mockup-viewport-bg">
+        
+        <!-- 1. LANDING PAGE PREVIEW -->
+        <div class="mockup-item active" id="mockup-landing">
+          <div class="mockup-landing">
+            <span class="badge-promo">🎉 Đồng hành & Bảo hộ ý tưởng khởi nghiệp</span>
+            <h3 class="hero-title">Kiểm thử bài tập <span>Checkpoint</span> của bạn với góc nhìn phản biện khách quan</h3>
+            <p class="hero-desc">
+              Nexus giúp bạn nhìn ra những điểm chưa rõ ràng trong đề án, biết chính xác những điều cần chỉnh sửa và tự tin vượt qua các vòng kiểm duyệt từ Supporter.
+            </p>
+            <div class="hero-actions">
+              <!-- Marketing CTA uses warm Orange, sub action uses outline secondary -->
+              <button class="btn btn-warm" style="width: auto; padding: 12px 24px;">Trải nghiệm ngay</button>
+              <button class="btn btn-secondary" style="width: auto; padding: 12px 24px;">Xem cấu trúc mẫu</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. STUDENT DASHBOARD PREVIEW -->
+        <div class="mockup-item" id="mockup-dashboard">
+          <div class="mockup-dashboard">
+            <div class="dashboard-header">
+              <div>
+                <h3 class="font-heading" style="font-size: 1.15rem; color: var(--color-text);">Không gian học tập cá nhân</h3>
+                <p style="font-size: 0.8rem; color: var(--color-text-muted);">Chào mừng trở lại, Nguyen Khang</p>
+              </div>
+              <button class="btn btn-brand" style="width: auto;">+ Tạo đề án mới</button>
+            </div>
+
+            <div class="dashboard-card-grid">
+              <!-- Card 1: Pending review state -->
+              <div class="dashboard-card">
+                <div class="dcard-header">
+                  <div>
+                    <h4 class="dcard-title">Mô hình SaaS tự động hóa feedback giảng đường</h4>
+                    <p class="dcard-desc">Case #NX-8809 &bull; Phân tích Checkpoint 1</p>
+                  </div>
+                  <span class="badge badge-warning">Đang phản biện</span>
+                </div>
+                <div class="dcard-footer">
+                  <div class="user-pill">
+                    <div class="user-avatar-teal">N</div>
+                    Nguyen Khang (Bạn)
+                  </div>
+                  <button class="btn btn-secondary" style="width: auto; font-size: 0.75rem; padding: 6px 12px;">Vào Dashboard</button>
+                </div>
+              </div>
+
+              <!-- Card 2: Completed review state -->
+              <div class="dashboard-card">
+                <div class="dcard-header">
+                  <div>
+                    <h4 class="dcard-title">Hệ thống trạm sạc thông minh cho xe máy điện</h4>
+                    <p class="dcard-desc">Case #NX-7430 &bull; Phân tích Checkpoint 1</p>
+                  </div>
+                  <span class="badge badge-success">Đã gửi báo cáo</span>
+                </div>
+                <div class="dcard-footer">
+                  <div class="user-pill">
+                    <div class="user-avatar-teal">N</div>
+                    Nguyen Khang (Bạn)
+                  </div>
+                  <button class="btn btn-brand" style="width: auto; font-size: 0.75rem; padding: 6px 12px;">Xem kết quả</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. INTAKE FLOW PREVIEW -->
+        <div class="mockup-item" id="mockup-intake">
+          <div class="mockup-intake">
+            <div class="stepper-header">
+              <div class="step-node completed">✓</div>
+              <div class="step-node active">2</div>
+              <div class="step-node">3</div>
+            </div>
+            
+            <div class="intake-group">
+              <label class="input-label">
+                Mô tả chi tiết nhóm khách hàng mục tiêu của bạn
+                <span class="input-desc">Ai đang gặp phải nỗi đau này trực tiếp nhất? Họ là sinh viên ở bối cảnh nào?</span>
+                <textarea class="form-control" rows="3" placeholder="Ví dụ: Sinh viên năm cuối ngành công nghệ thông tin tại Hà Nội, đang làm đồ án tốt nghiệp nhưng gặp khó khăn khi tìm ý tưởng thực tế..."></textarea>
+              </label>
+
+              <!-- Warm encouragement helper box -->
+              <div class="helper-alert-box">
+                💡 <strong>Lời khuyên hữu ích:</strong> Bạn hãy thử nêu rõ số liệu ước lượng hoặc tần suất họ gặp nỗi đau này. Điều này giúp hệ thống đánh giá tính xác thực tốt hơn.
+              </div>
+
+              <div style="display:flex; justify-content: space-between; gap:12px; margin-top: 8px;">
+                <button class="btn btn-secondary" style="width: auto;">Quay lại bước 1</button>
+                <button class="btn btn-brand" style="width: auto;">Tiếp tục thiết lập</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. WORKSPACE & REPORT DISPLAY PREVIEW -->
+        <div class="mockup-item" id="mockup-workspace">
+          <div class="mockup-workspace">
+            
+            <!-- Left: Student input -->
+            <div class="workspace-submitted">
+              <span class="badge badge-neutral" style="margin-bottom: 12px;">Bản nộp của học viên</span>
+              <h4 class="font-heading" style="font-size: 0.95rem; margin-bottom: 8px;">Vấn đề cốt lõi muốn giải quyết:</h4>
+              <p style="font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 12px;">
+                "Giảng viên mất quá nhiều thời gian để sửa lỗi cấu trúc trong báo cáo đồ án tốt nghiệp của sinh viên, dẫn tới phản hồi bị chậm và sinh viên không kịp nộp bài sửa."
+              </p>
+              <div class="user-pill">
+                <div class="user-avatar-teal">N</div>
+                <span>Nguyen Khang &bull; Phiên bản nộp 2</span>
+              </div>
+            </div>
+
+            <!-- Right: AI / Supporter structured findings -->
+            <div class="workspace-feedback">
+              <span class="badge badge-brand" style="margin-bottom: 2px; align-self: flex-start;">Bản phản biện có cấu trúc</span>
+              
+              <!-- Finding 1: Amber Alert (Need Clarification) -->
+              <div class="critique-card clarify">
+                <div class="critique-header">
+                  <span class="critique-field">1. Đàn chứng & Khách hàng</span>
+                  <span class="badge badge-warning">Cần làm rõ</span>
+                </div>
+                <div class="critique-body">
+                  Nỗi đau về "mất thời gian" là có thật, nhưng số liệu khảo sát học viên chưa có mẫu chứng thực định lượng.
+                </div>
+                <div class="critique-evidence">
+                  <strong>Bằng chứng thiếu hụt:</strong> Đề án chưa nhắc tới tỷ lệ giảng viên gặp tình trạng này là bao nhiêu %.
+                </div>
+                <div class="critique-actions">
+                  <button class="btn btn-brand" style="font-size: 0.7rem; padding: 4px 8px; width: auto;">Cung cấp bằng chứng</button>
+                </div>
+              </div>
+
+              <!-- Finding 2: Red Alert (Risk) -->
+              <div class="critique-card risk">
+                <div class="critique-header">
+                  <span class="critique-field">2. Giải pháp thay thế</span>
+                  <span class="badge badge-danger">Rủi ro cao</span>
+                </div>
+                <div class="critique-body">
+                  Khách hàng hiện tại đang dùng Google Docs Comments. Giải pháp của bạn chưa giải thích lý do tại sao họ từ bỏ thói quen cũ.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- WCAG COMPLIANCE CONTRAST TABLE -->
+    <section class="section-card">
+      <h2 class="section-title">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+        Báo cáo độ tương phản khả năng truy cập (WCAG Contrast Report)
+      </h2>
+      
+      <table class="a11y-table">
+        <thead>
+          <tr>
+            <th>Cặp màu kiểm thử (Text / Background)</th>
+            <th>Xem trước hiển thị</th>
+            <th>Độ tương phản</th>
+            <th>Kết quả WCAG AA</th>
+            <th>Ý nghĩa sử dụng</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Trắng (#FFFFFF) trên nền <strong>Teal 600</strong> (#0D9488)</td>
+            <td><span class="a11y-preview-pill" style="background-color: #0D9488; color: #FFFFFF;">Nexus Brand</span></td>
+            <td>4.78:1</td>
+            <td><strong style="color: #059669;">ĐẠT</strong></td>
+            <td>Nút bấm chính trong ứng dụng, chữ hiển thị rõ ràng.</td>
+          </tr>
+          <tr>
+            <td>Trắng (#FFFFFF) trên nền <strong>Orange 500</strong> (#F97316)</td>
+            <td><span class="a11y-preview-pill" style="background-color: #F97316; color: #FFFFFF;">Warm CTA</span></td>
+            <td>3.42:1</td>
+            <td><span style="color: #D97706; font-weight: 600;">CHỈ CHỮ LỚN</span></td>
+            <td>Dùng cho tiêu đề lớn hoặc CTA phụ, khuyên dùng chữ màu đậm nếu dùng cỡ nhỏ.</td>
+          </tr>
+          <tr>
+            <td><strong>Amber 500</strong> (#F59E0B) trên nền <strong>Amber 100</strong> (#FEF3C7)</td>
+            <td><span class="a11y-preview-pill" style="background-color: #FEF3C7; color: #B45309;">Cần làm rõ</span></td>
+            <td>4.92:1 (Với chữ Amber 700)</td>
+            <td><strong style="color: #059669;">ĐẠT</strong></td>
+            <td>Nhãn trạng thái chờ, cảnh báo nhẹ. Chuyển chữ thành đậm (#B45309).</td>
+          </tr>
+          <tr>
+            <td><strong>Text Slate 800</strong> (#1F2937) trên nền <strong>Warm Background</strong> (#FBFAF7)</td>
+            <td><span class="a11y-preview-pill" style="background-color: #FBFAF7; color: #1F2937; border: 1px solid var(--color-border);">Nội dung chính</span></td>
+            <td>16.5:1</td>
+            <td><strong style="color: #059669;">XUẤT SẮC (AAA)</strong></td>
+            <td>Văn bản nội dung chính, giảm thiểu mỏi mắt khi đọc báo cáo dài.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="global-toast" id="clipboard-toast">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+    </svg>
+    <span id="toast-txt">Đã sao chép thành công!</span>
+  </div>
+
+  <script>
+    // Copy Color Helper
+    function copyColor(hex, cssVar) {
+      navigator.clipboard.writeText(hex).then(() => {
+        const toast = document.getElementById('clipboard-toast');
+        const toastTxt = document.getElementById('toast-txt');
+        toastTxt.innerHTML = `Đã copy mã <strong>${hex}</strong> (${cssVar}) vào bộ nhớ tạm!`;
+        
+        toast.classList.add('show');
+        
+        // Show local animation on swatch
+        const swatches = document.querySelectorAll('.swatch');
+        swatches.forEach(s => {
+          if(s.innerHTML.includes(hex)) {
+            s.classList.add('copied');
+            setTimeout(() => s.classList.remove('copied'), 1500);
+          }
+        });
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2200);
+      });
+    }
+
+    // Toggle Light and Dark Theme
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const targetTheme = isDark ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', targetTheme);
+      
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
+      const btnText = document.getElementById('theme-btn-text');
+      
+      if (targetTheme === 'dark') {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+        btnText.textContent = 'Light Mode';
+        document.getElementById('mockup-viewport-bg').style.backgroundColor = '#0F172A';
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        btnText.textContent = 'Dark Mode';
+        document.getElementById('mockup-viewport-bg').style.backgroundColor = '#FBFAF7';
+      }
+    }
+
+    // Switch Mockup tab preview
+    function switchMockup(type, btn) {
+      // Deactivate all buttons
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(b => b.classList.remove('active'));
+      
+      // Activate clicked button
+      btn.classList.add('active');
+
+      // Hide all mockup panels
+      const mockupItems = document.querySelectorAll('.mockup-item');
+      mockupItems.forEach(item => item.classList.remove('active'));
+
+      // Show selected panel
+      const target = document.getElementById(`mockup-${type}`);
+      if(target) target.classList.add('active');
+    }
+  </script>
+</body>
+</html>
