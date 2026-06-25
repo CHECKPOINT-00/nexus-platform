@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { toast } from "@heroui/react";
 import { apiClient } from "../../../../../lib/api-client";
 import { authClient } from "../../../../../lib/auth-client";
 import type { CaseDetails, Message, Finding } from "../types";
@@ -57,7 +58,7 @@ export function useCaseWorkspace(caseId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-      alert("Đã lưu bản nháp!");
+      toast.success("Đã lưu bản nháp!");
     },
   });
 

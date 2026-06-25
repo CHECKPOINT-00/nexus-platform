@@ -1,5 +1,4 @@
-import { Card, Button } from "@heroui/react";
-import { AlertTriangle, Clock } from "lucide-react";
+import { Alert, Button } from "@heroui/react";
 import type { Payment } from "../types";
 
 interface PaymentBannersProps {
@@ -24,66 +23,72 @@ export function PaymentBanners({
   return (
     <>
       {isUnpaid && (
-        <Card className="border border-amber-200/50 bg-amber-50 dark:bg-amber-950/10 text-amber-800 shadow-none rounded-md">
-          <Card.Content className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-            <div className="flex gap-2.5 items-start">
-              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-sm">Ý tưởng đã được lưu</p>
-                <p className="text-xs text-amber-700/90 mt-0.5">
-                  Vui lòng hoàn tất thanh toán để kích hoạt supporter phản biện ý tưởng của nhóm bạn.
-                </p>
-              </div>
-            </div>
+        <Alert status="warning">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>Ý tưởng đã được lưu</Alert.Title>
+            <Alert.Description>
+              Vui lòng hoàn tất thanh toán để kích hoạt supporter phản biện ý tưởng của nhóm bạn.
+            </Alert.Description>
             <Button
               onPress={onOpenPaymentDrawer}
-              className="bg-amber-500 hover:bg-amber-600 text-white font-bold shrink-0 shadow-sm"
+              className="bg-amber-500 hover:bg-amber-600 text-white font-bold shrink-0 shadow-sm mt-2 sm:hidden"
               size="sm"
             >
               Thanh toán ngay
             </Button>
-          </Card.Content>
-        </Card>
+          </Alert.Content>
+          <Button
+            onPress={onOpenPaymentDrawer}
+            className="bg-amber-500 hover:bg-amber-600 text-white font-bold shrink-0 shadow-sm hidden sm:block"
+            size="sm"
+          >
+            Thanh toán ngay
+          </Button>
+        </Alert>
       )}
 
       {isPendingVerification && (
-        <Card className="border border-blue-200 bg-blue-50 dark:bg-blue-950/10 text-blue-800 shadow-none rounded-md">
-          <Card.Content className="p-4 flex gap-2.5 items-start">
-            <Clock className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-sm">Minh chứng đang được kiểm tra</p>
-              <p className="text-xs text-blue-700/95 mt-0.5">
-                Bạn đã tải lên minh chứng thanh toán. Ban quản trị hệ thống sẽ duyệt giao dịch của bạn trong vòng vài giờ làm việc.
-              </p>
-            </div>
-          </Card.Content>
-        </Card>
+        <Alert status="accent">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>Minh chứng đang được kiểm tra</Alert.Title>
+            <Alert.Description>
+              Bạn đã tải lên minh chứng thanh toán. Ban quản trị hệ thống sẽ duyệt giao dịch của bạn trong vòng vài giờ làm việc.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
 
       {isRejectedPayment && (
-        <Card className="border border-danger-200 bg-danger-50 dark:bg-danger-950/10 text-danger-800 shadow-none rounded-md">
-          <Card.Content className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-            <div className="flex gap-2.5 items-start">
-              <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-sm">Minh chứng bị từ chối</p>
-                <p className="text-xs text-danger-700/90 mt-0.5">
-                  Lý do: <span className="font-semibold underline">{latestPayment?.rejection_reason}</span>.{" "}
-                  Vui lòng kiểm tra và tải lên ảnh minh chứng mới để tiếp tục.
-                </p>
-              </div>
-            </div>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>Minh chứng bị từ chối</Alert.Title>
+            <Alert.Description>
+              Lý do: <span className="font-semibold underline">{latestPayment?.rejection_reason}</span>.{" "}
+              Vui lòng kiểm tra và tải lên ảnh minh chứng mới để tiếp tục.
+            </Alert.Description>
             <Button
               onPress={onOpenPaymentDrawer}
               variant="danger"
               size="sm"
-              className="font-bold shrink-0"
+              className="font-bold shrink-0 mt-2 sm:hidden"
             >
               Tải lại minh chứng
             </Button>
-          </Card.Content>
-        </Card>
+          </Alert.Content>
+          <Button
+            onPress={onOpenPaymentDrawer}
+            variant="danger"
+            size="sm"
+            className="font-bold shrink-0 hidden sm:block"
+          >
+            Tải lại minh chứng
+          </Button>
+        </Alert>
       )}
     </>
   );
 }
+
