@@ -3,6 +3,7 @@ import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ThemeProvider } from "./theme-provider";
+import { Navbar } from "../components/shared/navbar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -28,9 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${dmSans.variable} font-sans antialiased`}>
+      <body className={`${spaceGrotesk.variable} ${dmSans.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
-          <Providers>{children}</Providers>
+          <Providers>
+            <Navbar />
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              {children}
+            </main>
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
