@@ -22,6 +22,13 @@
 - Layout chính hiển thị Navbar động: Ẩn/Hiện nút Login dựa trên session.
 - Theme toggler hoạt động mượt mà.
 - **Breadcrumbs Navigation**: Sử dụng HeroUI Breadcrumbs hiển thị cấu trúc trang giúp người dùng luôn trả lời được câu hỏi "Tôi đang ở đâu?" (Rule 2).
+- **UI/UX Specifications (Compliance)**:
+  - **Calm Visual Hierarchy (Rule 8)**: Trang Login/Register sử dụng 1 card phẳng trung tâm, loại bỏ border đậm và shadow mạnh (`shadow="sm"` hoặc `shadow="none"`). Thiết kế tối giản, sạch sẽ, không dùng tranh ảnh minh họa phức tạp làm mất tập trung.
+  - **Empty States (Rule 16)**: Khi sinh viên chưa tạo dự án nào trên User Dashboard, hiển thị Empty State mô tả chi tiết:
+    - Khối thông điệp trung tâm: *"Chưa có dự án phản biện nào"*
+    - Lý do: *"Bạn cần gửi thông tin ý tưởng và liên kết tài liệu Checkpoint để bắt đầu nhận phản biện từ hệ thống và supporter."*
+    - CTA chính duy nhất: **"Bắt đầu dự án phản biện đầu tiên"** (`color="primary" variant="solid"`) dẫn tới trang đăng ký Intake.
+
 
 ## Architecture
 - **Auth Client**: Better Auth Web Client.

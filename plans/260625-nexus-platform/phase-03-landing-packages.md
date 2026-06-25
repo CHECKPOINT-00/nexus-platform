@@ -25,6 +25,10 @@
   - Gói 2: Nhận xét + Sửa đổi (2 vòng)
   - Gói 3: Đồng hành nhiều vòng
 - Accordion danh sách câu hỏi FAQ.
+- **UI/UX Specifications (Compliance)**:
+  - **Clarity over Decoration & Plain Language (Rules 3 & 13)**: Loại bỏ hoàn toàn các slogan tiếp thị mơ hồ. Slogan chính: *"Phản biện và tìm lỗi ý tưởng khởi nghiệp theo checkpoint môn học"*.
+  - **Button Variants**: Nút bấm "Bắt đầu ngay" sử dụng `color="primary" variant="solid"`. Nút bấm FAQ và thông tin các gói sử dụng `color="default" variant="bordered"` để đảm bảo quy tắc "Một màn hình, một hành động chính".
+
 
 ## Architecture
 - **CSS System**: Tailwind CSS & Vanilla CSS modules.

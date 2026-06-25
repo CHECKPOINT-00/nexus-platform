@@ -24,6 +24,19 @@
 - **Phân lớp dữ liệu rõ ràng (Rule 15)**: Tách biệt rõ rệt 3 lớp: Dữ liệu nhập của sinh viên (Input), Nhận xét của AI (AI Output), và Đánh giá/Quyết định của Supporter (Decision).
 - **Lịch sử sửa đổi (Rule 14)**: Selector dropdown cho phép xem lại các bản tài liệu cũ và lịch sử các vòng audit (`v01`, `v02`).
 - **Hiển thị cuốn chiếu (Rule 6)**: Sử dụng HeroUI Accordion hoặc Drawer cho chi tiết các lỗi ý tưởng để giảm tải lượng thông tin hiển thị cùng lúc.
+- **UI/UX Specifications (Compliance)**:
+  - **Visible Status Chips (Rule 9)**: Mỗi trạng thái hiển thị thẻ màu sắc kèm chữ mô tả rõ ràng:
+    - `unpaid`: Trạng thái Chưa thanh toán (màu xám / `default`)
+    - `proof_uploaded`/`pending_verification`: Chờ duyệt thanh toán (vàng nhạt / `warning`)
+    - `paid`/`unassigned`: Chờ gán supporter (xanh dương / `primary`)
+    - `auditing`/`reviewing`: Đang phản biện (tím / `secondary`)
+    - `done`: Đã gửi báo cáo (xanh lá / `success`)
+  - **Separate Input, Output, and Decision (Rule 15)**: Thiết kế 3 Tab độc lập trên giao diện xem chi tiết dự án:
+    - Tab 1: *"Ý tưởng nộp"* (Chứa form nộp ban đầu của nhóm sinh viên).
+    - Tab 2: *"Nhận xét phản biện"* (Chứa báo cáo AI cùng ghi chú đã chỉnh sửa của Supporter).
+    - Tab 3: *"Thảo luận"* (Khung chat trao đổi trực tiếp).
+  - **Version Selector Dropdown (Rule 14)**: Định dạng rõ ràng: *"Bản sửa đổi v01 - nộp ngày 25/06/2026"* | *"Bản gốc v00 - nộp ngày 24/06/2026"*. Khi chuyển đổi bản cũ, toàn bộ giao diện Tab 1 & Tab 2 tự động tải dữ liệu lịch sử tương ứng.
+
 
 ## Architecture
 - **State Management**: TanStack Query (React Query) v5.

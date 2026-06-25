@@ -23,6 +23,13 @@
   - Giao diện báo lỗi trực quan (Rule 17) khi link Drive không hợp lệ hoặc thiếu quyền truy cập (ví dụ: "Vui lòng cấp quyền xem 'Bất kỳ ai có liên kết'").
 - Cho phép đính kèm Google Drive link.
 - Form action thu thập các field: `stage`, `idea`, `pain_point`, `customer`, `alternatives`, `team_capability`, `deadline`.
+- **UI/UX Specifications (Compliance)**:
+  - **Reduce Thinking Load (Rule 12)**: Bong bóng câu hỏi của chatbot phải cực kỳ cụ thể để người dùng không cần suy nghĩ sâu hoặc đoán:
+    - Thay vì hỏi *"Mô tả khách hàng mục tiêu"*, hỏi: *"Ai là người trực tiếp gặp vấn đề này? Họ thuộc nhóm sinh viên nào?"*
+    - Thay vì hỏi *"Phân tích giải pháp thay thế"*, hỏi: *"Hiện tại họ đang tự xử lý vấn đề đó bằng cách nào?"*
+  - **Input Auto-fill Indicator**: Các trường được điền tự động hiển thị nhãn nhẹ màu xanh nhạt: *"Thông tin đã được đồng bộ"* để đảm bảo tính minh bạch.
+  - **Error Messages Location (Rule 20)**: Các thông báo lỗi xác thực liên kết Drive hoặc form phải xuất hiện ngay bên dưới ô nhập liệu tương ứng, màu chữ đỏ dịu (`text-danger-500`), không được hiển thị popup gây nhiễu.
+
 
 ## Architecture
 - **Frontend Stepper**: State-machine client-side React + Drive Link Pattern Regex Validator.

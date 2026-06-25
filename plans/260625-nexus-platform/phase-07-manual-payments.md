@@ -20,6 +20,11 @@
 - Giao diện hiển thị thông tin số tài khoản, mã QR động VietQR (nếu có), số tiền.
 - Form cho phép User tải lên file ảnh minh chứng (Proof of payment).
 - Màn hình phê duyệt thanh toán cho Admin (Approve/Reject) kèm **lý do từ chối (rejection reason)** bắt buộc nếu bấm Reject (đáp ứng Rule 17).
+- **UI/UX Specifications (Compliance)**:
+  - **Actionable Rejection (Rule 17)**: Khi Admin click nút "Reject" (Từ chối), giao diện bắt buộc hiển thị một Drawer hoặc Modal yêu cầu nhập lý do. Nút "Xác nhận từ chối" chỉ khả dụng khi lý do có độ dài tối thiểu 10 ký tự.
+  - **Payment Status Banner**: Học viên khi bị từ chối sẽ thấy banner đỏ dịu nổi bật trên Workspace kèm lý do cụ thể và CTA phụ để đăng tải lại: *"Minh chứng bị từ chối: [Lý do từ chối]. Vui lòng tải lên ảnh minh chứng mới để tiếp tục"*
+  - **File upload UX (Rule 20)**: Hiển thị thanh tiến trình tải lên (upload progress bar) kèm icon file thu nhỏ. Nếu tải lên thành công, hiển thị check xanh; nếu thất bại, hiển thị dòng text xử lý lỗi cụ thể.
+
 
 ## Architecture
 - **Payment Lifecycle**: `unpaid` -> `proof_uploaded` -> `pending_verification` -> `paid` / `rejected`.

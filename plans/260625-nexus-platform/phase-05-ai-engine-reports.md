@@ -27,6 +27,10 @@
   - **Lý do (Reason)** (Giải thích vì sao bị đánh giá như vậy)
   - **Câu hỏi làm rõ (Question)** (Câu hỏi cụ thể cho sinh viên)
   - **Hành động tiếp theo (Next Action)** (Sinh viên nên sửa thế nào)
+- **UI/UX Specifications (Compliance)**:
+  - **Design for Trust (Rule 11)**: Hiển thị một banner tuyên bố trách nhiệm rõ ràng ở đầu và cuối báo cáo nháp/chính thức: *"Phản tích này được thực hiện dựa trên tiêu chí Checkpoint. Kết quả cuối cùng vẫn cần sự thảo luận và hướng dẫn từ supporter của bạn để tối ưu."*
+  - **Report Card Layout**: Mỗi lỗi phát hiện (Finding) được render thành 1 card riêng biệt, phân loại theo độ nghiêm trọng (ví dụ: Màu cam nhẹ cho 'Thiếu thông tin', Màu vàng nhạt cho 'Chưa rõ ràng').
+
 
 ## Architecture
 - **Provider**: OpenAI API (`@ai-sdk/openai`) & Gemini API (`@ai-sdk/google`) qua Vercel AI SDK.
