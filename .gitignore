@@ -41,3 +41,4 @@ yarn-error.log*
 # heroui-agents-md
 .heroui-docs/
 __pycache__
+apps-web-repomix.xml

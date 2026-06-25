@@ -9,7 +9,7 @@ Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, HeroUI v3, T
 ```
 root/
 ├── apps/api/      # Hono backend, auth, Prisma, streaming
-├── apps/web/      # Next.js product app, HeroUI v3, TanStack Query
+├── apps/web-1/    # Next.js product app, HeroUI v3, TanStack Query
 ├── packages/ui/   # Shared React primitives used by docs
 ├── packages/*     # ESLint/TypeScript presets
 ├── prisma/        # Root Prisma schema
@@ -21,7 +21,7 @@ root/
 | Task | Location | Notes |
 |------|----------|-------|
 | Backend/API | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring |
-| Web UI | `apps/web/app/*` | HeroUI v3 app; read `apps/web/AGENTS.md` first |
+| Web UI | `apps/web-1/app/*` | HeroUI v3 app; read `apps/web-1/AGENTS.md` first |
 | Shared UI | `packages/ui/src/*` | Common primitives for shared React usage |
 | DB schema | `prisma/schema.prisma` | Plural table names, snake_case fields |
 | Tech docs | `docs/tech-doc-urls.txt` | Source of truth for external docs |
@@ -38,13 +38,13 @@ root/
 ## ANTI-PATTERNS (THIS PROJECT)
 - Split env files per app.
 - Add auth routes or session logic outside `apps/api`.
-- Edit `apps/web` without checking `apps/web/AGENTS.md`.
-- Reintroduce shadcn-style web components into `apps/web`.
+- Edit `apps/web-1` without checking `apps/web-1/AGENTS.md`.
+- Reintroduce shadcn-style web components into `apps/web-1`.
 - Change Prisma names away from plural/snake_case.
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or HeroUI code.
 
 ## UNIQUE STYLES
-- `apps/web` uses HeroUI v3 + `next-themes` + TanStack Form for form state & validation + Lucide React for UI icons.
+- `apps/web-1` uses HeroUI v3 + `next-themes` + TanStack Form for form state & validation + Lucide React for UI icons.
 - `apps/api` uses Hono streaming helpers, Better Auth plugins, and Vercel AI SDK for Google/OpenAI integrations.
 - `packages/ui` is tiny, stable, and shared; keep changes minimal.
 
@@ -58,5 +58,5 @@ npm run prisma:migrate
 ```
 
 ## NOTES
-- `apps/web/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
+- `apps/web-1/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
 - `.agents/rules` exists but is empty right now.
