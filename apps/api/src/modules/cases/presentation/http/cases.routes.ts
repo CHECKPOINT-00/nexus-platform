@@ -385,3 +385,47 @@ casesRouter.post("/:id/messages", async (c) => {
     return c.json({ error: error.message }, 500);
   }
 });
+
+// 8. PUT /api/cases/:id/settings - Update case settings (Owner, member, or admin only)
+casesRouter.put("/:id/settings", async (c) => {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ error: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id");
+  const { team_name, school, course_context, group_no } = await c.req.json();
+
+  try {
+    const existingCase = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: { members: true },
+    });
+
+    if (!existingCase) {
+      return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    const isOwner = existingCase.owner_auth_user_id === session.user.id;
+    const isMember = existingCase.members.some((m) => m.auth_user_id === session.user.id);
+    const isAdmin = session.user.role === "admin";
+
+    if (!isOwner && !isMember && !isAdmin) {
+      return c.json({ error: "Không có quyền chỉnh sửa dự án này" }, 403);
+    }
+
+    const updatedCase = await prisma.case.update({
+      where: { id: caseId },
+      data: {
+        team_name: team_name !== undefined ? team_name : existingCase.team_name,
+        school: school !== undefined ? school : existingCase.school,
+        course_context: course_context !== undefined ? course_context : existingCase.course_context,
+        group_no: group_no !== undefined ? group_no : existingCase.group_no,
+      },
+    });
+
+    return c.json(updatedCase);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 500);
+  }
+});
