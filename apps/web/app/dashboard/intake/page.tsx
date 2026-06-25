@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, Spinner } from "@heroui/react";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { Card, Spinner, Alert } from "@heroui/react";
+import { CheckCircle } from "lucide-react";
 import { useIntakeForm } from "./hooks/use-intake-form";
 import { StepSidebar } from "./_components/step-sidebar";
 import { StepMobileBar } from "./_components/step-mobile-bar";
@@ -101,12 +101,13 @@ export default function IntakePage() {
               />
             )}
 
-            {/* Global form error */}
             {form.formError && (
-              <p className="text-xs text-danger-500 bg-danger-50 dark:bg-danger-900/10 p-3 rounded border border-danger-200/50 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {form.formError}
-              </p>
+              <Alert status="danger">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{form.formError}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
 
             <FormNavigation

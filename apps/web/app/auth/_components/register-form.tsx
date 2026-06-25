@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { Input, Button } from "@heroui/react";
+import { Input, Button, Alert } from "@heroui/react";
 
 interface RegisterFormProps {
   loading: boolean;
@@ -96,9 +96,12 @@ export function RegisterForm({ loading, error, onSubmit }: RegisterFormProps) {
       </form.Field>
 
       {error && (
-        <p className="text-xs text-danger-500 bg-danger-50 dark:bg-danger-900/10 p-2.5 rounded border border-danger-200/50">
-          {error}
-        </p>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{error}</Alert.Title>
+          </Alert.Content>
+        </Alert>
       )}
 
       <Button
