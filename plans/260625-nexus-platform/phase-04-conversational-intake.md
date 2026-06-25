@@ -31,6 +31,9 @@
   - **Error Messages Location (Rule 20)**: Các thông báo lỗi xác thực liên kết Drive hoặc form phải xuất hiện ngay bên dưới ô nhập liệu tương ứng, màu chữ đỏ dịu (`text-danger-500`), không được hiển thị popup gây nhiễu.
   - **Intake-to-Workspace Redirection**: Sau khi người dùng nộp Case thành công, chuyển hướng trực tiếp về trang Chi tiết dự án `/dashboard/case/[id]` để họ có thể xem lại dữ liệu đã nộp, tạo cảm giác yên tâm và tin cậy.
   - **Unpaid Case Alert Banner (Rule 9)**: Nếu case mới nộp ở trạng thái `unpaid` (Chưa thanh toán), hiển thị một Banner thông báo màu cam dịu ở đầu trang: *"Ý tưởng đã được lưu. Vui lòng hoàn tất thanh toán để kích hoạt supporter phản biện"* kèm nút **"Thanh toán ngay"** mở ra ngăn kéo (Drawer) tải ảnh chuyển khoản. Giao diện này không che chặn nội dung chính mà hướng dẫn học viên hành động một cách tinh tế.
+  - **Chat Animation & Easing (Rule 8)**: Bong bóng tin nhắn khi render phải sử dụng hiệu ứng trượt nhẹ từ dưới lên và mờ dần (fade-in slide-up) với `transition-duration: 200ms` và timing function `ease-out`. Không dùng chuyển động nhảy/rung lắc (bounce).
+  - **Scroll Behavior & Reduced Motion (Rule 18)**: Luồng chat tự động cuộn xuống dưới (scroll-to-bottom) khi có tin nhắn mới sử dụng `scroll-behavior: smooth`, tự động fallback về `scroll-behavior: auto` khi người dùng bật chế độ `prefers-reduced-motion` của hệ thống.
+  - **Responsive Layout for Sidebar Progress**: Trên thiết bị di động, thanh tiến trình sidebar (bên trái) sẽ tự động ẩn và chuyển thành một thanh tiến trình ngang thu nhỏ (horizontal stepper/progress bar) ở trên cùng của trang chat để tối ưu diện tích hiển thị bong bóng chat.
 
 
 ## Architecture

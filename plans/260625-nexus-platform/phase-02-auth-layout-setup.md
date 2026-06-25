@@ -24,6 +24,8 @@
 - **Breadcrumbs Navigation**: Sử dụng HeroUI Breadcrumbs hiển thị cấu trúc trang giúp người dùng luôn trả lời được câu hỏi "Tôi đang ở đâu?" (Rule 2).
 - **UI/UX Specifications (Compliance)**:
   - **Calm Visual Hierarchy (Rule 8)**: Trang Login/Register sử dụng 1 card phẳng trung tâm, loại bỏ border đậm và shadow mạnh (`shadow="sm"` hoặc `shadow="none"`). Thiết kế tối giản, sạch sẽ, không dùng tranh ảnh minh họa phức tạp làm mất tập trung.
+  - **Accessibility & Form Association (Rule 18)**: Mọi ô nhập liệu (Email, Password) bắt buộc phải có nhãn `<label htmlFor="...">` đi kèm trỏ trực tiếp đến `id` của input. Không sử dụng duy nhất thuộc tính `placeholder` làm nhãn để tránh gây khó khăn cho trình đọc màn hình (Screen Reader).
+  - **No Emoji Icons (Rule 3)**: Sử dụng SVG icons chính thức từ Lucide React hoặc Simple Icons (như logo Google, icon Lock, Mail). Tuyệt đối không dùng emoji (như 📧, 🔑, 🚀) làm icon giao diện.
   - **Empty States (Rule 16)**: Khi sinh viên chưa tạo dự án nào trên User Dashboard, hiển thị Empty State mô tả chi tiết:
     - Khối thông điệp trung tâm: *"Chưa có dự án phản biện nào"*
     - Lý do: *"Bạn cần gửi thông tin ý tưởng và liên kết tài liệu Checkpoint để bắt đầu nhận phản biện từ hệ thống và supporter."*
