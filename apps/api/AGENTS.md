@@ -1,7 +1,7 @@
 # API KNOWLEDGE BASE
 
 ## OVERVIEW
-Hono backend for this monorepo. Handles health, streaming, Better Auth, and Prisma access.
+Hono backend for this monorepo. Handles health, streaming, Better Auth, Prisma access, and AI engine processing (via Vercel AI SDK + OpenAI & Google providers).
 
 ## STRUCTURE
 ```
@@ -44,3 +44,4 @@ npm run check-types --workspace=apps/api
 ## NOTES
 - Keep auth and Prisma changes aligned with root schema/URL config.
 - API is backend-only; no UI conventions belong here.
+- Configure provider API keys in root `.env` (e.g., `GOOGLE_GENERATIVE_AI_API_KEY`, `OPENAI_API_KEY`) for AI Engine capabilities.

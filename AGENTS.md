@@ -3,7 +3,7 @@
 **Generated:** 2026-06-25
 
 ## OVERVIEW
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, HeroUI v3, TanStack Query/Virtual, shared `@repo/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, HeroUI v3, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (with OpenAI/Google), shared `@repo/*` packages.
 
 ## STRUCTURE
 ```
@@ -44,8 +44,8 @@ root/
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or HeroUI code.
 
 ## UNIQUE STYLES
-- `apps/web` uses HeroUI v3 + `next-themes`.
-- `apps/api` uses Hono streaming helpers and Better Auth plugins.
+- `apps/web` uses HeroUI v3 + `next-themes` + TanStack Form for form state & validation + Lucide React for UI icons.
+- `apps/api` uses Hono streaming helpers, Better Auth plugins, and Vercel AI SDK for Google/OpenAI integrations.
 - `packages/ui` is tiny, stable, and shared; keep changes minimal.
 
 ## COMMANDS

@@ -10,6 +10,9 @@ Monorepo for `apps/api`, `apps/web`, and shared `packages/*`.
 - Prisma 7
 - HeroUI v3
 - Turborepo
+- Vercel AI SDK (with OpenAI & Google providers)
+- TanStack Stack (Query v5, Form v1, Virtual v3)
+- Lucide React (for UI icons)
 
 ## Structure
 

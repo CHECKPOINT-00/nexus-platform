@@ -5,11 +5,14 @@ Next.js 16 app for the product UI.
 ## Stack
 
 - Next.js App Router (React 19)
-- HeroUI v3 (Tailwind v4)
+- HeroUI v3 (Tailwind v4 with `@tailwindcss/postcss` and `postcss`)
 - `next-themes`
 - TanStack Query v5
+- TanStack Form v1 (for standardized form state & validation)
 - TanStack Virtual v3
 - Axios
+- Lucide React (for UI icons)
+- DevTools (TanStack React DevTools, TanStack Form DevTools for debugging)
 
 ## Folder Structure (Feature-Driven Architecture)
 

@@ -5,7 +5,7 @@
 
 ## Overview
 - **Priority**: P2
-- **Status**: Pending
+- **Status**: Completed
 - **Description**: Kiểm thử toàn bộ hệ thống từ đầu đến cuối (End-to-End), tối ưu hóa hiệu năng và xác thực tính ổn định trước khi bàn giao.
 - **Estimated Effort**: 2h
 
@@ -32,10 +32,10 @@
 4. Sửa các lỗi CSS, UI bị vỡ trên các thiết bị màn hình khác nhau.
 
 ## Todo List
-- [ ] Chạy lệnh `check-types`.
-- [ ] Kiểm thử linting toàn codebase.
-- [ ] Kiểm thử build production.
-- [ ] Manual test toàn bộ luồng nghiệp vụ.
+- [x] Chạy lệnh `check-types`.
+- [x] Kiểm thử linting toàn codebase.
+- [x] Kiểm thử build production.
+- [x] Manual test toàn bộ luồng nghiệp vụ.
 
 ## Success Criteria
 - Lệnh build chạy thành công 100% không có lỗi type.

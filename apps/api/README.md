@@ -2,6 +2,13 @@
 
 Hono backend for Nexus Platform.
 
+## Tech Stack
+
+- Hono (Backend framework)
+- Better Auth (Authentication)
+- Prisma 7 (Database client)
+- Vercel AI SDK & Core Providers (`ai`, `@ai-sdk/google`, `@ai-sdk/openai`)
+
 ## Core Features
 
 - Health check at `/health`
@@ -9,6 +16,7 @@ Hono backend for Nexus Platform.
 - Better Auth at `/api/auth/*`
 - Bounded contexts modules (Cases, Reports, Payments, Packages, AI Engine) mounted at `/api/*`
 - Prisma access through the root schema
+- AI-powered analyses using Google Gemini and OpenAI models via Vercel AI SDK
 
 ## Folder Structure (Modular Monolith + Clean Architecture + DDD)
 

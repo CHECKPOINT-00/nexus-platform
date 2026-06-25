@@ -1,7 +1,7 @@
 ---
 title: "Nexus Platform Implementation Plan"
 description: "Xây dựng hệ thống Nexus phản biện ý tưởng khởi nghiệp sử dụng Hono API và Next.js + HeroUI v3."
-status: pending
+status: completed
 priority: P2
 effort: 24h
 branch: main
@@ -18,13 +18,13 @@ Tài liệu tổng quan kế hoạch xây dựng hệ thống Nexus. Mỗi phase
 | # | Phase | Status | Effort | Detail Link |
 |---|---|---|---|---|
 | 1 | Database & Core API Setup | Completed | 3h | [Phase 1](./phase-01-database-api-setup.md) |
-| 2 | Auth & Layout Setup | Pending | 2h | [Phase 2](./phase-02-auth-layout-setup.md) |
-| 3 | Landing & Packages | Pending | 2h | [Phase 3](./phase-03-landing-packages.md) |
-| 4 | Conversational Intake | Pending | 4h | [Phase 4](./phase-04-conversational-intake.md) |
-| 5 | AI Engine & Reports | Pending | 4h | [Phase 5](./phase-05-ai-engine-reports.md) |
-| 6 | Workspaces | Pending | 5h | [Phase 6](./phase-06-workspaces.md) |
-| 7 | Manual Payments | Pending | 2h | [Phase 7](./phase-07-manual-payments.md) |
-| 8 | E2E Verification | Pending | 2h | [Phase 8](./phase-08-e2e-verification.md) |
+| 2 | Auth & Layout Setup | Completed | 2h | [Phase 2](./phase-02-auth-layout-setup.md) |
+| 3 | Landing & Packages | Completed | 2h | [Phase 3](./phase-03-landing-packages.md) |
+| 4 | Conversational Intake | Completed | 4h | [Phase 4](./phase-04-conversational-intake.md) |
+| 5 | AI Engine & Reports | Completed | 4h | [Phase 5](./phase-05-ai-engine-reports.md) |
+| 6 | Workspaces | Completed | 5h | [Phase 6](./phase-06-workspaces.md) |
+| 7 | Manual Payments | Completed | 2h | [Phase 7](./phase-07-manual-payments.md) |
+| 8 | E2E Verification | Completed | 2h | [Phase 8](./phase-08-e2e-verification.md) |
 
 ## Core Dependencies
 1. **Database Schema** -> Phải migrated trước khi phát triển backend routes.
