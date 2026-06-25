@@ -4,17 +4,22 @@ import { cors } from 'hono/cors'
 import { streamText } from 'hono/streaming'
 import './env.js'
 import { auth } from './auth.js'
+import { casesRouter } from './modules/cases/presentation/http/cases.routes.js'
+import { reportsRouter } from './modules/reports/presentation/http/reports.routes.js'
+import { paymentsRouter } from './modules/payments/presentation/http/payments.routes.js'
+import { packagesRouter } from './modules/packages/presentation/http/packages.routes.js'
+import { aiEngineRouter } from './modules/ai-engine/presentation/http/ai-engine.routes.js'
 
 const app = new Hono()
 const port = Number(process.env.PORT ?? 8000)
 
 app.use(
-  '/api/auth/*',
+  '/api/*',
   cors({
     origin: (origin) =>
       /^http:\/\/localhost:(3000|3001)$/.test(origin) ? origin : null,
     allowHeaders: ['Content-Type', 'Authorization'],
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   }),
 )
@@ -46,6 +51,13 @@ app.get('/session', async (c) => {
 
   return c.json(session)
 })
+
+// Mount Bounded Context Modules
+app.route('/api/cases', casesRouter)
+app.route('/api/reports', reportsRouter)
+app.route('/api/payments', paymentsRouter)
+app.route('/api/packages', packagesRouter)
+app.route('/api/ai-engine', aiEngineRouter)
 
 serve({
   fetch: app.fetch,
