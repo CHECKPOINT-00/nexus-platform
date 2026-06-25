@@ -29,6 +29,8 @@
     - Thay vì hỏi *"Phân tích giải pháp thay thế"*, hỏi: *"Hiện tại họ đang tự xử lý vấn đề đó bằng cách nào?"*
   - **Input Auto-fill Indicator**: Các trường được điền tự động hiển thị nhãn nhẹ màu xanh nhạt: *"Thông tin đã được đồng bộ"* để đảm bảo tính minh bạch.
   - **Error Messages Location (Rule 20)**: Các thông báo lỗi xác thực liên kết Drive hoặc form phải xuất hiện ngay bên dưới ô nhập liệu tương ứng, màu chữ đỏ dịu (`text-danger-500`), không được hiển thị popup gây nhiễu.
+  - **Intake-to-Workspace Redirection**: Sau khi người dùng nộp Case thành công, chuyển hướng trực tiếp về trang Chi tiết dự án `/dashboard/case/[id]` để họ có thể xem lại dữ liệu đã nộp, tạo cảm giác yên tâm và tin cậy.
+  - **Unpaid Case Alert Banner (Rule 9)**: Nếu case mới nộp ở trạng thái `unpaid` (Chưa thanh toán), hiển thị một Banner thông báo màu cam dịu ở đầu trang: *"Ý tưởng đã được lưu. Vui lòng hoàn tất thanh toán để kích hoạt supporter phản biện"* kèm nút **"Thanh toán ngay"** mở ra ngăn kéo (Drawer) tải ảnh chuyển khoản. Giao diện này không che chặn nội dung chính mà hướng dẫn học viên hành động một cách tinh tế.
 
 
 ## Architecture

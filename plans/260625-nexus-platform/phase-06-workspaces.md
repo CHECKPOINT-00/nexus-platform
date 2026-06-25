@@ -35,7 +35,10 @@
     - Tab 1: *"Ý tưởng nộp"* (Chứa form nộp ban đầu của nhóm sinh viên).
     - Tab 2: *"Nhận xét phản biện"* (Chứa báo cáo AI cùng ghi chú đã chỉnh sửa của Supporter).
     - Tab 3: *"Thảo luận"* (Khung chat trao đổi trực tiếp).
-  - **Version Selector Dropdown (Rule 14)**: Định dạng rõ ràng: *"Bản sửa đổi v01 - nộp ngày 25/06/2026"* | *"Bản gốc v00 - nộp ngày 24/06/2026"*. Khi chuyển đổi bản cũ, toàn bộ giao diện Tab 1 & Tab 2 tự động tải dữ liệu lịch sử tương ứng.
+  - **Responsive 3-Column Collapse**: Trên màn hình di động, layout 3 vùng tự động chuyển thành **hệ thống 3 Tabs ngang** tương ứng với 3 cột (Workspace/Tài liệu, Timeline hoạt động, Khung chat thảo luận) để đảm bảo không bị vỡ giao diện và dễ thao tác bằng một tay.
+  - **Version Selector Dropdown (Rule 14)**: Định dạng rõ ràng: *"Bản sửa đổi v01 - nộp ngày 25/06/2026"* | *"Bản gốc v00 - nộp ngày 24/06/2026"*. Khi chuyển đổi bản cũ, toàn bộ dữ liệu ở Tab 1 & Tab 2 tự động hiển thị phiên bản lịch sử tương ứng, riêng Tab 3 (Thảo luận chat) và Timeline được giữ nguyên (persistent) để không mất đi mạch trao đổi liên tục giữa Student & Supporter.
+  - **SLA Timer Auto-Pause Logic**: Bộ đếm ngược SLA của Supporter sẽ tự động **Tạm dừng (Pause)** và chuyển sang trạng thái *"Đang chờ học viên phản hồi"* khi case được đặt trạng thái `Need Clarification`. SLA chỉ tiếp tục đếm ngược khi học viên gửi phản hồi làm rõ thông tin.
+  - **Inline Clarification Replies (Rule 12)**: Với mỗi ý kiến phản biện của AI/Supporter cần học viên giải thích thêm, hiển thị một khung Textarea phản hồi nhỏ ngay dưới finding đó để học viên điền nhanh câu trả lời làm rõ, tránh bắt học viên nộp lại một bản sửa lớn không cần thiết.
 
 
 ## Architecture
