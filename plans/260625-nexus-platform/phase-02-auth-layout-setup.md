@@ -4,6 +4,14 @@
 - [Overview Plan](./plan.md)
 - [Better Auth Config Backend](../../apps/api/src/auth.ts)
 - [Frontend Providers](../../apps/web/app/providers.tsx)
+- **Tài liệu tham khảo (References)**:
+  - [Better Auth - Hono Integration Guide](https://better-auth.com/docs/integrations/hono)
+  - [Better Auth - Email & Password Auth](https://better-auth.com/docs/authentication/email-password)
+  - [Better Auth - Google OAuth Setup](https://better-auth.com/docs/authentication/google)
+  - [HeroUI - Theme Configuration](https://heroui.com/en/docs/react/getting-started/theming)
+  - [HeroUI - Dark Mode Setup](https://heroui.com/en/docs/react/getting-started/dark-mode)
+  - [HeroUI - Color System](https://heroui.com/en/docs/react/getting-started/colors)
+  - [HeroUI - Design Principles](https://heroui.com/en/docs/react/getting-started/design-principles)
 
 ## Overview
 - **Priority**: P2

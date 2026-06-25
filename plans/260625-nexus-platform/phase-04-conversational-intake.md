@@ -3,6 +3,10 @@
 ## Context Links
 - [Overview Plan](./plan.md)
 - [Intake Spec Web](../../docs/web-spec/web-spec-intake-workflow.md)
+- **Tài liệu tham khảo (References)**:
+  - [Web Spec - Intake Workflow](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-intake-workflow.md)
+  - [Web Spec - User Roles & Auth](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-user-roles-auth.md)
+  - [Design System Master Rules](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/design-system/nexus-platform/MASTER.md)
 
 ## Overview
 - **Priority**: P1

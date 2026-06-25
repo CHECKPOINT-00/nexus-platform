@@ -3,6 +3,10 @@
 ## Context Links
 - [Overview Plan](./plan.md)
 - [Pricing & Payment Spec Web](../../docs/web-spec/web-spec-pricing-packages.md)
+- **Tài liệu tham khảo (References)**:
+  - [Web Spec - Pricing & Packages](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-pricing-packages.md)
+  - [Web Spec - Case Lifecycle](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-case-lifecycle.md)
+  - [Design System Master Rules](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/design-system/nexus-platform/MASTER.md)
 
 ## Overview
 - **Priority**: P2

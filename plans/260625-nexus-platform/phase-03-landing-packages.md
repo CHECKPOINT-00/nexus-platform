@@ -3,6 +3,10 @@
 ## Context Links
 - [Overview Plan](./plan.md)
 - [Main Landing Page](../../apps/web/app/page.tsx)
+- **Tài liệu tham khảo (References)**:
+  - [Web Spec - Pricing & Packages](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-pricing-packages.md)
+  - [Web Spec - Product Overview](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-product-overview.md)
+  - [Design System Master Rules](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/design-system/nexus-platform/MASTER.md)
 
 ## Overview
 - **Priority**: P2

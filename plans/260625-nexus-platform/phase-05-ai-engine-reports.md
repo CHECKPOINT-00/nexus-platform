@@ -3,6 +3,11 @@
 ## Context Links
 - [Overview Plan](./plan.md)
 - [AI Spec Web](../../docs/web-spec/web-spec-ai-human-ops.md)
+- **Tài liệu tham khảo (References)**:
+  - [Hono - Streaming Helpers Documentation](https://hono.dev/docs/helpers/streaming)
+  - [Web Spec - AI & Human Operations](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-ai-human-ops.md)
+  - [Web Spec - Case Lifecycle](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/docs/web-spec/web-spec-case-lifecycle.md)
+  - [Design System Master Rules](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/design-system/nexus-platform/MASTER.md)
 
 ## Overview
 - **Priority**: P1
