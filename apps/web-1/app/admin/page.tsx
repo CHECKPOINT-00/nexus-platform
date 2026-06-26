@@ -24,6 +24,9 @@ export default function AdminHubPage() {
     isSupportersLoading,
     assignSupporter,
     isAssigning,
+    acceptCase,
+    rejectCase,
+    requestMoreInfo,
   } = useAdminCases();
 
   // Rejection modal control
@@ -69,10 +72,37 @@ export default function AdminHubPage() {
     }
   };
 
+  const handleAcceptCase = async (caseId: string) => {
+    try {
+      await acceptCase(caseId);
+      alert("Đã duyệt hồ sơ và chuyển sang hàng chờ phân công.");
+    } catch (e) {
+      alert("Gặp lỗi khi duyệt hồ sơ.");
+    }
+  };
+
+  const handleRejectCase = async (caseId: string, reason: string) => {
+    try {
+      await rejectCase({ caseId, reason });
+      alert("Đã từ chối hồ sơ thành công.");
+    } catch (e) {
+      alert("Gặp lỗi khi từ chối hồ sơ.");
+    }
+  };
+
+  const handleRequestMoreInfo = async (caseId: string, query: string) => {
+    try {
+      await requestMoreInfo({ caseId, query });
+      alert("Đã gửi yêu cầu làm rõ cho học viên.");
+    } catch (e) {
+      alert("Gặp lỗi khi gửi yêu cầu.");
+    }
+  };
+
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading;
 
   const pendingPaymentsCount = payments.filter((p) => p.status === "pending_verification").length;
-  const unassignedCasesCount = cases.filter((c) => c.internal_status === "unassigned").length;
+  const unassignedCasesCount = cases.filter((c) => c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned").length;
 
   return (
     <div className="space-y-8 font-body text-xs text-text-app pb-12 animate-fade-in">
@@ -127,7 +157,7 @@ export default function AdminHubPage() {
             >
               <div className="flex items-center gap-2">
                 <UserCheck className="w-4 h-4" />
-                <span>Phân công Supporter</span>
+                <span>Triage & Phân công</span>
               </div>
               {unassignedCasesCount > 0 && (
                 <span className={`inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold rounded-full ${
@@ -164,6 +194,9 @@ export default function AdminHubPage() {
                   supporters={supporters}
                   onAssign={handleAssignSupporter}
                   isAssigning={isAssigning}
+                  onAccept={handleAcceptCase}
+                  onReject={handleRejectCase}
+                  onRequestMoreInfo={handleRequestMoreInfo}
                 />
               </div>
             )}

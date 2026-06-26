@@ -3,7 +3,7 @@
 import React from "react";
 import { Payment } from "@/types";
 import { Check, X, FileText, Image as ImageIcon, ExternalLink, AlertCircle } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
 
 interface AdminPaymentVerificationTableProps {
   payments: Payment[];
@@ -59,33 +59,31 @@ export default function AdminPaymentVerificationTable({
   return (
     <div className="border border-border-app rounded-2xl overflow-hidden bg-surface-app shadow-sm font-body text-xs text-text-app">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="bg-surface-soft border-b border-border-app font-heading font-bold text-[11px] text-text-muted">
-              <th className="p-4 pl-6">Mã dự án</th>
-              <th className="p-4">Gói dịch vụ</th>
-              <th className="p-4">Số tiền</th>
-              <th className="p-4">Thời gian gửi</th>
-              <th className="p-4">Biên lai giao dịch</th>
-              <th className="p-4 pr-6 text-right">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-app/45">
+        <Table aria-label="Bảng xác thực thanh toán" className="w-full border-collapse text-left">
+          <TableHeader className="bg-surface-soft border-b border-border-app font-heading font-bold text-[11px] text-text-muted">
+            <TableColumn className="p-4 pl-6 text-left">Mã dự án</TableColumn>
+            <TableColumn className="p-4 text-left">Gói dịch vụ</TableColumn>
+            <TableColumn className="p-4 text-left">Số tiền</TableColumn>
+            <TableColumn className="p-4 text-left">Thời gian gửi</TableColumn>
+            <TableColumn className="p-4 text-left">Biên lai giao dịch</TableColumn>
+            <TableColumn className="p-4 pr-6 text-right">Thao tác</TableColumn>
+          </TableHeader>
+          <TableBody className="divide-y divide-border-app/45">
             {pendingPayments.map((payment) => (
-              <tr key={payment.id} className="hover:bg-surface-soft/30 transition-colors">
-                <td className="p-4 pl-6 font-heading font-bold text-xs">
+              <TableRow key={payment.id} className="hover:bg-surface-soft/30 transition-colors border-b border-border-app/40 last:border-b-0">
+                <TableCell className="p-4 pl-6 font-heading font-bold text-xs">
                   {payment.case?.case_code || "CASE"}
-                </td>
-                <td className="p-4 font-semibold text-text-muted">
+                </TableCell>
+                <TableCell className="p-4 font-semibold text-text-muted">
                   {payment.package?.name || "Gói dịch vụ"}
-                </td>
-                <td className="p-4 font-heading font-semibold text-brand text-xs">
+                </TableCell>
+                <TableCell className="p-4 font-heading font-semibold text-brand text-xs">
                   {formatPrice(payment.amount)}
-                </td>
-                <td className="p-4 text-text-subtle">
+                </TableCell>
+                <TableCell className="p-4 text-text-subtle">
                   {formatDate(payment.created_at)}
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell className="p-4">
                   {payment.proof_file_url ? (
                     <a
                       href={`http://localhost:8000${payment.proof_file_url}`}
@@ -99,7 +97,7 @@ export default function AdminPaymentVerificationTable({
                         <ImageIcon className="w-3.5 h-3.5 shrink-0" />
                       )}
                       <span>Xem minh chứng</span>
-                      <ExternalLink className="w-3 h-3 text-text-subtle" />
+                      <ExternalLink className="w-3.5 h-3.5 text-text-subtle" />
                     </a>
                   ) : (
                     <span className="text-text-subtle italic flex items-center gap-1">
@@ -107,9 +105,9 @@ export default function AdminPaymentVerificationTable({
                       Không tìm thấy file
                     </span>
                   )}
-                </td>
-                <td className="p-4 pr-6 text-right">
-                  <div className="inline-flex items-center gap-2">
+                </TableCell>
+                <TableCell className="p-4 pr-6 text-right">
+                  <div className="inline-flex items-center gap-2 justify-end">
                     <Button
                       onPress={() => onApprove(payment.id)}
                       className="bg-success hover:bg-success-hover text-white text-[10px] font-semibold h-8 w-8 min-w-0 p-0 rounded-lg shadow-sm shadow-success/10 flex items-center justify-center cursor-pointer"
@@ -123,11 +121,11 @@ export default function AdminPaymentVerificationTable({
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
