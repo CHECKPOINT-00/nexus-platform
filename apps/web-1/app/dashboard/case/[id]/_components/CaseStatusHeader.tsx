@@ -102,8 +102,8 @@ export default function CaseStatusHeader({
     }
   };
 
-  const statusTheme = statusThemeMap[caseData.internal_status] || {
-    label: caseData.internal_status,
+  const statusTheme = statusThemeMap[caseData.user_facing_stage] || {
+    label: caseData.user_facing_stage,
     color: "default",
   };
 
@@ -126,9 +126,6 @@ export default function CaseStatusHeader({
           </h2>
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold font-body ${badgeClass}`}>
             {statusTheme.label}
-          </span>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold font-body bg-brand-subtle/40 text-brand border border-brand/10">
-            {getStageLabel(caseData.user_facing_stage)}
           </span>
         </div>
 

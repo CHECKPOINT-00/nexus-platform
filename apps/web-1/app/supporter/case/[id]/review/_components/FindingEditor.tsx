@@ -46,14 +46,14 @@ export default function FindingEditor({ finding, onChange }: FindingEditorProps)
             <Select.Trigger className="w-full h-10 px-3 bg-surface-app border border-border-strong rounded-lg text-xs font-body text-text-app focus:outline-brand flex items-center justify-between cursor-pointer">
               <Select.Value className="truncate" />
             </Select.Trigger>
-            <Select.Popover className="bg-surface-app border border-border-app rounded-lg shadow-md p-1 min-w-[200px] z-50">
-              <ListBox className="outline-none">
+            <Select.Popover className="bg-surface-app border border-border-strong rounded-xl shadow-xl p-1 min-w-[200px] z-50">
+              <ListBox className="outline-none flex flex-col gap-0">
                 {fields.map((f) => (
                   <ListBoxItem 
                     key={f.id} 
                     id={f.id} 
                     textValue={f.label}
-                    className="px-2 py-1.5 text-xs rounded hover:bg-surface-soft cursor-pointer text-text-app outline-none select-none block"
+                    className="px-2.5 py-0.5 text-xs rounded-md hover:bg-surface-soft cursor-pointer text-text-app outline-none select-none block transition-colors"
                   >
                     {f.label}
                   </ListBoxItem>

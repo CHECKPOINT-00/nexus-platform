@@ -10,7 +10,7 @@ export function useReportReview(caseId: string) {
     queryKey: ["case-report-draft", caseId],
     queryFn: async () => {
       try {
-        const response = await apiClient.get(`/reports/${caseId}/draft`);
+        const response = await apiClient.get(`/supporter/cases/${caseId}/reports/draft`);
         return response.data;
       } catch (err: any) {
         if (err.response?.status === 404) {
@@ -25,7 +25,7 @@ export function useReportReview(caseId: string) {
   // 2. Generate AI Draft Report
   const generateDraftMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post(`/reports/${caseId}/draft`);
+      const response = await apiClient.post(`/supporter/cases/${caseId}/reports/draft`);
       return response.data;
     },
     onSuccess: () => {
@@ -37,7 +37,7 @@ export function useReportReview(caseId: string) {
   // 3. Edit / Save Draft
   const updateDraftMutation = useMutation({
     mutationFn: async ({ reportId, contentMd }: { reportId: string; contentMd: string }) => {
-      const response = await apiClient.put(`/reports/${reportId}`, { content_md: contentMd });
+      const response = await apiClient.put(`/supporter/reports/${reportId}`, { content_md: contentMd });
       return response.data;
     },
     onSuccess: (data) => {
@@ -45,16 +45,38 @@ export function useReportReview(caseId: string) {
     },
   });
 
-  // 4. Approve and send report to student
-  const approveReportMutation = useMutation({
+  // 4. Publish report
+  const publishReportMutation = useMutation({
     mutationFn: async (reportId: string) => {
-      const response = await apiClient.post(`/reports/${reportId}/approve`);
+      const response = await apiClient.post(`/supporter/reports/${reportId}/publish`);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case-report-draft", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case-report-latest", caseId] });
+    },
+  });
+
+  // 5. Request more info from student (Supporter version)
+  const requestMoreInfoMutation = useMutation({
+    mutationFn: async ({ query }: { query: string }) => {
+      const response = await apiClient.post(`/supporter/cases/${caseId}/request-more-info`, { query });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+    },
+  });
+
+  // 6. Close case
+  const closeCaseMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      const response = await apiClient.post(`/supporter/cases/${caseId}/close`, { reason });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
     },
   });
 
@@ -66,7 +88,11 @@ export function useReportReview(caseId: string) {
     isGenerating: generateDraftMutation.isPending,
     updateDraft: updateDraftMutation.mutateAsync,
     isUpdating: updateDraftMutation.isPending,
-    approveReport: approveReportMutation.mutateAsync,
-    isApproving: approveReportMutation.isPending,
+    approveReport: publishReportMutation.mutateAsync, // Keep name approveReport for backward compatibility
+    isApproving: publishReportMutation.isPending,
+    requestMoreInfo: requestMoreInfoMutation.mutateAsync,
+    isRequestingMoreInfo: requestMoreInfoMutation.isPending,
+    closeCase: closeCaseMutation.mutateAsync,
+    isClosing: closeCaseMutation.isPending,
   };
 }

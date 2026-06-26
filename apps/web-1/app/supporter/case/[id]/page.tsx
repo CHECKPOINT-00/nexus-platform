@@ -36,7 +36,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   }, [session, isAuthPending, router]);
 
   // 2. Fetch Case Details
-  const { caseData, isLoading, error } = useCaseDetails(id);
+  const { caseData, latestReport, isLoading, error } = useCaseDetails(id);
   const [activeTab, setActiveTab] = useState<"idea" | "report" | "discussion" | "timeline" | "settings">("idea");
   const [selectedVersion, setSelectedVersion] = useState<number>(0);
 
@@ -44,9 +44,9 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const versions = React.useMemo(() => {
     if (!caseData?.lifecycle_units) return [0];
     const uniqueVers = Array.from(
-      new Set(caseData.lifecycle_units.map((unit) => unit.version_no))
-    ).sort((a, b) => b - a); // Sort descending
-    return uniqueVers.length > 0 ? uniqueVers : [0];
+      new Set(caseData.lifecycle_units.map((unit: any) => unit.version_no))
+    ).sort((a: any, b: any) => b - a); // Sort descending
+    return uniqueVers.length > 0 ? (uniqueVers as number[]) : [0];
   }, [caseData?.lifecycle_units]);
 
   // Set default selected version to the latest one
@@ -106,7 +106,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           )}
 
           {activeTab === "report" && (
-            <TabReportFindings caseData={caseData} selectedVersion={selectedVersion} />
+            <TabReportFindings caseData={caseData} selectedVersion={selectedVersion} report={latestReport} />
           )}
 
           {activeTab === "discussion" && (

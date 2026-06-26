@@ -5,14 +5,14 @@ import { Case } from "@/types";
 export function useCaseDetails(id: string) {
   const queryClient = useQueryClient();
 
-  const caseQuery = useQuery<Case>({
+  const caseQuery = useQuery<any>({
     queryKey: ["case", id],
     queryFn: async () => {
       const response = await apiClient.get(`/cases/${id}`);
       return response.data;
     },
     enabled: !!id,
-    refetchInterval: 10000, // Poll every 10 seconds for real-time status/report updates
+    refetchInterval: 10000,
   });
 
   const updateStageMutation = useMutation({
@@ -38,7 +38,13 @@ export function useCaseDetails(id: string) {
   });
 
   return {
-    caseData: caseQuery.data,
+    caseData: caseQuery.data?.case || null,
+    intakeSnapshot: caseQuery.data?.intake_snapshot || null,
+    latestReport: caseQuery.data?.latest_report || null,
+    latestUserAction: caseQuery.data?.latest_user_action || null,
+    documentBoardSections: caseQuery.data?.document_board_sections || null,
+    roundHistory: caseQuery.data?.round_history || null,
+    openRequestsForMoreInfo: caseQuery.data?.open_requests_for_more_info || null,
     isLoading: caseQuery.isLoading,
     error: caseQuery.error,
     refetch: caseQuery.refetch,

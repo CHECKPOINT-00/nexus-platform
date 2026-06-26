@@ -7,13 +7,8 @@ import { apiClient } from "@/lib/api-client";
 import { AlertCircle, HelpCircle, FileText, ChevronDown, ChevronUp, CheckCircle, Lightbulb, Play } from "lucide-react";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 
-interface TabReportFindingsProps {
-  caseData: Case;
-  selectedVersion: number;
-}
-
 interface Finding {
-  field: "idea" | "customer" | "pain_point" | "alternatives" | "capability" | string;
+  field: string;
   status: string;
   evidence: string;
   reason: string;
@@ -21,24 +16,13 @@ interface Finding {
   next_action: string;
 }
 
-export default function TabReportFindings({ caseData, selectedVersion }: TabReportFindingsProps) {
-  // Fetch latest approved report for the case
-  const { data: report, isLoading, error } = useQuery({
-    queryKey: ["case-report-latest", caseData.id, selectedVersion],
-    queryFn: async () => {
-      try {
-        const response = await apiClient.get(`/reports/${caseData.id}/latest`);
-        return response.data;
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          return null; // No approved report yet
-        }
-        throw err;
-      }
-    },
-    enabled: !!caseData.id,
-  });
+interface TabReportFindingsProps {
+  caseData: Case;
+  selectedVersion: number;
+  report: any | null;
+}
 
+export default function TabReportFindings({ caseData, selectedVersion, report }: TabReportFindingsProps) {
   const [expandedIndices, setExpandedIndices] = useState<Record<number, boolean>>({});
 
   const toggleExpand = (index: number) => {
@@ -65,42 +49,23 @@ export default function TabReportFindings({ caseData, selectedVersion }: TabRepo
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 space-y-6 animate-fade-in">
-        <LoadingSkeleton variant="card" count={2} />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 animate-fade-in">
-        <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-xs">
-          Không thể tải thông tin báo cáo phản biện. Vui lòng thử lại sau.
-        </div>
-      </div>
-    );
-  }
-
   if (!report) {
-    // Determine the empty state message based on payment and audit status
     let title = "Chưa có báo cáo phản biện";
     let desc = "Báo cáo phản biện chính thức sẽ hiển thị ở đây sau khi được Supporter kiểm duyệt và phê duyệt.";
 
-    if ((caseData.payment_status === "unpaid" || caseData.payment_status === "rejected") && caseData.package?.price !== 0) {
-      title = "Đang chờ thanh toán dịch vụ";
-      desc = "Vui lòng hoàn tất thanh toán để Supporter bắt đầu tiến hành kiểm tra tài liệu và xuất báo cáo phản biện.";
-    } else if (caseData.internal_status === "unassigned") {
+    if (caseData.internal_status === "triage_pending") {
+      title = "Hồ sơ đang chờ duyệt (Triage)";
+      desc = "Ban quản trị đang tiến hành thẩm định tính hợp lệ của hồ sơ bài nộp trước khi phân công.";
+    } else if (caseData.internal_status === "accepted_unassigned") {
       title = "Đang chờ phân công Supporter";
       desc = "Hệ thống đang chỉ định một Supporter chuyên môn hỗ trợ phản biện dự án của bạn.";
-    } else if (caseData.internal_status === "assigned" || caseData.internal_status === "auditing") {
+    } else if (caseData.internal_status === "assigned" || caseData.internal_status === "supporter_working") {
       title = "Supporter đang tiến hành phản biện";
       desc = "Ý tưởng của bạn đang được phân tích và đánh giá logic bởi Supporter chuyên môn của Nexus.";
     }
 
     return (
-      <div className="bg-surface-app border border-border-app rounded-2xl p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in">
+      <div className="bg-surface-app border border-border-app rounded-2xl p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
         <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
           <FileText className="w-6 h-6" />
         </div>
