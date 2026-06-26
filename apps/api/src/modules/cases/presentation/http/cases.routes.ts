@@ -96,6 +96,12 @@ casesRouter.post("/", async (c) => {
 
     // DB Transaction to create case, default checkpoint and lifecycle unit
     const result = await prisma.$transaction(async (tx) => {
+      // Check package price to determine initial payment status
+      const servicePackage = await tx.servicePackage.findUnique({
+        where: { id: package_id },
+      });
+      const isFree = servicePackage ? servicePackage.price === 0 : false;
+
       // Create case
       const newCase = await tx.case.create({
         data: {
@@ -108,7 +114,7 @@ casesRouter.post("/", async (c) => {
           deadline: deadline ? new Date(deadline) : null,
           user_facing_stage: "intake",
           internal_status: "unassigned",
-          payment_status: "unpaid",
+          payment_status: isFree ? "paid" : "unpaid",
           current_checkpoint: "CP1",
         },
       });
