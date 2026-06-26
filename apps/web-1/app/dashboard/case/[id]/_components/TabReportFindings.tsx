@@ -88,7 +88,7 @@ export default function TabReportFindings({ caseData, selectedVersion }: TabRepo
     let title = "Chưa có báo cáo phản biện";
     let desc = "Báo cáo phản biện chính thức sẽ hiển thị ở đây sau khi được Supporter kiểm duyệt và phê duyệt.";
 
-    if (caseData.payment_status === "unpaid" || caseData.payment_status === "rejected") {
+    if ((caseData.payment_status === "unpaid" || caseData.payment_status === "rejected") && caseData.package?.price !== 0) {
       title = "Đang chờ thanh toán dịch vụ";
       desc = "Vui lòng hoàn tất thanh toán để Supporter bắt đầu tiến hành kiểm tra tài liệu và xuất báo cáo phản biện.";
     } else if (caseData.internal_status === "unassigned") {

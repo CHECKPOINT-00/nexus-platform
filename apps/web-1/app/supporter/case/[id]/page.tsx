@@ -81,7 +81,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
       />
 
       {/* 2. Unpaid Warnings (Read-Only Warning for Supporters) */}
-      {caseData.payment_status !== "paid" && (
+      {caseData.payment_status !== "paid" && caseData.package?.price !== 0 && (
         <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2">
           <span>⚠️ Học viên chưa hoàn tất thanh toán dự án này. Vui lòng lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
         </div>

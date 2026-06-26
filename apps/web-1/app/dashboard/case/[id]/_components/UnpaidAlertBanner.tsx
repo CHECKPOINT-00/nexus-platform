@@ -11,6 +11,10 @@ interface UnpaidAlertBannerProps {
 }
 
 export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAlertBannerProps) {
+  if (caseData.package?.price === 0) {
+    return null;
+  }
+
   const { payment_status, payments } = caseData;
 
   // Find the latest payment to get the rejection reason if applicable

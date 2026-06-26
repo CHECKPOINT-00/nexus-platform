@@ -37,6 +37,13 @@ export default function CasePaymentPage({ params }: PageProps) {
   }, [session, isAuthPending, router]);
 
   const { caseData, isLoading: isCaseLoading, error: caseError } = useCaseDetails(caseId);
+
+  useEffect(() => {
+    if (caseData && (caseData.payment_status === "paid" || caseData.package?.price === 0)) {
+      router.push(`/dashboard/case/${caseId}`);
+    }
+  }, [caseData, caseId, router]);
+
   const { uploadProof, isUploading, uploadProgress, error: uploadError, reset } = usePaymentUpload(caseId);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
