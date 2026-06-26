@@ -1,11 +1,16 @@
 # PROJECT KNOWLEDGE BASE
 
+- When available and relevant, prefer the `caveman` skill in lite mode together with `sequential-thinking` for structured reasoning.
+- **CodeGraph**: Since this project is indexed with CodeGraph, reach for it (`codegraph_explore` MCP tool or `codegraph explore` CLI) BEFORE using `grep` or reading files when you need to understand or locate code symbols.
+
 **Generated:** 2026-06-25
 
 ## OVERVIEW
+
 Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, HeroUI v3, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (with OpenAI/Google), shared `@repo/*` packages.
 
 ## STRUCTURE
+
 ```
 root/
 ├── apps/api/      # Hono backend, auth, Prisma, streaming
@@ -18,16 +23,18 @@ root/
 ```
 
 ## WHERE TO LOOK
-| Task | Location | Notes |
-|------|----------|-------|
-| Backend/API | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring |
-| Web UI | `apps/web-1/app/*` | HeroUI v3 app; read `apps/web-1/AGENTS.md` first |
-| Shared UI | `packages/ui/src/*` | Common primitives for shared React usage |
-| DB schema | `prisma/schema.prisma` | Plural table names, snake_case fields |
-| Tech docs | `docs/tech-doc-urls.txt` | Source of truth for external docs |
-| Workspace rules | `package.json`, `turbo.json` | Root scripts + Turbo task graph |
+
+| Task            | Location                                              | Notes                                            |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                |
+| Web UI          | `apps/web-1/app/*`                                    | HeroUI v3 app; read `apps/web-1/AGENTS.md` first |
+| Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage         |
+| DB schema       | `prisma/schema.prisma`                                | Plural table names, snake_case fields            |
+| Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                |
+| Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                  |
 
 ## CONVENTIONS
+
 - One root `.env`.
 - TypeScript ESM, NodeNext-style relative imports use `.js` in source.
 - API on `8000`; web on `3000`.
@@ -36,6 +43,7 @@ root/
 - HeroUI is web-only.
 
 ## ANTI-PATTERNS (THIS PROJECT)
+
 - Split env files per app.
 - Add auth routes or session logic outside `apps/api`.
 - Edit `apps/web-1` without checking `apps/web-1/AGENTS.md`.
@@ -44,11 +52,13 @@ root/
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or HeroUI code.
 
 ## UNIQUE STYLES
+
 - `apps/web-1` uses HeroUI v3 + `next-themes` + TanStack Form for form state & validation + Lucide React for UI icons.
 - `apps/api` uses Hono streaming helpers, Better Auth plugins, and Vercel AI SDK for Google/OpenAI integrations.
 - `packages/ui` is tiny, stable, and shared; keep changes minimal.
 
 ## COMMANDS
+
 ```bash
 npm run dev
 npm run build
@@ -58,13 +68,16 @@ npm run prisma:migrate
 ```
 
 ## NOTES
+
 - `apps/web-1/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
 - `.agents/rules` exists but is empty right now.
 
 ## UI-UX-PRO-MAX USAGE RULE FOR NEXUS
+
 ui-ux-pro-max is available as a UI/UX reference skill. It is not the source of truth.
 
 Before building a major frontend screen, optionally query ui-ux-pro-max for:
+
 - visual direction
 - layout pattern
 - color/typography suggestions
@@ -75,6 +88,7 @@ Then filter all recommendations through Nexus Frontend UI/UX Design Rules v2.
 
 Never blindly apply a recommendation just because the skill returned it.
 Never let the skill override Nexus-specific requirements:
+
 - AI output must be explainable.
 - Trust over magic.
 - Status must be visible.

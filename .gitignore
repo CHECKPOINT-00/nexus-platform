@@ -43,3 +43,4 @@ yarn-error.log*
 __pycache__
 apps-web-repomix.xml
 cookie.txt
+temp/
