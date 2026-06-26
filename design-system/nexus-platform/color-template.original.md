@@ -1,16 +1,16 @@
 # PROMPT — Nexus Color Direction & Theme System
 
-Rebuild Nexus frontend visual system.
+You are rebuilding the Nexus frontend visual system.
 
-Goal: color system that supports Nexus emotional experience.
+The goal is not just to pick colors. The goal is to create a color system that supports the emotional experience of Nexus.
 
 ## 1. Product Context
 
-Nexus is startup idea critique and refinement platform for students.
+Nexus is a startup idea critique and refinement platform for students.
 
-Users prepare checkpoint documents. They feel uncertain, stressed, confused, afraid idea is weak.
+Users are usually students preparing checkpoint documents. They may feel uncertain, stressed, confused, or afraid that their idea is weak.
 
-Frontend should make them feel:
+The frontend should make them feel:
 
 * supported
 * guided
@@ -18,7 +18,7 @@ Frontend should make them feel:
 * safe
 * taken seriously
 * not judged harshly
-* confident about next step
+* confident about the next step
 
 Avoid making Nexus feel:
 
@@ -29,34 +29,34 @@ Avoid making Nexus feel:
 * overly technical
 * like a generic AI SaaS
 * like a sales funnel
-* like admin-only dashboard
+* like a dashboard for admins only
 
-UI should feel like calm mentor workspace, not government portal or neon AI product.
+The UI should feel like a calm mentor workspace, not a government portal and not a neon AI product.
 
 ## 2. Color Strategy
 
-Use **Teal as main brand color**.
+Use **Teal as the main brand color**.
 
 Use **Warm Orange / Amber as emotional accent**.
 
-Do not use Orange as whole primary brand color.
+Do not use Orange as the whole primary brand color.
 
 Reasoning:
 
-* Teal = calm, guidance, trust, support
-* Warm Orange = care, energy, encouragement, human warmth
-* Full Orange as main brand = too promotional, sales-like, warning-like
-* Full Blue/Navy = too cold, corporate, government-like
-* Emerald = reserve for success states, not primary CTA
-* Amber/Orange = use carefully; overlaps with warning/pending states
+* Teal gives a feeling of calm, guidance, trust, and support.
+* Warm Orange gives a feeling of care, energy, encouragement, and human warmth.
+* Full Orange as the main brand can feel too promotional, sales-like, or warning-like.
+* Full Blue/Navy can feel too cold, corporate, or government-like.
+* Emerald should be reserved for success states, not primary CTA.
+* Amber/Orange should be used carefully because it overlaps with warning/pending states.
 
-Intended feeling:
+The intended feeling is:
 
 > Calm support first, warm encouragement second.
 
 ## 3. Recommended Palette
 
-Default color foundation:
+Use this as the default color foundation.
 
 ```ts
 const nexusColors = {
@@ -132,7 +132,7 @@ Examples:
 * “Xem báo cáo”
 * “Nộp bản sửa”
 
-Default primary buttons inside app should usually be Teal.
+Default primary buttons inside the app should usually be Teal.
 
 ### 4.2 Warm Accent Color
 
@@ -151,7 +151,7 @@ Do not use orange everywhere.
 
 Do not turn all primary buttons orange.
 
-Use orange to make product warmer, not louder.
+Use orange to make the product feel warmer, not louder.
 
 ### 4.3 Status Colors
 
@@ -163,7 +163,7 @@ Use status colors strictly:
 * Blue = informational, neutral system info
 * Teal = brand / primary workflow action
 
-Do not use Emerald as main CTA color.
+Do not use Emerald as the main CTA color.
 
 Reason:
 
@@ -181,7 +181,7 @@ Recommended:
 * Soft teal sections: `#F0FDFA`
 * Soft orange sections: `#FFF7ED` or `#FFEDD5`
 
-UI should feel soft and supportive, not sterile.
+The UI should feel soft and supportive, not sterile.
 
 ## 5. Page-Level Color Direction
 
@@ -205,7 +205,7 @@ Avoid:
 * generic SaaS blue gradient
 * too many colorful sections
 
-Landing page should communicate:
+The landing page should communicate:
 
 > “Nexus helps you see what is unclear, know what to fix, and move forward with more confidence.”
 
@@ -219,7 +219,7 @@ Use:
 * teal primary button
 * small orange accent only if needed
 * minimal decoration
-* optional side panel explaining Nexus workflow
+* optional side panel explaining the Nexus workflow
 
 Avoid:
 
@@ -229,7 +229,7 @@ Avoid:
 
 ### Student Dashboard
 
-Student dashboard should feel like supportive workspace, not admin control panel.
+Student dashboard should feel like a supportive workspace, not an admin control panel.
 
 Use:
 
@@ -259,7 +259,7 @@ Use:
 * amber only for missing/attention states
 * red only for actual errors
 
-User should feel:
+The user should feel:
 
 > “I am being guided step by step.”
 
@@ -269,12 +269,12 @@ Not:
 
 ### Case Workspace
 
-Case Workspace is core screen. It should feel calm, structured, and reliable.
+Case Workspace is the core product screen. It should feel calm, structured, and reliable.
 
 Use:
 
 * teal for current workflow/action
-* amber for "needs clarification" or pending state
+* amber for “needs clarification” or pending state
 * emerald for approved/sent/paid
 * neutral surfaces for reading long content
 * light teal background for guidance blocks
@@ -284,8 +284,8 @@ Avoid:
 
 * making every finding card colorful
 * making all status chips equally loud
-* using orange as entire workspace theme
-* making UI feel like warning system
+* using orange as the entire workspace theme
+* making the UI feel like a warning system
 
 ### Report / Finding Cards
 
@@ -298,7 +298,7 @@ Use color semantically:
 * Ready / Resolved: Emerald
 * Neutral explanation: Slate/Teal
 
-Do not over-color entire card.
+Do not over-color the entire card.
 
 Prefer:
 
@@ -339,11 +339,13 @@ Use:
 * amber for pending payment
 * emerald for approved/paid
 
-Admin can be less emotionally warm than student screens, but it must remain visually consistent with whole system.
+Admin can be less emotionally warm than student screens, but it must remain visually consistent with the whole system.
 
 ## 6. Tailwind / CSS Variable Template
 
 Create semantic CSS variables rather than hardcoding hex everywhere.
+
+Recommended structure:
 
 ```css
 :root {
@@ -479,7 +481,7 @@ const statusTheme = {
 
 ## 9. Visual Mood
 
-Final visual mood:
+The final visual mood should be:
 
 ```txt
 Warm mentor workspace
@@ -502,17 +504,17 @@ Overly playful education app
 
 ## 10. Implementation Instruction
 
-When implementing theme:
+When implementing the theme:
 
 1. Create semantic color tokens first.
-2. Apply Teal as brand + default primary action.
-3. Apply Orange only as warm accent + selected CTA highlight.
+2. Apply Teal as brand and default primary action.
+3. Apply Orange only as warm accent and selected CTA highlight.
 4. Apply Emerald only for success/completed states.
-5. Use warm off-white background for app.
-6. Keep student-facing pages warmer, more supportive.
-7. Keep supporter/admin pages more neutral, operational.
-8. Do not overuse badges, chips, borders, colored cards.
-9. Review each page for emotional fit:
+5. Use warm off-white background for the app.
+6. Keep student-facing pages warmer and more supportive.
+7. Keep supporter/admin pages more neutral and operational.
+8. Do not overuse badges, chips, borders, and colored cards.
+9. Review every page for emotional fit:
 
    * Does this feel supportive?
    * Does this feel calm?
@@ -522,7 +524,7 @@ When implementing theme:
 
 ## 11. Final Decision
 
-Use final direction:
+Use this final direction:
 
 ```txt
 Primary Brand: Teal
@@ -536,9 +538,9 @@ Background: Warm off-white
 Text: Slate / Warm neutral
 ```
 
-Do not use Orange as global primary brand color.
-Do not use Emerald as default primary CTA color.
-Do not make UI navy-heavy or government-like.
-Do not make UI look like generic purple AI SaaS.
+Do not use Orange as the global primary brand color.
+Do not use Emerald as the default primary CTA color.
+Do not make the UI navy-heavy or government-like.
+Do not make the UI look like a generic purple AI SaaS.
 
-System should feel like calm, capable mentor helping students move forward.
+The system should feel like a calm, capable mentor that helps students move forward.
