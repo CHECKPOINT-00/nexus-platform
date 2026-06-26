@@ -10,6 +10,8 @@ import { reportsRouter } from './modules/reports/presentation/http/reports.route
 import { paymentsRouter } from './modules/payments/presentation/http/payments.routes.js'
 import { packagesRouter } from './modules/packages/presentation/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/presentation/http/ai-engine.routes.js'
+import { adminRouter } from './modules/admin/presentation/http/admin.routes.js'
+import { supporterRouter } from './modules/supporter/presentation/http/supporter.routes.js'
 
 const app = new Hono()
 const port = Number(process.env.PORT ?? 8000)
@@ -61,6 +63,8 @@ app.route('/api/reports', reportsRouter)
 app.route('/api/payments', paymentsRouter)
 app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
+app.route('/api/admin', adminRouter)
+app.route('/api/supporter', supporterRouter)
 
 serve({
   fetch: app.fetch,
