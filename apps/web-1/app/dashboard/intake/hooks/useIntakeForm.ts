@@ -7,6 +7,45 @@ import { IntakeData } from "../_types/intake.types";
 
 const LOCAL_STORAGE_KEY = "nexus_intake_draft";
 
+const INITIAL_VALUES: IntakeData = {
+  package_id: "",
+  current_situations: [],
+  case_summary: "",
+  contact: {
+    full_name: "",
+    student_code: "",
+    team_role: "",
+    zalo: "",
+    email: "",
+    telegram: "",
+  },
+  team_context: {
+    group_no: "",
+    project_name: "",
+    team_status_summary: "",
+  },
+  support_needs: {
+    primary_need: "",
+    extra_notes: "",
+  },
+  documents: [
+    {
+      source_type: "drive",
+      drive_url: "",
+      document_type: "",
+      role_description: "",
+    }
+  ],
+  lecturer_feedback: "",
+  deadline: "",
+  urgency: "normal",
+  expected_outputs: "",
+  needs_followup_review: false,
+  boundary_confirmations: [],
+  school: "",
+  course_context: "",
+};
+
 export function useIntakeForm(initialPackageId?: string | null) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -14,14 +53,8 @@ export function useIntakeForm(initialPackageId?: string | null) {
 
   // Initialize draft values
   const [draftValues, setDraftValues] = useState<IntakeData>({
+    ...INITIAL_VALUES,
     package_id: initialPackageId || "",
-    idea: "",
-    pain_point: "",
-    customer: "",
-    drive_url: "",
-    team_name: "",
-    school: "",
-    course_context: "",
   });
 
   // Load from localStorage on mount
@@ -74,10 +107,26 @@ export function useIntakeForm(initialPackageId?: string | null) {
     }
   };
 
+  // Clear draft completely
+  const clearDraft = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+    setDraftValues({
+      ...INITIAL_VALUES,
+      package_id: initialPackageId || "",
+    });
+    form.reset({
+      ...INITIAL_VALUES,
+      package_id: initialPackageId || "",
+    });
+  };
+
   return {
     form,
     isLoaded,
     saveDraft,
+    clearDraft,
     isSubmitting: submitMutation.isPending,
     error: submitMutation.error ? (submitMutation.error as any).response?.data?.message || "Đã xảy ra lỗi khi tạo dự án." : null,
   };
