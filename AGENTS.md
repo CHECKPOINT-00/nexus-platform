@@ -50,6 +50,7 @@ root/
 - Reintroduce shadcn-style web components into `apps/web-1`.
 - Change Prisma names away from plural/snake_case.
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or HeroUI code.
+- Tự tiện thêm các Tailwind class định vị thủ công (như `fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào các component của HeroUI (như `Modal.Backdrop`, `Modal.Container`). Các component này đã có style định vị mặc định, việc viết đè class sẽ gây lỗi hiển thị (làm lệch căn giữa modal, v.v.).
 
 ## UNIQUE STYLES
 

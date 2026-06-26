@@ -13,8 +13,8 @@ export interface Case {
   current_checkpoint?: string | null;
   package_id?: string | null;
   assigned_supporter_auth_user_id?: string | null;
-  user_facing_stage: "intake" | "payment" | "checkpoint_1" | "checkpoint_2" | "checkpoint_3" | string;
-  internal_status: "unassigned" | "assigned" | "auditing" | "need_clarification" | "reviewed" | "approved" | string;
+  user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
+  internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;
   payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
   deadline?: string | null;
   created_at: string;
@@ -125,14 +125,48 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
-  // Checkpoint statuses & report states
-  draft: {
-    label: "Bản nháp",
-    color: "default",
-  },
+  // User Facing Stages
   submitted: {
     label: "Đã nộp",
     color: "primary",
+  },
+  need_more_information: {
+    label: "Cần bổ sung",
+    color: "warning",
+  },
+  under_review: {
+    label: "Đang thẩm định",
+    color: "primary",
+  },
+  report_ready: {
+    label: "Đã có báo cáo",
+    color: "success",
+  },
+  waiting_for_revision: {
+    label: "Chờ bản sửa",
+    color: "warning",
+  },
+  revision_submitted: {
+    label: "Đã nộp bản sửa",
+    color: "primary",
+  },
+  completed: {
+    label: "Hoàn thành",
+    color: "success",
+  },
+  rejected: {
+    label: "Bị từ chối",
+    color: "danger",
+  },
+  closed: {
+    label: "Đã đóng",
+    color: "default",
+  },
+
+  // Legacy Checkpoint & internal statuses mapped gracefully
+  draft: {
+    label: "Bản nháp",
+    color: "default",
   },
   approved: {
     label: "Đã duyệt",
@@ -164,34 +198,38 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     label: "Đã thanh toán",
     color: "success",
   },
-  rejected: {
-    label: "Bị từ chối",
-    color: "danger",
-  },
 
-  // Case/Checkpoint auditing statuses
-  unassigned: {
-    label: "Chưa phân công",
+  // Case/Checkpoint auditing statuses (Internal)
+  triage_pending: {
+    label: "Chờ triage",
+    color: "default",
+  },
+  accepted_unassigned: {
+    label: "Chờ phân công",
     color: "default",
   },
   assigned: {
     label: "Đã phân công",
     color: "primary",
   },
-  auditing: {
-    label: "Đang phản biện",
+  waiting_user: {
+    label: "Chờ phản hồi",
+    color: "warning",
+  },
+  supporter_working: {
+    label: "Đang xử lý",
     color: "primary",
   },
-  need_clarification: {
-    label: "Cần làm rõ",
-    color: "warning",
+  report_ready_to_publish: {
+    label: "Báo cáo sẵn sàng",
+    color: "success",
   },
-  needClarification: {
-    label: "Cần làm rõ",
-    color: "warning",
+  done: {
+    label: "Hoàn thành",
+    color: "success",
   },
-  reviewed: {
-    label: "Đã supporter xem",
-    color: "secondary",
+  cancelled: {
+    label: "Đã hủy",
+    color: "danger",
   },
 };

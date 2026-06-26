@@ -11,21 +11,21 @@ export default function LandingHero() {
         {/* Sub-badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand/20 bg-brand-subtle text-brand text-xs font-body font-medium">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Ứng dụng AI Phản biện & Đánh giá Dự án Khởi nghiệp</span>
+          <span>Ứng dụng Đánh giá & Phản biện Checkpoint 1 (CP1)</span>
         </div>
 
         {/* Title */}
         <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-text-app">
-          Kiểm định Ý tưởng & Phản biện Học thuật{" "}
+          Kiểm định Ý tưởng & Đánh giá Checkpoint 1{" "}
           <span className="text-brand relative inline-block">
-            Thông minh
+            Chuẩn Xác
             <span className="absolute bottom-1.5 left-0 w-full h-1 bg-brand-soft -z-10" />
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="max-w-2xl mx-auto font-body text-base sm:text-lg text-text-muted">
-          Nexus giúp các nhóm sinh viên và nhà sáng lập trẻ đánh giá dự án theo tiêu chí chuẩn checkpoint, phản biện lập luận đa chiều bằng trí tuệ nhân tạo và nhận feedback từ supporter chuyên nghiệp.
+          Nexus giúp các nhóm sinh viên kiểm định nội dung Checkpoint 1 (CP1) theo đúng tiêu chí chấm điểm học thuật, phát hiện lỗi logic lập luận bằng AI và nhận báo cáo thẩm định từ các Supporter giàu kinh nghiệm.
         </p>
 
         {/* CTAs */}
