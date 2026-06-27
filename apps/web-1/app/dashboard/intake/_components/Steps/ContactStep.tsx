@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TextField, Input, Label, FieldError, Tooltip } from "@heroui/react";
+import { TextInput, Tooltip } from "@mantine/core";
 import { HelpCircle } from "lucide-react";
 
 interface ContactStepProps {
@@ -33,23 +33,15 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           {(field: any) => {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
-              <TextField isInvalid={hasError} className="flex flex-col gap-1.5">
-                <Label className="text-xs font-semibold text-text-app">Họ và tên</Label>
-                <Input
-                  placeholder="Ví dụ: Nguyễn Văn A"
-                  value={field.state.value || ""}
-                  onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                  className={`w-full bg-surface-soft border rounded-lg text-xs font-body text-text-app focus:outline-none px-3 h-10 transition-all ${
-                    hasError
-                      ? "border-danger focus:border-danger ring-1 ring-danger/20 text-danger"
-                      : "border-border-strong focus:border-brand"
-                  }`}
-                />
-                <FieldError className="text-[10px] text-danger font-body font-semibold pl-1">
-                  {field.state.meta.errors[0]}
-                </FieldError>
-              </TextField>
+              <TextInput
+                label="Họ và tên"
+                placeholder="Ví dụ: Nguyễn Văn A"
+                value={field.state.value || ""}
+                onBlur={field.handleBlur}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                radius="md"
+              />
             );
           }}
         </form.Field>
@@ -67,33 +59,29 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           {(field: any) => {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
-              <TextField isInvalid={hasError} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Label className="text-xs font-semibold text-text-app">Mã số sinh viên</Label>
-                  <Tooltip delay={0} closeDelay={0}>
-                    <Tooltip.Trigger>
-                      <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Content className="bg-surface-app border border-border-app p-2 rounded-lg text-xs shadow-md text-text-app max-w-xs leading-relaxed z-50">
-                      Nhập mã số sinh viên của bạn (ví dụ: HE150123) để xác thực bối cảnh Campus.
-                    </Tooltip.Content>
-                  </Tooltip>
-                </div>
-                <Input
-                  placeholder="Ví dụ: HE150123"
-                  value={field.state.value || ""}
-                  onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                  className={`w-full bg-surface-soft border rounded-lg text-xs font-body text-text-app focus:outline-none px-3 h-10 transition-all ${
-                    hasError
-                      ? "border-danger focus:border-danger ring-1 ring-danger/20 text-danger"
-                      : "border-border-strong focus:border-brand"
-                  }`}
-                />
-                <FieldError className="text-[10px] text-danger font-body font-semibold pl-1">
-                  {field.state.meta.errors[0]}
-                </FieldError>
-              </TextField>
+              <TextInput
+                label={
+                  <div className="flex items-center gap-1.5">
+                    <span>Mã số sinh viên</span>
+                    <Tooltip
+                      label="Nhập mã số sinh viên của bạn (ví dụ: HE150123) để xác thực bối cảnh Campus."
+                      multiline
+                      w={220}
+                      withArrow
+                    >
+                      <span className="flex items-center">
+                        <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
+                      </span>
+                    </Tooltip>
+                  </div>
+                }
+                placeholder="Ví dụ: HE150123"
+                value={field.state.value || ""}
+                onBlur={field.handleBlur}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                radius="md"
+              />
             );
           }}
         </form.Field>
@@ -110,33 +98,29 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           {(field: any) => {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
-              <TextField isInvalid={hasError} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Label className="text-xs font-semibold text-text-app">Vai trò trong nhóm</Label>
-                  <Tooltip delay={0} closeDelay={0}>
-                    <Tooltip.Trigger>
-                      <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Content className="bg-surface-app border border-border-app p-2 rounded-lg text-xs shadow-md text-text-app max-w-xs leading-relaxed z-50">
-                      Nhập vai trò của bạn trong nhóm dự án (ví dụ: Trưởng nhóm, Coder, Pitcher, Designer...).
-                    </Tooltip.Content>
-                  </Tooltip>
-                </div>
-                <Input
-                  placeholder="Ví dụ: Leader, Coder, Pitcher..."
-                  value={field.state.value || ""}
-                  onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                  className={`w-full bg-surface-soft border rounded-lg text-xs font-body text-text-app focus:outline-none px-3 h-10 transition-all ${
-                    hasError
-                      ? "border-danger focus:border-danger ring-1 ring-danger/20 text-danger"
-                      : "border-border-strong focus:border-brand"
-                  }`}
-                />
-                <FieldError className="text-[10px] text-danger font-body font-semibold pl-1">
-                  {field.state.meta.errors[0]}
-                </FieldError>
-              </TextField>
+              <TextInput
+                label={
+                  <div className="flex items-center gap-1.5">
+                    <span>Vai trò trong nhóm</span>
+                    <Tooltip
+                      label="Nhập vai trò của bạn trong nhóm dự án (ví dụ: Trưởng nhóm, Coder, Pitcher, Designer...)."
+                      multiline
+                      w={220}
+                      withArrow
+                    >
+                      <span className="flex items-center">
+                        <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
+                      </span>
+                    </Tooltip>
+                  </div>
+                }
+                placeholder="Ví dụ: Leader, Coder, Pitcher..."
+                value={field.state.value || ""}
+                onBlur={field.handleBlur}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                radius="md"
+              />
             );
           }}
         </form.Field>
@@ -154,33 +138,29 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           {(field: any) => {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
-              <TextField isInvalid={hasError} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Label className="text-xs font-semibold text-text-app">Số điện thoại Zalo</Label>
-                  <Tooltip delay={0} closeDelay={0}>
-                    <Tooltip.Trigger>
-                      <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Content className="bg-surface-app border border-border-app p-2 rounded-lg text-xs shadow-md text-text-app max-w-xs leading-relaxed z-50">
-                      Cung cấp chính xác SĐT Zalo gồm 10 chữ số để supporter liên hệ nhanh khi cần thiết.
-                    </Tooltip.Content>
-                  </Tooltip>
-                </div>
-                <Input
-                  placeholder="Ví dụ: 0987654321"
-                  value={field.state.value || ""}
-                  onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                  className={`w-full bg-surface-soft border rounded-lg text-xs font-body text-text-app focus:outline-none px-3 h-10 transition-all ${
-                    hasError
-                      ? "border-danger focus:border-danger ring-1 ring-danger/20 text-danger"
-                      : "border-border-strong focus:border-brand"
-                  }`}
-                />
-                <FieldError className="text-[10px] text-danger font-body font-semibold pl-1">
-                  {field.state.meta.errors[0]}
-                </FieldError>
-              </TextField>
+              <TextInput
+                label={
+                  <div className="flex items-center gap-1.5">
+                    <span>Số điện thoại Zalo</span>
+                    <Tooltip
+                      label="Cung cấp chính xác SĐT Zalo gồm 10 chữ số để supporter liên hệ nhanh khi cần thiết."
+                      multiline
+                      w={220}
+                      withArrow
+                    >
+                      <span className="flex items-center">
+                        <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
+                      </span>
+                    </Tooltip>
+                  </div>
+                }
+                placeholder="Ví dụ: 0987654321"
+                value={field.state.value || ""}
+                onBlur={field.handleBlur}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                radius="md"
+              />
             );
           }}
         </form.Field>
@@ -198,40 +178,34 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           {(field: any) => {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
-              <TextField isInvalid={hasError} className="flex flex-col gap-1.5 md:col-span-2">
-                <Label className="text-xs font-semibold text-text-app">Email liên hệ</Label>
-                <Input
+              <div className="md:col-span-2">
+                <TextInput
                   type="email"
+                  label="Email liên hệ"
                   placeholder="Ví dụ: anvhe150123@fpt.edu.vn"
                   value={field.state.value || ""}
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                  className={`w-full bg-surface-soft border rounded-lg text-xs font-body text-text-app focus:outline-none px-3 h-10 transition-all ${
-                    hasError
-                      ? "border-danger focus:border-danger ring-1 ring-danger/20 text-danger"
-                      : "border-border-strong focus:border-brand"
-                  }`}
+                  error={hasError ? field.state.meta.errors[0] : undefined}
+                  radius="md"
                 />
-                <FieldError className="text-[10px] text-danger font-body font-semibold pl-1">
-                  {field.state.meta.errors[0]}
-                </FieldError>
-              </TextField>
+              </div>
             );
           }}
         </form.Field>
 
         <form.Field name="contact.telegram">
           {(field: any) => (
-            <TextField className="flex flex-col gap-1.5 md:col-span-2">
-              <Label className="text-xs font-semibold text-text-app">Telegram Username (Tùy chọn)</Label>
-              <Input
+            <div className="md:col-span-2">
+              <TextInput
+                label="Telegram Username (Tùy chọn)"
                 placeholder="Ví dụ: @annguyen_fpt"
                 value={field.state.value || ""}
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                className="w-full bg-surface-soft border border-border-strong rounded-lg text-xs font-body text-text-app focus:outline-none px-3 h-10"
+                radius="md"
               />
-            </TextField>
+            </div>
           )}
         </form.Field>
       </div>

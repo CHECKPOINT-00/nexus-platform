@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Checkbox, CheckboxGroup, Tooltip } from "@heroui/react";
+import { Checkbox, Tooltip } from "@mantine/core";
 import { HelpCircle } from "lucide-react";
 import DriveValidatorInput from "../DriveValidatorInput";
 
@@ -39,11 +39,10 @@ export default function DocumentInputStep({
     <div className="space-y-5 font-body">
       <div className="space-y-1">
         <h3 className="font-heading text-base font-bold text-text-app">
-          Tài liệu đầu vào & Minh chứng
+          Tài liệu đầu vào &amp; Minh chứng
         </h3>
         <p className="font-body text-xs text-text-muted">
-          Cung cấp liên kết thư mục làm việc Google Drive và các tài liệu đi
-          kèm.
+          Cung cấp liên kết thư mục làm việc Google Drive và các tài liệu đi kèm.
         </p>
       </div>
 
@@ -106,15 +105,15 @@ export default function DocumentInputStep({
                     Liên kết thư mục Google Drive dự án{" "}
                     <span className="text-danger">*</span>
                   </label>
-                  <Tooltip delay={0} closeDelay={0}>
-                    <Tooltip.Trigger>
+                  <Tooltip
+                    label="Vui lòng cấp quyền xem liên kết thư mục ('Bất kỳ ai có liên kết đều có thể xem') để AI có thể truy cập các tài liệu bên trong."
+                    multiline
+                    w={220}
+                    withArrow
+                  >
+                    <span className="flex items-center">
                       <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Content className="bg-surface-app border border-border-app p-2 rounded-lg text-xs shadow-md text-text-app max-w-xs leading-relaxed z-50">
-                      Vui lòng cấp quyền xem liên kết thư mục ("Bất kỳ ai có
-                      liên kết đều có thể xem") để AI có thể truy cập các tài
-                      liệu bên trong.
-                    </Tooltip.Content>
+                    </span>
                   </Tooltip>
                 </div>
                 <DriveValidatorInput
@@ -137,14 +136,15 @@ export default function DocumentInputStep({
                     Các tài liệu có trong thư mục{" "}
                     <span className="text-danger">*</span>
                   </label>
-                  <Tooltip delay={0} closeDelay={0}>
-                    <Tooltip.Trigger>
+                  <Tooltip
+                    label="Chọn các tài liệu nhóm đã chuẩn bị sẵn bên trong thư mục Google Drive nộp phản biện."
+                    multiline
+                    w={220}
+                    withArrow
+                  >
+                    <span className="flex items-center">
                       <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Content className="bg-surface-app border border-border-app p-2 rounded-lg text-xs shadow-md text-text-app max-w-xs leading-relaxed z-50">
-                      Chọn các tài liệu nhóm đã chuẩn bị sẵn bên trong thư mục
-                      Google Drive nộp phản biện.
-                    </Tooltip.Content>
+                    </span>
                   </Tooltip>
                 </div>
                 <div
@@ -154,30 +154,22 @@ export default function DocumentInputStep({
                       : "border-border-strong"
                   }`}
                 >
-                  <CheckboxGroup
+                  <Checkbox.Group
                     value={selectedTypes}
                     onChange={handleCheckboxChange}
-                    className="w-full flex flex-col gap-1"
                   >
-                    {DOCUMENT_TYPE_OPTIONS.map((opt) => {
-                      return (
+                    <div className="flex flex-col gap-2.5">
+                      {DOCUMENT_TYPE_OPTIONS.map((opt) => (
                         <Checkbox
                           key={opt.value}
                           value={opt.value}
-                          className="text-xs py-0"
-                        >
-                          <Checkbox.Content className="flex items-center gap-2.5">
-                            <Checkbox.Control className="border border-border-strong bg-surface-app data-[selected=true]:bg-brand data-[selected=true]:border-brand">
-                              <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <span className="text-xs font-body select-none">
-                              {opt.label}
-                            </span>
-                          </Checkbox.Content>
-                        </Checkbox>
-                      );
-                    })}
-                  </CheckboxGroup>
+                          label={opt.label}
+                          radius="sm"
+                          size="xs"
+                        />
+                      ))}
+                    </div>
+                  </Checkbox.Group>
                 </div>
 
                 {hasTypeSelectionError && (

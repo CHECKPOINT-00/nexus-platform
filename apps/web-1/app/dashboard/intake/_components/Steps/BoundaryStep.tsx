@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Checkbox } from "@heroui/react";
+import { Checkbox } from "@mantine/core";
 import { AlertTriangle } from "lucide-react";
 
 interface BoundaryStepProps {
@@ -62,22 +62,19 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
                   return (
                     <Checkbox
                       key={rule.id}
-                      isSelected={isChecked}
-                      onChange={(checked: boolean) => {
+                      checked={isChecked}
+                      onChange={(e) => {
+                        const checked = e.currentTarget.checked;
                         const next = checked
                           ? [...currentConfirmations, rule.id]
                           : currentConfirmations.filter((id: string) => id !== rule.id);
                         field.handleChange(next);
                       }}
-                      className="text-xs py-1"
-                    >
-                      <Checkbox.Content className="flex items-start gap-2.5">
-                        <Checkbox.Control className="mt-0.5 border border-border-strong bg-surface-app data-[selected=true]:bg-brand data-[selected=true]:border-brand">
-                          <Checkbox.Indicator />
-                        </Checkbox.Control>
-                        <span className="leading-tight select-none text-text-app">{rule.label}</span>
-                      </Checkbox.Content>
-                    </Checkbox>
+                      label={rule.label}
+                      size="xs"
+                      radius="sm"
+                      className="py-1"
+                    />
                   );
                 })}
               </div>

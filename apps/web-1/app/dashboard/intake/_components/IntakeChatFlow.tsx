@@ -5,7 +5,7 @@ import { useStore } from "@tanstack/react-form";
 import { usePackages } from "@/hooks/usePackages";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Card, Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 import { ServicePackage } from "@/types";
 import { ArrowLeft, ArrowRight, Bot, Send } from "lucide-react";
 
@@ -248,32 +248,34 @@ export default function IntakeChatFlow({
         {/* Navigation Buttons */}
         <div className="flex justify-between items-center pt-6 border-t border-border-app">
           <Button
-            onPress={handleBack}
-            isDisabled={currentStep === 0 || isSubmitting}
-            variant="ghost"
-            className="border border-border-strong text-text-muted hover:text-text-app font-body font-semibold cursor-pointer flex items-center gap-2 h-9 px-4 rounded-xl text-xs bg-surface-app"
+            onClick={handleBack}
+            disabled={currentStep === 0 || isSubmitting}
+            variant="default"
+            leftSection={<ArrowLeft className="w-4 h-4" />}
+            className="text-text-muted hover:text-text-app font-body font-semibold cursor-pointer h-9 px-4 text-xs"
           >
-            <ArrowLeft className="w-4 h-4" />
             <span>Quay lại</span>
           </Button>
 
           {currentStep === IntakeStep.REVIEW ? (
             <Button
-              onPress={() => form.handleSubmit()}
-              isDisabled={isSubmitting}
-              className="bg-brand text-white font-body font-semibold cursor-pointer hover:bg-brand-hover shadow-sm flex items-center gap-2 h-9 px-4 rounded-xl text-xs"
+              onClick={() => form.handleSubmit()}
+              disabled={isSubmitting}
+              color="brand"
+              rightSection={<Send className="w-4 h-4" />}
+              className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
             >
               <span>{isSubmitting ? "Đang gửi hồ sơ..." : "Xác nhận & Gửi case"}</span>
-              <Send className="w-4 h-4" />
             </Button>
           ) : (
             <Button
-              onPress={handleNext}
-              isDisabled={!isStepValid()}
-              className="bg-brand text-white font-body font-semibold cursor-pointer hover:bg-brand-hover disabled:opacity-50 flex items-center gap-2 h-9 px-4 rounded-xl text-xs"
+              onClick={handleNext}
+              disabled={!isStepValid()}
+              color="brand"
+              rightSection={<ArrowRight className="w-4 h-4" />}
+              className="font-body font-semibold cursor-pointer disabled:opacity-50 h-9 px-4 text-xs"
             >
               <span>Tiếp tục</span>
-              <ArrowRight className="w-4 h-4" />
             </Button>
           )}
         </div>
