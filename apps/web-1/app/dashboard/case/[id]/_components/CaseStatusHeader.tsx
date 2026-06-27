@@ -117,7 +117,7 @@ export default function CaseStatusHeader({
   }[statusTheme.color as "primary" | "secondary" | "success" | "warning" | "danger" | "default"] || "bg-surface-muted text-text-muted border border-border-app";
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       {/* Case Basic Info */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -153,7 +153,7 @@ export default function CaseStatusHeader({
 
       {/* SLA Timer & Version Selector */}
       <div className="flex flex-wrap md:flex-col items-start md:items-end gap-4 shrink-0 w-full md:w-auto">
-        <div className="flex items-center gap-2 p-2 px-3 bg-surface-soft border border-border-app rounded-xl text-xs font-body shadow-inner">
+        <div className="flex items-center gap-2 p-2 px-3 bg-surface-soft rounded-lg text-xs font-body">
           <Clock className="w-4 h-4 text-text-subtle" />
           <span className="text-text-muted mr-1.5">Hạn phản biện:</span>
           <span className={timerColor}>{timeLeft}</span>
@@ -163,11 +163,6 @@ export default function CaseStatusHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <VersionSelector
-            versions={versions}
-            selectedVersion={selectedVersion}
-            onVersionChange={onVersionChange}
-          />
           {isSupporterOrAdmin && (
             <Link
               href={`/supporter/case/${caseData.id}/review`}

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
 import { Settings, Save, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { Button, Input } from "@heroui/react";
+import { Button, TextInput } from "@mantine/core";
 
 interface TabCaseSettingsProps {
   caseData: Case;
@@ -41,7 +41,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
   };
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-2xl p-6 shadow-sm font-body text-xs text-text-app animate-fade-in">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 font-body text-xs text-text-app animate-fade-in">
       <div className="max-w-xl space-y-6">
         <div>
           <div className="flex items-center gap-2 text-text-app">
@@ -55,7 +55,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
 
         {statusMsg && (
           <div
-            className={`p-3.5 rounded-xl border flex items-start gap-2.5 text-xs animate-fade-in ${
+            className={`p-3.5 rounded-lg border flex items-start gap-2.5 text-xs animate-fade-in ${
               statusMsg.type === "success"
                 ? "bg-success-soft text-success border-success/15"
                 : "bg-danger-soft text-danger border-danger/15"
@@ -72,62 +72,51 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-muted">Tên nhóm / Tên dự án</label>
-              <Input
-                type="text"
-                placeholder="Ví dụ: MedTech, Team Sáng Tạo..."
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                className="w-full bg-surface-soft border border-border-strong rounded-lg text-xs font-body text-text-app focus:outline-brand px-3 h-10"
-              />
-            </div>
+            <TextInput
+              label="Tên nhóm / Tên dự án"
+              placeholder="Ví dụ: MedTech, Team Sáng Tạo..."
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              variant="default"
+              radius="md"
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-muted">Mã số nhóm / Số thứ tự</label>
-              <Input
-                type="text"
-                placeholder="Ví dụ: N03, Group 5..."
-                value={groupNo}
-                onChange={(e) => setGroupNo(e.target.value)}
-                className="w-full bg-surface-soft border border-border-strong rounded-lg text-xs font-body text-text-app focus:outline-brand px-3 h-10"
-              />
-            </div>
+            <TextInput
+              label="Mã số nhóm / Số thứ tự"
+              placeholder="Ví dụ: N03, Group 5..."
+              value={groupNo}
+              onChange={(e) => setGroupNo(e.target.value)}
+              variant="default"
+              radius="md"
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-muted">Trường học / Viện đào tạo</label>
-              <Input
-                type="text"
-                placeholder="Ví dụ: Đại học FPT, Đại học Bách Khoa..."
-                value={school}
-                onChange={(e) => setSchool(e.target.value)}
-                className="w-full bg-surface-soft border border-border-strong rounded-lg text-xs font-body text-text-app focus:outline-brand px-3 h-10"
-              />
-            </div>
+            <TextInput
+              label="Trường học / Viện đào tạo"
+              placeholder="Ví dụ: Đại học FPT, Đại học Bách Khoa..."
+              value={school}
+              onChange={(e) => setSchool(e.target.value)}
+              variant="default"
+              radius="md"
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-muted">Lớp học / Môn học</label>
-              <Input
-                type="text"
-                placeholder="Ví dụ: EXE101, MKT301..."
-                value={courseContext}
-                onChange={(e) => setCourseContext(e.target.value)}
-                className="w-full bg-surface-soft border border-border-strong rounded-lg text-xs font-body text-text-app focus:outline-brand px-3 h-10"
-              />
-            </div>
+            <TextInput
+              label="Lớp học / Môn học"
+              placeholder="Ví dụ: EXE101, MKT301..."
+              value={courseContext}
+              onChange={(e) => setCourseContext(e.target.value)}
+              variant="default"
+              radius="md"
+            />
           </div>
 
           <div className="pt-2 border-t border-border-app/40 flex justify-end">
             <Button
               type="submit"
-              isDisabled={isUpdatingSettings}
-              className="bg-brand text-white font-semibold text-xs h-9 px-4 rounded-lg flex items-center gap-1.5 hover:bg-brand-hover cursor-pointer disabled:opacity-60"
+              disabled={isUpdatingSettings}
+              color="brand"
+              leftSection={isUpdatingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              className="font-semibold text-xs h-9 px-4 cursor-pointer disabled:opacity-60"
             >
-              {isUpdatingSettings ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Save className="w-3.5 h-3.5" />
-              )}
               <span>{isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}</span>
             </Button>
           </div>

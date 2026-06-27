@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerBody, Button } from "@heroui/react";
+import { Drawer, Button } from "@mantine/core";
 import { usePaymentUpload } from "../hooks/usePaymentUpload";
 import { Case } from "@/types";
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
@@ -94,172 +94,175 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
   };
 
   return (
-    <Drawer isOpen={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DrawerContent>
-        <DrawerHeader className="border-b border-border-app flex justify-between items-center px-6 py-4">
-          <div>
-            <h3 className="font-heading text-lg font-bold text-text-app">Thanh toán & Xác minh</h3>
-            <p className="font-body text-xs text-text-muted mt-0.5">
-              Thực hiện chuyển khoản và tải lên minh chứng để kích hoạt dự án.
-            </p>
+    <Drawer
+      opened={isOpen}
+      onClose={handleClose}
+      title={
+        <div>
+          <h3 className="font-heading text-lg font-bold text-text-app">Thanh toán &amp; Xác minh</h3>
+          <p className="font-body text-xs text-text-muted mt-0.5">
+            Thực hiện chuyển khoản và tải lên minh chứng để kích hoạt dự án.
+          </p>
+        </div>
+      }
+      position="right"
+      size="md"
+    >
+      <div className="space-y-6 pt-4 font-body text-xs text-text-app">
+        {/* Bank Transfer Instructions */}
+        <div className="bg-brand-subtle/20 border border-brand/10 p-5 rounded-xl space-y-4">
+          <h4 className="font-heading font-semibold text-sm text-brand flex items-center gap-2">
+            <CreditCardIcon className="w-4 h-4" />
+            <span>Thông tin chuyển khoản</span>
+          </h4>
+          
+          <div className="space-y-3 font-body text-xs text-text-app divide-y divide-brand/5">
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Ngân hàng</span>
+              <span className="font-bold">MB Bank (Ngân hàng Quân Đội)</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Số tài khoản</span>
+              <span className="font-bold text-sm tracking-wide text-brand">0909090909</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Chủ tài khoản</span>
+              <span className="font-bold">NEXUS PLATFORM</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Số tiền cần chuyển</span>
+              <span className="font-bold text-brand text-sm">
+                {formatPrice(caseData.package?.price || 0)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Nội dung chuyển khoản</span>
+              <span className="font-bold text-xs uppercase px-2 py-1 bg-brand-soft/40 border border-brand/10 rounded text-brand font-mono">
+                {caseData.case_code} thanh toan
+              </span>
+            </div>
           </div>
-        </DrawerHeader>
+          
+          <p className="font-body text-[11px] text-text-muted leading-relaxed italic text-center pt-2">
+            Lưu ý: Vui lòng ghi chính xác nội dung chuyển khoản để hệ thống tự động nhận diện giao dịch nhanh hơn.
+          </p>
+        </div>
 
-        <DrawerBody className="p-6 space-y-6 overflow-y-auto">
-          {/* Bank Transfer Instructions */}
-          <div className="bg-brand-subtle/20 border border-brand/10 p-5 rounded-xl space-y-4">
-            <h4 className="font-heading font-semibold text-sm text-brand flex items-center gap-2">
-              <CreditCardIcon className="w-4 h-4" />
-              <span>Thông tin chuyển khoản</span>
-            </h4>
-            
-            <div className="space-y-3 font-body text-xs text-text-app divide-y divide-brand/5">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-text-muted">Ngân hàng</span>
-                <span className="font-bold">MB Bank (Ngân hàng Quân Đội)</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-text-muted">Số tài khoản</span>
-                <span className="font-bold text-sm tracking-wide text-brand">0909090909</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-text-muted">Chủ tài khoản</span>
-                <span className="font-bold">NEXUS PLATFORM</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-text-muted">Số tiền cần chuyển</span>
-                <span className="font-bold text-brand text-sm">
-                  {formatPrice(caseData.package?.price || 0)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-text-muted">Nội dung chuyển khoản</span>
-                <span className="font-bold text-xs uppercase px-2 py-1 bg-brand-soft/40 border border-brand/10 rounded text-brand font-mono">
-                  {caseData.case_code} thanh toan
-                </span>
-              </div>
-            </div>
-            
-            <p className="font-body text-[11px] text-text-muted leading-relaxed italic text-center pt-2">
-              Lưu ý: Vui lòng ghi chính xác nội dung chuyển khoản để hệ thống tự động nhận diện giao dịch nhanh hơn.
-            </p>
-          </div>
-
-          {/* Upload Dropzone */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-text-app font-body">Tải lên biên lai chuyển tiền</label>
-            
-            {!selectedFile ? (
-              <div
-                onDragEnter={handleDrag}
-                onDragOver={handleDrag}
-                onDragLeave={handleDrag}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
-                  dragActive
-                    ? "border-brand bg-brand-subtle/10"
-                    : "border-border-strong hover:border-brand/40 bg-surface-soft/40"
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileChange}
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  className="hidden"
-                />
-                <div className="w-10 h-10 rounded-full bg-brand-soft/40 text-brand flex items-center justify-center">
-                  <UploadCloud className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-body text-xs font-semibold text-text-app">
-                    Kéo thả biên lai giao dịch vào đây hoặc click để chọn file
-                  </p>
-                  <p className="font-body text-[10px] text-text-muted">
-                    Hỗ trợ định dạng JPG, PNG, WEBP hoặc PDF (tối đa 5MB)
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="border border-border-app rounded-xl p-4 bg-surface-soft/40 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 font-body text-xs">
-                    <p className="font-semibold text-text-app truncate">{selectedFile.name}</p>
-                    <p className="text-text-muted">{(selectedFile.size / 1024).toFixed(1)} KB</p>
-                  </div>
-                </div>
-                {!isUploading && (
-                  <button
-                    onClick={removeFile}
-                    className="p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-app cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Progress / Status / Action */}
-          {isUploading && (
-            <div className="space-y-2 font-body text-xs">
-              <div className="flex justify-between text-text-muted">
-                <span>Đang tải file lên...</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <div className="w-full bg-surface-muted h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-brand h-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {uploadProgress === 100 && !error && !isUploading && (
-            <div className="flex items-center gap-2 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-xs font-body">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Gửi minh chứng thành công! Đang đóng cửa sổ...</span>
-            </div>
-          )}
-
-          <div className="flex gap-3 pt-4 border-t border-border-app">
-            <Button
-              onPress={handleClose}
-              isDisabled={isUploading}
-              variant="ghost"
-              className="flex-1 border border-border-strong text-text-muted hover:text-text-app font-body font-semibold text-xs h-10 rounded-lg cursor-pointer"
+        {/* Upload Dropzone */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-text-app font-body">Tải lên biên lai chuyển tiền</label>
+          
+          {!selectedFile ? (
+            <div
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
+                dragActive
+                  ? "border-brand bg-brand-subtle/10"
+                  : "border-border-strong hover:border-brand/40 bg-surface-soft/40"
+              }`}
             >
-              Đóng
-            </Button>
-            <Button
-              onPress={handleUpload}
-              isDisabled={!selectedFile || isUploading}
-              className="flex-1 bg-brand text-white font-body font-semibold text-xs h-10 rounded-lg hover:bg-brand-hover cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Đang gửi...</span>
-                </>
-              ) : (
-                <span>Gửi minh chứng</span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileChange}
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className="hidden"
+              />
+              <div className="w-10 h-10 rounded-full bg-brand-soft/40 text-brand flex items-center justify-center">
+                <UploadCloud className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-body text-xs font-semibold text-text-app">
+                  Kéo thả biên lai giao dịch vào đây hoặc click để chọn file
+                </p>
+                <p className="font-body text-[10px] text-text-muted">
+                  Hỗ trợ định dạng JPG, PNG, WEBP hoặc PDF (tối đa 5MB)
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="border border-border-app rounded-xl p-4 bg-surface-soft/40 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 font-body text-xs">
+                  <p className="font-semibold text-text-app truncate">{selectedFile.name}</p>
+                  <p className="text-text-muted">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                </div>
+              </div>
+              {!isUploading && (
+                <button
+                  onClick={removeFile}
+                  className="p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-app cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
-            </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Progress / Status / Action */}
+        {isUploading && (
+          <div className="space-y-2 font-body text-xs">
+            <div className="flex justify-between text-text-muted">
+              <span>Đang tải file lên...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-surface-muted h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-brand h-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
           </div>
-        </DrawerBody>
-      </DrawerContent>
+        )}
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {uploadProgress === 100 && !error && !isUploading && (
+          <div className="flex items-center gap-2 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-xs font-body">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Gửi minh chứng thành công! Đang đóng cửa sổ...</span>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-4 border-t border-border-app">
+          <Button
+            onClick={handleClose}
+            disabled={isUploading}
+            variant="default"
+            className="flex-1 text-text-muted hover:text-text-app font-body font-semibold text-xs h-10 cursor-pointer"
+          >
+            Đóng
+          </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || isUploading}
+            color="brand"
+            className="flex-1 font-body font-semibold text-xs h-10 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Đang gửi...</span>
+              </>
+            ) : (
+              <span>Gửi minh chứng</span>
+            )}
+          </Button>
+        </div>
+      </div>
     </Drawer>
   );
 }

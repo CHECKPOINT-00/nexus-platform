@@ -13,7 +13,7 @@ import ActivityTimeline from "./_components/ActivityTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import RevisionSubmitModal from "./_components/RevisionSubmitModal";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -57,7 +57,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      <div className="space-y-6 w-full pb-12">
         <LoadingSkeleton variant="text-block" count={1} />
         <LoadingSkeleton variant="card" count={2} />
       </div>
@@ -66,7 +66,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   if (error || !caseData) {
     return (
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="w-full p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
           Không thể tải dữ liệu không gian làm việc của dự án. Vui lòng thử lại sau.
         </div>
@@ -78,63 +78,70 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const selectedRoundReport = roundHistory?.find((h: any) => h.round_no === selectedVersion)?.report || null;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12 animate-fade-in">
-      {/* 1. Case Status Header */}
-      <CaseStatusHeader
-        caseData={caseData}
+    <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
+      {/* Sidebar - Docked Left, full height */}
+      <WorkspaceSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        messageCount={caseData.messages?.length}
         versions={versions}
         selectedVersion={selectedVersion}
         onVersionChange={setSelectedVersion}
       />
 
-      {/* 2. Unpaid Alerts Banner */}
-      <UnpaidAlertBanner
-        caseData={caseData}
-        onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
-      />
-
-      {/* 3. Action / Triage Notices for CP1 Golden Path */}
-      {openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0 && (
-        <div className="p-4 bg-warning-soft border border-warning/15 text-warning rounded-xl font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 animate-fade-in">
-          <div className="space-y-1">
-            <h5 className="font-bold">⚠️ Yêu cầu bổ sung thông tin từ Supporter</h5>
-            <p>{openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng xem chi tiết phản hồi."}</p>
-          </div>
-          <Button
-            size="sm"
-            className="bg-brand text-white font-semibold cursor-pointer h-8.5 rounded-lg text-xs"
-            onPress={() => setIsRevisionOpen(true)}
-          >
-            Nộp bản sửa / Bổ sung tài liệu
-          </Button>
-        </div>
-      )}
-
-      {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") && (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
-        <div className="p-4 bg-brand-soft/20 border border-brand/10 rounded-xl font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 animate-fade-in">
-          <div className="space-y-1">
-            <h5 className="font-bold text-brand">📝 Dự án đã có báo cáo phản biện</h5>
-            <p className="text-text-muted">Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới (Revision) để Supporter thẩm định vòng tiếp theo.</p>
-          </div>
-          <Button
-            size="sm"
-            className="bg-brand text-white font-semibold cursor-pointer h-8.5 rounded-lg text-xs"
-            onPress={() => setIsRevisionOpen(true)}
-          >
-            Nộp bản sửa (Revision)
-          </Button>
-        </div>
-      )}
-
-      {/* 4. Main Workspace Sidebar & Content Layout */}
-      <div className="flex flex-col md:flex-row gap-6">
-        <WorkspaceSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          messageCount={caseData.messages?.length}
+      {/* Main Content Area - Scrollable */}
+      <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
+        {/* 1. Case Status Header */}
+        <CaseStatusHeader
+          caseData={caseData}
+          versions={versions}
+          selectedVersion={selectedVersion}
+          onVersionChange={setSelectedVersion}
         />
 
-        <div className="flex-grow min-w-0">
+        {/* 2. Unpaid Alerts Banner */}
+        <UnpaidAlertBanner
+          caseData={caseData}
+          onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
+        />
+
+        {/* 3. Action / Triage Notices for CP1 Golden Path */}
+        {openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0 && (
+          <div className="p-4 bg-warning-soft border border-warning/15 text-warning rounded-lg font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
+            <div className="space-y-1">
+              <h5 className="font-bold">⚠️ Yêu cầu bổ sung thông tin từ Supporter</h5>
+              <p>{openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng xem chi tiết phản hồi."}</p>
+            </div>
+            <Button
+              size="sm"
+              color="brand"
+              className="font-semibold cursor-pointer h-8.5 text-xs"
+              onClick={() => setIsRevisionOpen(true)}
+            >
+              Nộp bản sửa / Bổ sung tài liệu
+            </Button>
+          </div>
+        )}
+
+        {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") && (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
+          <div className="p-4 bg-brand-soft/20 border border-brand/10 rounded-lg font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
+            <div className="space-y-1">
+              <h5 className="font-bold text-brand">📝 Dự án đã có báo cáo phản biện</h5>
+              <p className="text-text-muted">Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới (Revision) để Supporter thẩm định vòng tiếp theo.</p>
+            </div>
+            <Button
+              size="sm"
+              color="brand"
+              className="font-semibold cursor-pointer h-8.5 text-xs"
+              onClick={() => setIsRevisionOpen(true)}
+            >
+              Nộp bản sửa (Revision)
+            </Button>
+          </div>
+        )}
+
+        {/* 4. Tab Content */}
+        <div className="flex-grow min-h-0">
           {activeTab === "idea" && (
             <TabIdeaContent caseData={caseData} selectedVersion={selectedVersion} />
           )}

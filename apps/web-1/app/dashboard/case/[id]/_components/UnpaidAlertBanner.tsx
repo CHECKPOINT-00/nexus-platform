@@ -3,7 +3,7 @@
 import React from "react";
 import { Case } from "@/types";
 import { AlertCircle, CreditCard, Clock, XCircle } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 interface UnpaidAlertBannerProps {
   caseData: Case;
@@ -24,7 +24,7 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
 
   if (payment_status === "unpaid") {
     return (
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-xl bg-warning-soft border border-warning/20 shadow-sm animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-warning-soft border border-warning/20 animate-fade-in">
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
           <div className="space-y-0.5">
@@ -35,10 +35,11 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
           </div>
         </div>
         <Button
-          onPress={onOpenPayment}
-          className="bg-brand text-white font-body font-semibold text-xs h-9 px-4 rounded-lg shrink-0 flex items-center gap-2 hover:bg-brand-hover cursor-pointer"
+          onClick={onOpenPayment}
+          color="brand"
+          leftSection={<CreditCard className="w-4 h-4" />}
+          className="font-body font-semibold text-xs h-9 px-4 shrink-0 cursor-pointer"
         >
-          <CreditCard className="w-4 h-4" />
           <span>Thanh toán ngay</span>
         </Button>
       </div>
@@ -47,7 +48,7 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
 
   if (payment_status === "pending_verification") {
     return (
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-warning-soft/40 border border-warning/10 shadow-sm">
+      <div className="flex items-start gap-3 p-4 rounded-lg bg-warning-soft/40 border border-warning/10">
         <Clock className="w-5 h-5 text-warning shrink-0 mt-0.5 animate-pulse" />
         <div className="space-y-0.5">
           <h4 className="font-heading font-semibold text-sm text-text-app">Đang chờ xác thực thanh toán</h4>
@@ -61,7 +62,7 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
 
   if (payment_status === "rejected") {
     return (
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-xl bg-danger-soft border border-danger/20 shadow-sm animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-danger-soft border border-danger/20 animate-fade-in">
         <div className="flex items-start gap-3">
           <XCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
           <div className="space-y-1">
@@ -81,10 +82,11 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
           </div>
         </div>
         <Button
-          onPress={onOpenPayment}
-          className="bg-danger text-white font-body font-semibold text-xs h-9 px-4 rounded-lg shrink-0 flex items-center gap-2 hover:bg-danger-hover cursor-pointer"
+          onClick={onOpenPayment}
+          color="red"
+          leftSection={<CreditCard className="w-4 h-4" />}
+          className="font-body font-semibold text-xs h-9 px-4 shrink-0 cursor-pointer"
         >
-          <CreditCard className="w-4 h-4" />
           <span>Gửi lại minh chứng</span>
         </Button>
       </div>

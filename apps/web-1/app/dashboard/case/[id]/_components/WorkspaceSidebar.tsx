@@ -1,13 +1,18 @@
 "use client";
 
 import React from "react";
+import { Tooltip, UnstyledButton, Title, Text } from "@mantine/core";
 import { FileText, FileSpreadsheet, MessageSquare, History, Settings } from "lucide-react";
+import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
 interface WorkspaceSidebarProps {
   activeTab: "idea" | "report" | "discussion" | "timeline" | "settings";
   onTabChange: (tab: "idea" | "report" | "discussion" | "timeline" | "settings") => void;
   messageCount?: number;
   hideSettings?: boolean;
+  versions?: number[];
+  selectedVersion?: number;
+  onVersionChange?: (version: number) => void;
 }
 
 export default function WorkspaceSidebar({
@@ -15,6 +20,9 @@ export default function WorkspaceSidebar({
   onTabChange,
   messageCount,
   hideSettings = false,
+  versions = [0],
+  selectedVersion = 0,
+  onVersionChange,
 }: WorkspaceSidebarProps) {
   const tabs = [
     {
@@ -50,38 +58,96 @@ export default function WorkspaceSidebar({
   ];
 
   return (
-    <div className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-1.5 p-2 border border-border-app bg-surface-app rounded-2xl shadow-sm h-fit overflow-x-auto md:overflow-visible no-scrollbar">
-      {tabs.map((tab) => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
+    <nav className={classes.navbar}>
+      <div className={classes.wrapper}>
+        {/* Primary Rail (Icons) */}
+        <aside className={classes.aside}>
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
 
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onTabChange(tab.id)}
-            className={`flex items-center justify-between gap-3 p-3 rounded-xl font-heading font-semibold text-xs transition-all cursor-pointer whitespace-nowrap md:whitespace-normal shrink-0 md:shrink ${
-              isActive
-                ? "bg-brand text-white shadow-sm shadow-brand/10"
-                : "text-text-muted hover:text-text-app hover:bg-surface-soft"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Icon className="w-4.5 h-4.5" />
-              <span>{tab.label}</span>
-            </div>
-            {tab.count !== undefined && tab.count > 0 && (
-              <span
-                className={`inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                  isActive ? "bg-white text-brand" : "bg-brand text-white"
-                }`}
+            return (
+              <Tooltip
+                key={tab.id}
+                label={tab.label}
+                position="right"
+                withArrow
+                disabled={typeof window !== "undefined" && window.innerWidth < 768}
               >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
+                <UnstyledButton
+                  onClick={() => onTabChange(tab.id)}
+                  className={classes.mainLink}
+                  data-active={isActive || undefined}
+                >
+                  <Icon className="w-5 h-5" />
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={`absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold flex items-center justify-center border-2 ${
+                      isActive ? "bg-white text-brand border-brand" : "bg-brand text-white border-surface-app"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </UnstyledButton>
+              </Tooltip>
+            );
+          })}
+        </aside>
+
+        {/* Secondary Panel (Details / Submenu) */}
+        <div className={classes.main}>
+          <div className="mb-4">
+            <Title order={6} className={classes.title}>
+              {activeTab === "idea" || activeTab === "report" ? "Phiên bản nộp" : "Chi tiết mục"}
+            </Title>
+            <Text size="xs" c="dimmed" className="font-body text-[11px]">
+              {activeTab === "idea" && "Chọn phiên bản để xem nội dung ý tưởng."}
+              {activeTab === "report" && "Chọn phiên bản để xem báo cáo phản biện."}
+              {activeTab === "discussion" && "Kênh trao đổi với Supporter."}
+              {activeTab === "timeline" && "Toàn bộ lịch sử hoạt động."}
+              {activeTab === "settings" && "Cấu hình chung của dự án."}
+            </Text>
+          </div>
+
+          {/* Dynamic content for sub-links (Version switcher or tab description) */}
+          {(activeTab === "idea" || activeTab === "report") && versions.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {versions.map((ver) => {
+                const isSelected = selectedVersion === ver;
+                const label = ver === 0 ? "Bản gốc (V0)" : `Phiên bản v${ver.toString().padStart(2, "0")}`;
+                const isLatest = ver === Math.max(...versions);
+
+                return (
+                  <UnstyledButton
+                    key={ver}
+                    onClick={() => onVersionChange?.(ver)}
+                    className={classes.link}
+                    data-active={isSelected || undefined}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span>{label}</span>
+                      {isLatest && (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                          isSelected ? "bg-brand text-white" : "bg-surface-soft text-text-muted border border-border-app"
+                        }`}>
+                          Mới nhất
+                        </span>
+                      )}
+                    </div>
+                  </UnstyledButton>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-2">
+              <Text size="xs" className="font-body italic text-text-subtle">
+                {activeTab === "discussion" && "Kênh chat hoạt động 24/7."}
+                {activeTab === "timeline" && "Dòng thời gian hoạt động của dự án."}
+                {activeTab === "settings" && "Chỉ áp dụng cho chủ dự án."}
+              </Text>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
   );
 }

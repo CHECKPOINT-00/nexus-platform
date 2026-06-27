@@ -17,7 +17,7 @@ import {
   X, 
   QrCode 
 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -149,11 +149,11 @@ export default function CasePaymentPage({ params }: PageProps) {
       {/* Header Back Navigation */}
       <div className="flex items-center gap-3">
         <Button
-          onPress={() => router.push(`/dashboard/case/${caseId}`)}
-          variant="ghost"
-          className="border border-border-strong text-text-muted hover:text-text-app text-xs font-semibold font-body h-9 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer bg-surface-app"
+          onClick={() => router.push(`/dashboard/case/${caseId}`)}
+          variant="default"
+          leftSection={<ArrowLeft className="w-4 h-4" />}
+          className="text-text-muted hover:text-text-app text-xs font-semibold font-body h-9 px-3 cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
           <span>Quay lại dự án</span>
         </Button>
         <div>
@@ -328,17 +328,18 @@ export default function CasePaymentPage({ params }: PageProps) {
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-border-app justify-end">
               <Button
-                onPress={() => router.push(`/dashboard/case/${caseId}`)}
-                isDisabled={isUploading}
-                variant="ghost"
-                className="border border-border-strong text-text-muted hover:text-text-app font-body font-semibold text-xs h-10 px-5 rounded-lg cursor-pointer transition-colors bg-surface-app"
+                onClick={() => router.push(`/dashboard/case/${caseId}`)}
+                disabled={isUploading}
+                variant="default"
+                className="text-text-muted hover:text-text-app font-body font-semibold text-xs h-10 px-5 cursor-pointer transition-colors"
               >
                 Hủy bỏ
               </Button>
               <Button
-                onPress={handleUpload}
-                isDisabled={!selectedFile || isUploading || isSuccess}
-                className="bg-brand text-white font-body font-semibold text-xs h-10 px-6 rounded-lg hover:bg-brand-hover cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm shadow-brand/10 transition-colors"
+                onClick={handleUpload}
+                disabled={!selectedFile || isUploading || isSuccess}
+                color="brand"
+                className="font-body font-semibold text-xs h-10 px-6 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm shadow-brand/10 transition-colors"
               >
                 {isUploading ? (
                   <>

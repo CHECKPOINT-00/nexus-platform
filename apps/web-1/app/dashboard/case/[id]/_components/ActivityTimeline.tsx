@@ -99,7 +99,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
 
   if (sortedEvents.length === 0) {
     return (
-      <div className="bg-surface-app border border-border-app rounded-2xl p-8 text-center flex flex-col items-center justify-center gap-3 animate-fade-in">
+      <div className="bg-surface-app border border-border-app rounded-lg p-8 text-center flex flex-col items-center justify-center gap-3 animate-fade-in">
         <Clock className="w-8 h-8 text-text-subtle animate-pulse" />
         <p className="text-xs text-text-muted font-body">Chưa ghi nhận hoạt động nào của dự án.</p>
       </div>
@@ -107,7 +107,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
   }
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 space-y-6 shadow-sm animate-fade-in">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-6 animate-fade-in">
       <div className="relative pl-6 border-l-2 border-border-app space-y-8 py-2 ml-4">
         {sortedEvents.map((event) => {
           const { label, desc, icon: Icon, colorClass } = getEventDetails(event.event_type);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Case } from "@/types";
 import { statusThemeMap } from "@/types";
-import { Card, Chip } from "@heroui/react";
+import { Card, Badge } from "@mantine/core";
 import { Calendar, User, BookOpen } from "lucide-react";
 
 interface CaseCardProps {
@@ -14,12 +14,12 @@ interface CaseCardProps {
 export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseCardProps) {
   const getBadgeProps = (status: string) => {
     const mapped = statusThemeMap[status] || { label: status, color: "default" as const };
-    let color: "default" | "success" | "warning" | "danger" | "accent" = "default";
+    let color = "gray";
     
-    if (mapped.color === "success") color = "success";
-    else if (mapped.color === "warning") color = "warning";
-    else if (mapped.color === "danger") color = "danger";
-    else if (mapped.color === "primary") color = "accent";
+    if (mapped.color === "success") color = "teal";
+    else if (mapped.color === "warning") color = "yellow";
+    else if (mapped.color === "danger") color = "red";
+    else if (mapped.color === "primary") color = "brand";
     
     return { label: mapped.label, color };
   };
@@ -37,7 +37,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
 
   return (
     <Link href={`${hrefPrefix}/${item.id}`} className="block group">
-      <Card className="p-6 bg-surface-app border border-border-app group-hover:border-brand shadow-sm hover:shadow-md transition-all rounded-xl duration-200">
+      <Card p="lg" radius="md" withBorder className="bg-surface-app group-hover:border-brand shadow-sm hover:shadow-md transition-all duration-200">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-text-subtle uppercase font-body tracking-wider">
@@ -48,12 +48,12 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             </h3>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Chip size="sm" variant="soft" color={internalStatusBadge.color} className="font-body text-[10px]">
+            <Badge size="sm" variant="light" color={internalStatusBadge.color} className="font-body text-[10px]">
               {internalStatusBadge.label}
-            </Chip>
-            <Chip size="sm" variant="soft" color={paymentBadge.color} className="font-body text-[10px]">
+            </Badge>
+            <Badge size="sm" variant="light" color={paymentBadge.color} className="font-body text-[10px]">
               {paymentBadge.label}
-            </Chip>
+            </Badge>
           </div>
         </div>
 

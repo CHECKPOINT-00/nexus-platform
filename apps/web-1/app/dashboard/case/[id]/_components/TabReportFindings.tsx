@@ -65,7 +65,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
     }
 
     return (
-      <div className="bg-surface-app border border-border-app rounded-2xl p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
+      <div className="bg-surface-app border border-border-app rounded-lg p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
         <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
           <FileText className="w-6 h-6" />
         </div>
@@ -87,7 +87,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
 
   if (findings.length === 0) {
     return (
-      <div className="bg-surface-app border border-border-app rounded-2xl p-8 text-center flex flex-col items-center justify-center gap-4 animate-fade-in">
+      <div className="bg-surface-app border border-border-app rounded-lg p-8 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
         <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
           <CheckCircle className="w-6 h-6 text-success" />
         </div>
@@ -102,7 +102,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
   }
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 space-y-6 shadow-sm animate-fade-in">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-6 animate-fade-in">
       <div className="flex items-center gap-2 pb-2 border-b border-border-app/55">
         <Lightbulb className="w-5 h-5 text-brand" />
         <div>
@@ -121,7 +121,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
           return (
             <div
               key={idx}
-              className={`border border-border-app rounded-xl overflow-hidden bg-surface-app transition-shadow hover:shadow-sm`}
+              className={`border border-border-app rounded-md overflow-hidden bg-surface-app`}
             >
               {/* Header (Always Visible) */}
               <div

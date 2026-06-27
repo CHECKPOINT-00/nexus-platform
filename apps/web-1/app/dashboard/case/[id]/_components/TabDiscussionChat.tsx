@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useCaseChat } from "../hooks/useCaseChat";
 import { useSession } from "@/lib/auth-client";
 import { Send, MessageSquare, Loader2, AlertCircle } from "lucide-react";
-import { Button, TextArea } from "@heroui/react";
+import { ActionIcon, Textarea } from "@mantine/core";
 
 interface TabDiscussionChatProps {
   caseId: string;
@@ -61,7 +61,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   };
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 space-y-6 shadow-sm flex flex-col h-[500px] animate-fade-in">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-6 flex flex-col h-[500px] animate-fade-in">
       {/* Messages list container */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
         {isLoading ? (
@@ -124,7 +124,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
       {/* Input Message Area */}
       <form onSubmit={handleSend} className="border-t border-border-app pt-4 flex gap-3 items-end">
-        <TextArea
+        <Textarea
           aria-label="Nhập câu hỏi hoặc nội dung phản hồi"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
@@ -136,20 +136,25 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
               handleSend(e);
             }
           }}
-          rows={1}
+          minRows={1}
+          maxRows={4}
+          autosize
         />
         
-        <Button
+        <ActionIcon
           type="submit"
-          isDisabled={!inputText.trim() || isSending}
-          className="bg-brand text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-brand-hover shrink-0 cursor-pointer p-0"
+          disabled={!inputText.trim() || isSending}
+          size={40}
+          radius="md"
+          color="brand"
+          className="shrink-0 cursor-pointer"
         >
           {isSending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <Send className="w-4 h-4" />
           )}
-        </Button>
+        </ActionIcon>
       </form>
 
       {error && (

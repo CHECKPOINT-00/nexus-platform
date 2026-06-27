@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Dropdown, Button } from "@heroui/react";
+import { Menu, Button } from "@mantine/core";
 import { ChevronDown, Layers } from "lucide-react";
 
 interface VersionSelectorProps {
@@ -26,35 +26,31 @@ export default function VersionSelector({
 
   return (
     <div className="relative">
-      <Dropdown>
-        <Dropdown.Trigger>
+      <Menu shadow="md" width={180} position="bottom-start">
+        <Menu.Target>
           <Button
-            variant="ghost"
-            className="border border-border-app bg-surface-app text-text-app hover:bg-surface-soft text-xs font-semibold font-body h-9 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer"
+            variant="default"
+            leftSection={<Layers className="w-3.5 h-3.5 text-brand" />}
+            rightSection={<ChevronDown className="w-3 h-3 text-text-muted" />}
+            className="text-text-app hover:bg-surface-soft text-xs font-semibold font-body h-9 px-3 cursor-pointer"
           >
-            <Layers className="w-3.5 h-3.5 text-brand" />
             <span>Phiên bản: v{selectedVersion}</span>
-            <ChevronDown className="w-3 h-3 text-text-muted" />
           </Button>
-        </Dropdown.Trigger>
-        <Dropdown.Popover>
-          <Dropdown.Menu
-            aria-label="Chọn phiên bản tài liệu"
-            onAction={(key) => onVersionChange(Number(key))}
-            className="font-body text-xs"
-          >
-            {versions.map((ver) => (
-              <Dropdown.Item
-                id={ver.toString()}
-                key={ver}
-                className={selectedVersion === ver ? "text-brand font-bold" : "text-text-app"}
-              >
-                Phiên bản v{ver} {ver === Math.max(...versions) ? "(Mới nhất)" : ""}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
+        </Menu.Target>
+        <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+          {versions.map((ver) => (
+            <Menu.Item
+              key={ver}
+              onClick={() => onVersionChange(ver)}
+              className={`font-body text-xs cursor-pointer ${
+                selectedVersion === ver ? "text-brand font-bold" : "text-text-app"
+              }`}
+            >
+              Phiên bản v{ver} {ver === Math.max(...versions) ? "(Mới nhất)" : ""}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
     </div>
   );
 }

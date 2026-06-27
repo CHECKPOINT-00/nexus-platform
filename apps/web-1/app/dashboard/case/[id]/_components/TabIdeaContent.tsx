@@ -70,7 +70,7 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
   ];
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 space-y-8 shadow-sm animate-fade-in">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-8 animate-fade-in">
 
       {/* Main Core Content Sections */}
       <div className="space-y-6">
@@ -80,7 +80,7 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
           return (
             <div
               key={index}
-              className={`p-6 border-l-4 ${section.color} bg-surface-soft/30 rounded-r-xl border-y border-r border-border-app/50 space-y-3`}
+              className={`p-6 border-l-4 ${section.color} bg-surface-soft/30 rounded-r-md border-y border-r border-border-app/50 space-y-3`}
             >
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-surface-app border border-border-app text-text-muted">
@@ -101,7 +101,7 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
 
       {/* Drive Documents Card */}
       {driveUrl && (
-        <div className="p-5 border border-border-app rounded-xl bg-surface-soft/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="p-5 border border-border-app rounded-lg bg-surface-soft/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
             <h4 className="font-heading font-bold text-sm text-text-app flex items-center gap-2">
               <FolderOpen className="w-4.5 h-4.5 text-brand" />
