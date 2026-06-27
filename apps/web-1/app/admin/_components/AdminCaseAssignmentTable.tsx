@@ -4,9 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { User } from "@/types";
 import {
   UserCheck, CheckCircle, Loader2, XCircle, Info,
-  MoreVertical, CheckCheck, Ban, HelpCircle,
+  MoreVertical, CheckCheck, Ban, HelpCircle, ExternalLink,
+  FolderOpen, Target, Users, Mail, Phone, Calendar
 } from "lucide-react";
 import { Button, Select, ListBox, ListBoxItem, Modal, TextArea, Chip } from "@heroui/react";
+import { apiClient } from "@/lib/api-client";
 
 interface AdminCaseAssignmentTableProps {
   cases: any[];
@@ -26,9 +28,10 @@ interface ActionMenuProps {
   onReject: () => void;
   onInfo: () => void;
   onAssign: () => void;
+  onViewDetails: () => void;
 }
 
-function ActionMenu({ item, isLoading, onAccept, onReject, onInfo, onAssign }: ActionMenuProps) {
+function ActionMenu({ item, isLoading, onAccept, onReject, onInfo, onAssign, onViewDetails }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -65,6 +68,16 @@ function ActionMenu({ item, isLoading, onAccept, onReject, onInfo, onAssign }: A
 
       {open && (
         <div className="absolute right-0 top-8 z-50 min-w-[200px] bg-surface-app border border-border-strong rounded-xl shadow-xl p-1.5 flex flex-col gap-0.5">
+          <button
+            className={menuItemCls}
+            onClick={() => { setOpen(false); onViewDetails(); }}
+          >
+            <Info className="w-3.5 h-3.5 text-brand shrink-0" />
+            <span>Xem chi tiết</span>
+          </button>
+
+          <div className="h-px bg-border-strong/45 my-1" />
+
           {isTriage ? (
             <>
               <p className="px-3 py-1 text-[10px] font-semibold text-text-muted uppercase tracking-wide">Triage</p>
@@ -143,6 +156,24 @@ export default function AdminCaseAssignmentTable({
   // Modal: Assign Supporter
   const [assignCaseId, setAssignCaseId] = useState<string | null>(null);
   const [assignSelectedId, setAssignSelectedId] = useState<string>("");
+
+  // Modal: View Case Detail
+  const [detailCaseId, setDetailCaseId] = useState<string | null>(null);
+  const [detailData, setDetailData] = useState<any | null>(null);
+  const [isFetchingDetail, setIsFetchingDetail] = useState(false);
+
+  const handleViewDetails = async (caseId: string) => {
+    setDetailCaseId(caseId);
+    setIsFetchingDetail(true);
+    try {
+      const response = await apiClient.get(`/admin/cases/${caseId}`);
+      setDetailData(response.data);
+    } catch (e) {
+      console.error("Error fetching case details:", e);
+    } finally {
+      setIsFetchingDetail(false);
+    }
+  };
 
   const handleAcceptClick = async (caseId: string) => {
     if (window.confirm("Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện?")) {
@@ -271,6 +302,7 @@ export default function AdminCaseAssignmentTable({
                       onReject={() => setRejectingCaseId(item.id)}
                       onInfo={() => setInfoRequestCaseId(item.id)}
                       onAssign={() => openAssignModal(item.id)}
+                      onViewDetails={() => handleViewDetails(item.id)}
                     />
                   </td>
                 </tr>
@@ -388,6 +420,224 @@ export default function AdminCaseAssignmentTable({
             <Modal.Footer className="p-4 border-t border-border-app flex gap-3 bg-surface-soft/20">
               <Button onPress={() => setInfoRequestCaseId(null)} variant="ghost" className="flex-1 bg-surface-app border border-border-strong text-text-muted">Hủy</Button>
               <Button onPress={handleInfoRequestSubmit} isDisabled={infoQuery.length < 5} className="flex-1 bg-brand text-white">Gửi yêu cầu</Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal>
+
+      {/* ── Case Detail Modal ── */}
+      <Modal isOpen={detailCaseId !== null} onOpenChange={() => { setDetailCaseId(null); setDetailData(null); }}>
+        <Modal.Backdrop />
+        <Modal.Container>
+          <Modal.Dialog className="w-full max-w-2xl bg-surface-app border border-border-app rounded-2xl shadow-xl overflow-hidden flex flex-col outline-none">
+            <Modal.Header className="p-4 border-b border-border-app flex items-center justify-between bg-surface-soft/40">
+              <div className="flex items-center gap-1.5 text-brand font-heading font-bold text-sm">
+                <Info className="w-4 h-4" />
+                <span>Chi tiết dự án: {detailData?.case?.case_code || (isFetchingDetail ? "Đang tải..." : "")}</span>
+              </div>
+            </Modal.Header>
+            <Modal.Body className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
+              {isFetchingDetail ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3 text-text-muted">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand" />
+                  <p className="text-xs">Đang tải thông tin chi tiết dự án...</p>
+                </div>
+              ) : !detailData ? (
+                <div className="text-center py-12 text-danger font-semibold text-xs">
+                  Không thể tải chi tiết dự án. Vui lòng thử lại sau.
+                </div>
+              ) : (
+                <div className="space-y-6 text-xs text-text-app">
+                  {/* Section 1: General Info */}
+                  <div>
+                    <h4 className="font-heading font-bold text-sm text-text-app mb-3 flex items-center gap-2 border-b border-border-app pb-1">
+                      <FolderOpen className="w-4 h-4 text-brand" />
+                      <span>Thông tin chung</span>
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface-soft/30 p-4 rounded-xl border border-border-app/50">
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-text-muted uppercase font-semibold">Tên nhóm / Dự án</div>
+                        <div className="font-bold text-sm text-text-app">{detailData.case.team_name || "Chưa đặt tên"}</div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-text-muted uppercase font-semibold">Gói dịch vụ</div>
+                        <div className="font-bold text-sm text-text-app">{detailData.case.package?.name || "N/A"}</div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-text-muted uppercase font-semibold">Trường học</div>
+                        <div className="font-semibold text-text-app">{detailData.case.school || "N/A"}</div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-text-muted uppercase font-semibold">Bối cảnh môn học</div>
+                        <div className="font-semibold text-text-app">{detailData.case.course_context || "N/A"}</div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-text-muted uppercase font-semibold">Ngày tạo</div>
+                        <div className="text-text-app flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-text-muted" />
+                          <span>{new Date(detailData.case.created_at).toLocaleDateString("vi-VN")}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-text-muted uppercase font-semibold">Trạng thái nội bộ</div>
+                        <div>
+                          <Chip
+                            color={
+                              detailData.case.internal_status === "triage_pending"
+                                ? "default"
+                                : detailData.case.internal_status === "accepted_unassigned"
+                                ? "warning"
+                                : "success"
+                            }
+                            variant="soft"
+                            size="sm"
+                          >
+                            <Chip.Label>
+                              {detailData.case.internal_status === "triage_pending"
+                                ? "Chờ Triage"
+                                : detailData.case.internal_status === "accepted_unassigned"
+                                ? "Chờ Phân Công"
+                                : "Đã phân công"}
+                            </Chip.Label>
+                          </Chip>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Contact Info */}
+                  {detailData.intake_snapshot?.contact && (
+                    <div>
+                      <h4 className="font-heading font-bold text-sm text-text-app mb-3 flex items-center gap-2 border-b border-border-app pb-1">
+                        <Users className="w-4 h-4 text-brand" />
+                        <span>Người liên hệ chính (Đại diện nhóm)</span>
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface-soft/30 p-4 rounded-xl border border-border-app/50">
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] text-text-muted uppercase font-semibold">Họ tên</div>
+                          <div className="font-bold text-text-app">{detailData.intake_snapshot.contact.full_name || "N/A"}</div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] text-text-muted uppercase font-semibold">Mã sinh viên</div>
+                          <div className="font-bold text-text-app">{detailData.intake_snapshot.contact.student_code || "N/A"}</div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] text-text-muted uppercase font-semibold">Email</div>
+                          <div className="text-text-app flex items-center gap-1">
+                            <Mail className="w-3.5 h-3.5 text-text-muted" />
+                            <span>{detailData.intake_snapshot.contact.email || "N/A"}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] text-text-muted uppercase font-semibold">Zalo / Telegram</div>
+                          <div className="text-text-app flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5 text-text-muted" />
+                            <span>Zalo: {detailData.intake_snapshot.contact.zalo || "N/A"}</span>
+                            {detailData.intake_snapshot.contact.telegram && (
+                              <span className="text-text-muted">| Telegram: {detailData.intake_snapshot.contact.telegram}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-1.5 md:col-span-2">
+                          <div className="text-[10px] text-text-muted uppercase font-semibold">Vai trò trong nhóm</div>
+                          <div className="text-text-app">{detailData.intake_snapshot.contact.team_role || "N/A"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section 3: Idea and Support Needs */}
+                  <div>
+                    <h4 className="font-heading font-bold text-sm text-text-app mb-3 flex items-center gap-2 border-b border-border-app pb-1">
+                      <Target className="w-4 h-4 text-brand" />
+                      <span>Ý tưởng & Nhu cầu hỗ trợ</span>
+                    </h4>
+                    <div className="space-y-4 bg-surface-soft/30 p-4 rounded-xl border border-border-app/50">
+                      {detailData.intake_snapshot?.case_summary && (
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] text-text-muted uppercase font-semibold">Tóm tắt ý tưởng đề tài</div>
+                          <p className="text-text-app leading-relaxed bg-surface-app p-3 rounded-lg border border-border-app/35 whitespace-pre-wrap">
+                            {detailData.intake_snapshot.case_summary}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {detailData.intake_snapshot?.support_needs?.primary_need && (
+                          <div className="space-y-1.5 md:col-span-2">
+                            <div className="text-[10px] text-text-muted uppercase font-semibold">Nhu cầu hỗ trợ chính</div>
+                            <div className="font-semibold text-brand-dark bg-brand-soft/20 px-3 py-1.5 rounded-lg border border-brand/10 w-fit">
+                              {detailData.intake_snapshot.support_needs.primary_need}
+                            </div>
+                          </div>
+                        )}
+                        {detailData.intake_snapshot?.expected_outputs && (
+                          <div className="space-y-1.5 md:col-span-2">
+                            <div className="text-[10px] text-text-muted uppercase font-semibold">Kỳ vọng đầu ra</div>
+                            <p className="text-text-app leading-relaxed bg-surface-app p-3 rounded-lg border border-border-app/35 whitespace-pre-wrap">
+                              {detailData.intake_snapshot.expected_outputs}
+                            </p>
+                          </div>
+                        )}
+                        {detailData.intake_snapshot?.support_needs?.extra_notes && (
+                          <div className="space-y-1.5 md:col-span-2">
+                            <div className="text-[10px] text-text-muted uppercase font-semibold">Ghi chú thêm cho Supporter</div>
+                            <p className="text-text-app leading-relaxed bg-surface-app p-3 rounded-lg border border-border-app/35 whitespace-pre-wrap">
+                              {detailData.intake_snapshot.support_needs.extra_notes}
+                            </p>
+                          </div>
+                        )}
+                        {detailData.intake_snapshot?.lecturer_feedback && (
+                          <div className="space-y-1.5 md:col-span-2">
+                            <div className="text-[10px] text-text-muted uppercase font-semibold">Góp ý từ giảng viên (nếu có)</div>
+                            <p className="text-text-app leading-relaxed bg-surface-app p-3 rounded-lg border border-border-app/35 whitespace-pre-wrap">
+                              {detailData.intake_snapshot.lecturer_feedback}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 4: Documents */}
+                  {detailData.intake_snapshot?.documents && detailData.intake_snapshot.documents.length > 0 && (
+                    <div>
+                      <h4 className="font-heading font-bold text-sm text-text-app mb-3 flex items-center gap-2 border-b border-border-app pb-1">
+                        <FolderOpen className="w-4 h-4 text-brand" />
+                        <span>Tài liệu đính kèm</span>
+                      </h4>
+                      <div className="space-y-3 bg-surface-soft/30 p-4 rounded-xl border border-border-app/50">
+                        {detailData.intake_snapshot.documents.map((doc: any, idx: number) => (
+                          <div key={idx} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-surface-app border border-border-app/40 rounded-lg gap-3">
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="font-bold text-text-app truncate">
+                                {doc.document_type || "Tài liệu đính kèm"}
+                              </div>
+                              {doc.role_description && (
+                                <p className="text-[10px] text-text-muted">{doc.role_description}</p>
+                              )}
+                            </div>
+                            {doc.drive_url && (
+                              <a
+                                href={doc.drive_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0"
+                              >
+                                <span>Mở Google Drive</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Modal.Body>
+            <Modal.Footer className="p-4 border-t border-border-app flex gap-3 bg-surface-soft/20">
+              <Button onPress={() => { setDetailCaseId(null); setDetailData(null); }} className="w-full bg-surface-app border border-border-strong text-text-muted">Đóng</Button>
             </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
