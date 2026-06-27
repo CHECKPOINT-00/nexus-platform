@@ -4,8 +4,40 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import { signIn, signUp } from "@/lib/auth-client";
-import { Input, Label } from "@heroui/react";
+import {
+  TextInput,
+  PasswordInput,
+  Paper,
+  Text,
+  Group,
+  Divider,
+  Button,
+  Checkbox,
+  Anchor,
+  Stack,
+} from "@mantine/core";
 import { Lock, Mail, User, AlertCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
+
+// Custom Google Button with Google SVG Icon
+export function GoogleButton(props: any) {
+  return (
+    <Button
+      leftSection={
+        <svg viewBox="0 0 48 48" width="16" height="16">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.5 24c0-1.61-.15-3.16-.42-4.69H24v8.89h12.66c-.55 2.92-2.2 5.39-4.69 7.06l7.29 5.65C43.62 36.2 46.5 30.65 46.5 24z"/>
+          <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.29-5.65c-2.03 1.37-4.63 2.19-8.6 2.19-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+      }
+      variant="default"
+      radius="xl"
+      className="cursor-pointer font-semibold"
+      {...props}
+    />
+  );
+}
 
 export default function AuthPanel() {
   const router = useRouter();
@@ -47,6 +79,25 @@ export default function AuthPanel() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setAuthError(null);
+    setIsLoading(true);
+    const packageId = searchParams.get("packageId");
+    const callbackUrl = packageId 
+      ? `/dashboard/intake?packageId=${packageId}`
+      : "/dashboard";
+
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: callbackUrl,
+      });
+    } catch (err) {
+      setIsLoading(false);
+      setAuthError("Đã xảy ra lỗi khi đăng nhập bằng Google.");
+    }
+  };
+
   // Read initial tab and package ID from URL search parameters
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -64,13 +115,13 @@ export default function AuthPanel() {
       email: "",
       password: "",
       confirmPassword: "",
+      terms: true,
     },
     onSubmit: async ({ value }) => {
       setAuthError(null);
       setIsLoading(true);
 
       const packageId = searchParams.get("packageId");
-      // Add packageId to callback URL if present, so intake flow can pick it up
       const callbackUrl = packageId 
         ? `/dashboard/intake?packageId=${packageId}`
         : "/dashboard";
@@ -96,6 +147,12 @@ export default function AuthPanel() {
         } else {
           if (value.password !== value.confirmPassword) {
             setAuthError("Mật khẩu xác nhận không khớp.");
+            setIsLoading(false);
+            return;
+          }
+
+          if (!value.terms) {
+            setAuthError("Bạn phải đồng ý với các điều khoản dịch vụ.");
             setIsLoading(false);
             return;
           }
@@ -126,44 +183,24 @@ export default function AuthPanel() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Tabs Selector */}
-      <div className="flex border-b border-border-app">
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab("login");
-            setAuthError(null);
-            form.reset();
-          }}
-          className={`flex-1 pb-3 text-sm font-semibold font-body border-b-2 transition-colors ${
-            activeTab === "login"
-              ? "border-brand text-brand"
-              : "border-transparent text-text-muted hover:text-text-app"
-          }`}
-        >
-          Đăng nhập
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab("register");
-            setAuthError(null);
-            form.reset();
-          }}
-          className={`flex-1 pb-3 text-sm font-semibold font-body border-b-2 transition-colors ${
-            activeTab === "register"
-              ? "border-brand text-brand"
-              : "border-transparent text-text-muted hover:text-text-app"
-          }`}
-        >
-          Đăng ký thành viên
-        </button>
-      </div>
+    <div className="w-full font-body text-xs text-text-app space-y-6">
+
+
+      {/* Social Provider: Google Only */}
+      <Group grow mb="md">
+        <GoogleButton onClick={handleGoogleSignIn}>Google</GoogleButton>
+      </Group>
+
+      <Divider
+        label="Hoặc tiếp tục bằng email"
+        labelPosition="center"
+        my="lg"
+        className="border-border-app"
+      />
 
       {/* Global Auth Error Alert */}
       {authError && (
-        <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
+        <div className="flex items-start gap-2 p-3 mb-4 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{authError}</span>
         </div>
@@ -178,154 +215,179 @@ export default function AuthPanel() {
         }}
         className="space-y-4"
       >
-        {activeTab === "register" && (
+        <Stack gap="md">
+          {activeTab === "register" && (
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) => !value ? "Họ và tên là bắt buộc" : undefined,
+              }}
+              children={(field) => (
+                <TextInput
+                  id="name"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  label="Họ và tên"
+                  placeholder="Nguyễn Văn A"
+                  leftSection={<User className="w-4 h-4 text-text-subtle" />}
+                  error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                  required
+                  variant="default"
+                  radius="md"
+                  disabled={isLoading}
+                />
+              )}
+            />
+          )}
+
           <form.Field
-            name="name"
+            name="email"
             validators={{
-              onChange: ({ value }) => !value ? "Họ và tên là bắt buộc" : undefined,
+              onChange: ({ value }) => {
+                if (!value) return "Email là bắt buộc";
+                if (!/\S+@\S+\.\S+/.test(value)) return "Email không đúng định dạng";
+                return undefined;
+              },
             }}
             children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="name" className="text-xs font-semibold text-text-app font-body">Họ và tên</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-subtle">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <Input
-                    id="name"
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                    placeholder="Nguyễn Văn A"
-                    className="pl-9 w-full bg-surface-soft border border-border-app rounded-lg text-sm h-10 font-body text-text-app focus:outline-brand"
-                    required
-                  />
-                </div>
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-xs text-danger font-body mt-1">{field.state.meta.errors[0]}</p>
-                )}
-              </div>
+              <TextInput
+                id="email"
+                type="email"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                label="Địa chỉ Email"
+                placeholder="name@example.com"
+                leftSection={<Mail className="w-4 h-4 text-text-subtle" />}
+                error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                required
+                variant="default"
+                radius="md"
+                disabled={isLoading}
+              />
             )}
           />
-        )}
 
-        <form.Field
-          name="email"
-          validators={{
-            onChange: ({ value }) => {
-              if (!value) return "Email là bắt buộc";
-              if (!/\S+@\S+\.\S+/.test(value)) return "Email không đúng định dạng";
-              return undefined;
-            },
-          }}
-          children={(field) => (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email" className="text-xs font-semibold text-text-app font-body">Địa chỉ Email</Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-subtle">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <Input
-                  id="email"
-                  type="email"
+          <form.Field
+            name="password"
+            validators={{
+              onChange: ({ value }) => {
+                if (!value) return "Mật khẩu là bắt buộc";
+                if (value.length < 6) return "Mật khẩu phải chứa ít nhất 6 ký tự";
+                return undefined;
+              },
+            }}
+            children={(field) => (
+              <PasswordInput
+                id="password"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                label="Mật khẩu"
+                placeholder="••••••••"
+                leftSection={<Lock className="w-4 h-4 text-text-subtle" />}
+                error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                required
+                variant="default"
+                radius="md"
+                disabled={isLoading}
+              />
+            )}
+          />
+
+          {activeTab === "register" && (
+            <form.Field
+              name="confirmPassword"
+              validators={{
+                onChange: ({ value }) => !value ? "Xác nhận mật khẩu là bắt buộc" : undefined,
+              }}
+              children={(field) => (
+                <PasswordInput
+                  id="confirmPassword"
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                  placeholder="name@example.com"
-                  className="pl-9 w-full bg-surface-soft border border-border-app rounded-lg text-sm h-10 font-body text-text-app focus:outline-brand"
-                  required
-                />
-              </div>
-              {field.state.meta.errors.length > 0 && (
-                <p className="text-xs text-danger font-body mt-1">{field.state.meta.errors[0]}</p>
-              )}
-            </div>
-          )}
-        />
-
-        <form.Field
-          name="password"
-          validators={{
-            onChange: ({ value }) => {
-              if (!value) return "Mật khẩu là bắt buộc";
-              if (value.length < 6) return "Mật khẩu phải chứa ít nhất 6 ký tự";
-              return undefined;
-            },
-          }}
-          children={(field) => (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password" className="text-xs font-semibold text-text-app font-body">Mật khẩu</Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-subtle">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange((e.target as HTMLInputElement).value)}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  label="Xác nhận mật khẩu"
                   placeholder="••••••••"
-                  className="pl-9 w-full bg-surface-soft border border-border-app rounded-lg text-sm h-10 font-body text-text-app focus:outline-brand"
+                  leftSection={<Lock className="w-4 h-4 text-text-subtle" />}
+                  error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
                   required
+                  variant="default"
+                  radius="md"
+                  disabled={isLoading}
                 />
-              </div>
-              {field.state.meta.errors.length > 0 && (
-                <p className="text-xs text-danger font-body mt-1">{field.state.meta.errors[0]}</p>
               )}
-            </div>
+            />
           )}
-        />
 
-        {activeTab === "register" && (
-          <form.Field
-            name="confirmPassword"
-            validators={{
-              onChange: ({ value }) => !value ? "Xác nhận mật khẩu là bắt buộc" : undefined,
-            }}
-            children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="confirmPassword" className="text-xs font-semibold text-text-app font-body">Xác nhận mật khẩu</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-subtle">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                    placeholder="••••••••"
-                    className="pl-9 w-full bg-surface-soft border border-border-app rounded-lg text-sm h-10 font-body text-text-app focus:outline-brand"
-                    required
+          {/* Terms / Forgot Password row */}
+          <Group justify="space-between" mt="xs">
+            {activeTab === "register" ? (
+              <form.Field
+                name="terms"
+                children={(field) => (
+                  <Checkbox
+                    label="Tôi đồng ý với điều khoản dịch vụ"
+                    checked={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.checked)}
+                    radius="sm"
+                    disabled={isLoading}
                   />
-                </div>
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-xs text-danger font-body mt-1">{field.state.meta.errors[0]}</p>
                 )}
-              </div>
+              />
+            ) : (
+              <div />
             )}
-          />
-        )}
+            
+            {activeTab === "login" && (
+              <Anchor component={Link} href="/auth/forgot-password" size="xs" c="dimmed" className="font-semibold">
+                Quên mật khẩu?
+              </Anchor>
+            )}
+          </Group>
+        </Stack>
 
         {/* Submit Button */}
-        <button
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 h-10 px-4 mt-6 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg shadow-sm font-body cursor-pointer disabled:opacity-50 transition-colors"
+          loading={isLoading}
+          fullWidth
+          mt="xl"
+          radius="xl"
+          color="brand"
+          className="cursor-pointer font-semibold"
         >
-          {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-          <span>{activeTab === "login" ? "Đăng nhập" : "Đăng ký thành viên"}</span>
-        </button>
+          {activeTab === "login" ? "Đăng nhập" : "Đăng ký thành viên"}
+        </Button>
       </form>
 
+      {/* Switch between Login and Register */}
+      <Group justify="center" mt="md">
+        <Anchor
+          component="button"
+          type="button"
+          c="dimmed"
+          onClick={() => {
+            setActiveTab(activeTab === "login" ? "register" : "login");
+            setAuthError(null);
+            form.reset();
+          }}
+          size="xs"
+          className="font-semibold"
+        >
+          {activeTab === "register"
+            ? "Đã có tài khoản? Đăng nhập"
+            : "Chưa có tài khoản? Đăng ký"}
+        </Anchor>
+      </Group>
+
       {/* Quick Login Collapsible */}
-      <div className="pt-4 border-t border-border-app">
+      <div className="pt-4 mt-6 border-t border-border-app">
         <button
           type="button"
           onClick={() => setShowQuickLogin(!showQuickLogin)}
@@ -341,6 +403,7 @@ export default function AuthPanel() {
               type="button"
               onClick={() => handleQuickLogin("student@example.com")}
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
+              disabled={isLoading}
             >
               <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">Student</span>
               <span className="text-[9px] text-text-subtle mt-0.5 break-all">student@example.com</span>
@@ -349,6 +412,7 @@ export default function AuthPanel() {
               type="button"
               onClick={() => handleQuickLogin("supporter@example.com")}
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
+              disabled={isLoading}
             >
               <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">Supporter</span>
               <span className="text-[9px] text-text-subtle mt-0.5 break-all">supporter@example.com</span>
@@ -357,6 +421,7 @@ export default function AuthPanel() {
               type="button"
               onClick={() => handleQuickLogin("admin@example.com")}
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
+              disabled={isLoading}
             >
               <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">Admin</span>
               <span className="text-[9px] text-text-subtle mt-0.5 break-all">admin@example.com</span>
