@@ -1,6 +1,6 @@
 "use client";
 
-import { Accordion } from "@heroui/react";
+import { Accordion } from "@mantine/core";
 
 const faqItems = [
   {
@@ -37,19 +37,14 @@ export default function FAQSection() {
         </div>
 
         <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 shadow-sm">
-          <Accordion allowsMultipleExpanded className="w-full space-y-2">
+          <Accordion multiple variant="separated" radius="md">
             {faqItems.map((item, index) => (
-              <Accordion.Item key={index} id={`faq-${index}`} className="border-b border-border-app last:border-b-0 pb-2">
-                <Accordion.Heading>
-                  <Accordion.Trigger className="w-full flex items-center justify-between py-4 text-left font-heading font-medium text-text-app transition-colors cursor-pointer text-base">
-                    <span>{item.question}</span>
-                    <Accordion.Indicator className="transition-transform duration-200 data-[expanded=true]:rotate-180 text-text-muted" />
-                  </Accordion.Trigger>
-                </Accordion.Heading>
-                <Accordion.Panel className="pb-4">
-                  <Accordion.Body className="font-body text-sm text-text-muted leading-relaxed">
-                    {item.answer}
-                  </Accordion.Body>
+              <Accordion.Item key={index} value={`faq-${index}`}>
+                <Accordion.Control className="font-heading font-medium text-text-app">
+                  {item.question}
+                </Accordion.Control>
+                <Accordion.Panel className="font-body text-sm text-text-muted leading-relaxed">
+                  {item.answer}
                 </Accordion.Panel>
               </Accordion.Item>
             ))}

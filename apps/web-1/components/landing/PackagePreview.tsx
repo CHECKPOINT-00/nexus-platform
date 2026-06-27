@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePackages } from "@/hooks/usePackages";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Card } from "@heroui/react";
+import { Card } from "@mantine/core";
 import { Check } from "lucide-react";
 
 export default function PackagePreview() {
@@ -59,7 +59,10 @@ export default function PackagePreview() {
             return (
               <Card
                 key={pkg.id}
-                className={`flex flex-col p-8 bg-surface-app border transition-all relative ${
+                p="xl"
+                radius="lg"
+                withBorder
+                className={`flex flex-col bg-surface-app transition-all relative ${
                   isRecommended
                     ? "border-brand ring-2 ring-brand/10 shadow-lg scale-[1.02]"
                     : "border-border-app shadow-sm hover:border-brand/40"
