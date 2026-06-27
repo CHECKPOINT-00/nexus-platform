@@ -6,7 +6,7 @@ import { useCasesList } from "../dashboard/hooks/useCasesList";
 import CaseCard from "../dashboard/_components/CaseCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Sparkles, ClipboardList, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 export default function SupporterDashboard() {
   const { data: cases, isLoading, error, refetch } = useCasesList();
@@ -29,7 +29,7 @@ export default function SupporterDashboard() {
       : cases || [];
 
   return (
-    <div className="space-y-8 font-body text-xs text-text-app pb-12 animate-fade-in">
+    <div className="space-y-8 font-body text-xs text-text-app pb-12 animate-fade-in max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
       {/* Supporter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -42,11 +42,11 @@ export default function SupporterDashboard() {
         </div>
 
         <Button
-          onPress={() => refetch()}
-          variant="ghost"
-          className="border border-border-strong text-text-muted hover:text-brand text-xs font-semibold font-body h-9 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer bg-surface-app"
+          onClick={() => refetch()}
+          variant="default"
+          leftSection={<RefreshCw className="w-3.5 h-3.5" />}
+          className="text-text-muted hover:text-brand text-xs font-semibold font-body h-9 px-3 cursor-pointer"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
           <span>Tải lại</span>
         </Button>
       </div>

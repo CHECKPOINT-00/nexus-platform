@@ -12,7 +12,7 @@ import {
   X, 
   Play 
 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 interface Finding {
   field: string;
@@ -69,18 +69,19 @@ export default function FindingCard({ finding, onUpdate, onDelete }: FindingCard
           <span className="font-heading font-bold text-xs text-brand">Đang chỉnh sửa khía cạnh</span>
           <div className="flex items-center gap-2">
             <Button
-              onPress={handleCancel}
-              variant="ghost"
-              className="border border-border-strong text-text-muted hover:text-text-app text-xs font-semibold font-body h-8 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer"
+              onClick={handleCancel}
+              variant="default"
+              leftSection={<X className="w-3.5 h-3.5" />}
+              className="text-text-muted hover:text-text-app text-xs font-semibold font-body h-8 px-3 cursor-pointer"
             >
-              <X className="w-3.5 h-3.5" />
               <span>Hủy</span>
             </Button>
             <Button
-              onPress={handleSave}
-              className="bg-brand text-white text-xs font-semibold font-body h-8 px-3 rounded-lg flex items-center gap-1.5 hover:bg-brand-hover cursor-pointer"
+              onClick={handleSave}
+              color="brand"
+              leftSection={<Check className="w-3.5 h-3.5" />}
+              className="text-xs font-semibold font-body h-8 px-3 cursor-pointer"
             >
-              <Check className="w-3.5 h-3.5" />
               <span>Lưu</span>
             </Button>
           </div>

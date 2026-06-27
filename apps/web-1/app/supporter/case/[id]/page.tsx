@@ -62,7 +62,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
 
   if (error || !caseData) {
     return (
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="w-full p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
           Không thể tải dữ liệu không gian làm việc của dự án. Vui lòng thử lại sau.
         </div>
@@ -71,36 +71,41 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12 animate-fade-in">
-      {/* 1. Case Status Header */}
-      <CaseStatusHeader
-        caseData={caseData}
+    <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
+      {/* Sidebar - Docked Left, full height */}
+      <WorkspaceSidebar
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          if (tab !== "settings") {
+            setActiveTab(tab);
+          }
+        }}
+        messageCount={caseData.messages?.length}
+        hideSettings
         versions={versions}
         selectedVersion={selectedVersion}
         onVersionChange={setSelectedVersion}
       />
 
-      {/* 2. Unpaid Warnings (Read-Only Warning for Supporters) */}
-      {caseData.payment_status !== "paid" && caseData.package?.price !== 0 && (
-        <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2">
-          <span>⚠️ Học viên chưa hoàn tất thanh toán dự án này. Vui lòng lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
-        </div>
-      )}
-
-      {/* 3. Main Workspace Sidebar & Content Layout */}
-      <div className="flex flex-col md:flex-row gap-6">
-        <WorkspaceSidebar
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            if (tab !== "settings") {
-              setActiveTab(tab);
-            }
-          }}
-          messageCount={caseData.messages?.length}
-          hideSettings
+      {/* Main Content Area - Scrollable */}
+      <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
+        {/* 1. Case Status Header */}
+        <CaseStatusHeader
+          caseData={caseData}
+          versions={versions}
+          selectedVersion={selectedVersion}
+          onVersionChange={setSelectedVersion}
         />
 
-        <div className="flex-grow min-w-0">
+        {/* 2. Unpaid Warnings (Read-Only Warning for Supporters) */}
+        {caseData.payment_status !== "paid" && caseData.package?.price !== 0 && (
+          <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
+            <span>⚠️ Học viên chưa hoàn tất thanh toán dự án này. Vui lòng lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
+          </div>
+        )}
+
+        {/* 3. Tab Content */}
+        <div className="flex-grow min-h-0">
           {activeTab === "idea" && (
             <TabIdeaContent caseData={caseData} selectedVersion={selectedVersion} />
           )}

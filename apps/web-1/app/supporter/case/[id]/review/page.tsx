@@ -10,7 +10,7 @@ import FindingCard from "./_components/FindingCard";
 import ReviewActionsPanel from "./_components/ReviewActionsPanel";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Sparkles, ArrowLeft, Bot, AlertTriangle, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -142,7 +142,7 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
 
   if (isAuthPending || isCaseLoading || isDraftLoading) {
     return (
-      <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      <div className="space-y-6 w-full pb-12">
         <LoadingSkeleton variant="text-block" count={1} />
         <LoadingSkeleton variant="card" count={2} />
       </div>
@@ -150,15 +150,15 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-28 animate-fade-in font-body">
+    <div className="space-y-6 w-full pb-28 animate-fade-in font-body">
       {/* Header back navigation */}
       <div className="flex items-center gap-3">
         <Button
-          onPress={() => router.push(`/supporter/case/${caseId}`)}
-          variant="ghost"
-          className="border border-border-strong text-text-muted hover:text-text-app text-xs font-semibold font-body h-9 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer bg-surface-app"
+          onClick={() => router.push(`/supporter/case/${caseId}`)}
+          variant="default"
+          leftSection={<ArrowLeft className="w-4 h-4" />}
+          className="text-text-muted hover:text-text-app text-xs font-semibold font-body h-9 px-3 cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
           <span>Quay lại Case</span>
         </Button>
         <div>
@@ -182,21 +182,13 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
           </div>
 
           <Button
-            onPress={() => generateDraft()}
-            isDisabled={isGenerating}
-            className="bg-brand text-white font-body font-semibold text-xs h-10 px-5 rounded-lg flex items-center gap-2 hover:bg-brand-hover shadow-sm"
+            onClick={() => generateDraft()}
+            disabled={isGenerating}
+            color="brand"
+            leftSection={isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            className="font-body font-semibold text-xs h-10 px-5 cursor-pointer disabled:opacity-50"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Đang phân tích ý tưởng...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span>Khởi tạo bản nháp AI</span>
-              </>
-            )}
+            <span>{isGenerating ? "Đang phân tích ý tưởng..." : "Khởi tạo bản nháp AI"}</span>
           </Button>
         </div>
       ) : (
