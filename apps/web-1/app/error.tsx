@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { AlertOctagon, RefreshCw } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -39,10 +39,11 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
         {/* Retry Button */}
         <div className="flex items-center justify-center gap-3">
           <Button
-            onPress={() => reset()}
-            className="bg-brand text-white font-body font-semibold text-xs h-10 px-5 rounded-lg flex items-center gap-1.5 hover:bg-brand-hover cursor-pointer shadow-sm shadow-brand/10"
+            onClick={() => reset()}
+            leftSection={<RefreshCw className="w-3.5 h-3.5" />}
+            color="brand"
+            className="font-body font-semibold text-xs h-10 px-5 cursor-pointer shadow-sm shadow-brand/10"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
             <span>Thử tải lại</span>
           </Button>
           <a

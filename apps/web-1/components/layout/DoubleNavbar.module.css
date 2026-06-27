@@ -1,0 +1,86 @@
+.navbar {
+  height: 100%;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.wrapper {
+  display: flex;
+  flex: 1;
+  height: 100%;
+}
+
+.aside {
+  flex: 0 0 60px;
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-7));
+  padding-top: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-xs);
+}
+
+.main {
+  flex: 1;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  display: flex;
+  flex-direction: column;
+  padding: var(--mantine-spacing-md);
+}
+
+.mainLink {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--mantine-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
+  transition: background-color 150ms ease;
+  cursor: pointer;
+}
+
+.mainLink:hover {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.mainLink[data-active] {
+  background-color: var(--mantine-color-blue-filled);
+  color: var(--mantine-color-white);
+}
+
+.title {
+  font-family: var(--mantine-font-family-headings);
+  font-weight: 700;
+  font-size: var(--mantine-font-size-md);
+  margin-bottom: var(--mantine-spacing-md);
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.link {
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
+  border-radius: var(--mantine-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.link:hover {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.link[data-active] {
+  background-color: light-dark(var(--mantine-color-blue-light), var(--mantine-color-blue-light-hover));
+  color: var(--mantine-color-blue-light-color);
+  font-weight: 600;
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Button } from "@heroui/react";
+import { ActionIcon } from "@mantine/core";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggler() {
@@ -14,21 +14,21 @@ export default function ThemeToggler() {
   }, []);
 
   if (!mounted) {
-    return <Button isIconOnly variant="ghost" size="sm" className="w-8 h-8 opacity-0" />;
+    return <ActionIcon variant="subtle" color="gray" size="md" className="w-8 h-8 opacity-0" />;
   }
 
   const isDark = theme === "dark";
 
   return (
-    <Button
-      isIconOnly
-      variant="ghost"
-      size="sm"
-      onPress={() => setTheme(isDark ? "light" : "dark")}
+    <ActionIcon
+      variant="subtle"
+      color="gray"
+      size="md"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
       className="text-text-muted hover:text-brand transition-colors"
       aria-label="Toggle theme"
     >
       {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-    </Button>
+    </ActionIcon>
   );
 }

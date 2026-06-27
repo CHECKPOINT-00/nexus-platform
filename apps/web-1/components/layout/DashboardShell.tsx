@@ -7,11 +7,10 @@ import { useSession, signOut } from "@/lib/auth-client";
 import ThemeToggler from "../ui/ThemeToggler";
 import {
   Avatar,
-  Dropdown,
-  Chip,
-  Breadcrumbs,
-  BreadcrumbsItem
-} from "@heroui/react";
+  Menu,
+  Badge,
+  Breadcrumbs
+} from "@mantine/core";
 import { LogOut, LayoutDashboard, Shield } from "lucide-react";
 
 interface DashboardShellProps {
@@ -55,25 +54,25 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const getRoleBadge = (role?: string) => {
     if (role === "admin") {
       return (
-        <Chip color="danger" variant="soft" className="font-body text-xs">
+        <Badge color="red" variant="light" className="font-body text-xs py-1">
           <span className="flex items-center gap-1">
             <Shield className="w-3 h-3" />
             <span>Admin</span>
           </span>
-        </Chip>
+        </Badge>
       );
     }
     if (role === "supporter") {
       return (
-        <Chip color="accent" variant="soft" className="font-body text-xs text-brand bg-brand-soft">
+        <Badge color="brand" variant="light" className="font-body text-xs py-1">
           Supporter
-        </Chip>
+        </Badge>
       );
     }
     return (
-      <Chip color="default" variant="soft" className="font-body text-xs">
+      <Badge color="gray" variant="light" className="font-body text-xs py-1">
         Student
-      </Chip>
+      </Badge>
     );
   };
 
@@ -134,57 +133,48 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           {!isPending && user && (
             <div className="flex items-center gap-3">
               {getRoleBadge(user.role)}
-              <Dropdown>
-                <Dropdown.Trigger className="cursor-pointer">
-                  <Avatar className="transition-transform ring-2 ring-transparent hover:ring-brand">
-                    {user.image ? (
-                      <Avatar.Image src={user.image} alt={user.name || "User"} />
-                    ) : null}
-                    <Avatar.Fallback>{user.name?.substring(0, 2).toUpperCase() || "US"}</Avatar.Fallback>
-                  </Avatar>
-                </Dropdown.Trigger>
-                <Dropdown.Popover placement="bottom end" className="min-w-[200px] bg-surface-app border border-border-app rounded-lg p-1 shadow-md">
+              <Menu shadow="md" width={200} position="bottom-end">
+                <Menu.Target>
+                  <div className="cursor-pointer">
+                    <Avatar
+                      src={user.image || undefined}
+                      alt={user.name || "User"}
+                      radius="xl"
+                      className="transition-transform ring-2 ring-transparent hover:ring-brand"
+                    >
+                      {user.name?.substring(0, 2).toUpperCase() || "US"}
+                    </Avatar>
+                  </div>
+                </Menu.Target>
+                <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
                   <div className="px-3 py-2 border-b border-border-app mb-1">
                     <p className="font-semibold font-body text-sm text-text-app">{user.name || "User"}</p>
                     <p className="font-semibold text-text-muted font-body text-xs truncate">{user.email}</p>
                   </div>
-                  <Dropdown.Menu onAction={(key) => {
-                    if (key === "logout") {
-                      handleSignOut();
-                    } else if (key === "dashboard") {
-                      router.push(getHomeLink());
-                    }
-                  }}>
-                    <Dropdown.Item id="dashboard" textValue="Dashboard" className="flex items-center gap-2 p-2 text-sm text-text-app hover:bg-surface-soft rounded cursor-pointer">
-                      <LayoutDashboard className="w-4 h-4 text-text-muted" />
-                      <span>Dashboard</span>
-                    </Dropdown.Item>
-                    <Dropdown.Item id="logout" textValue="Đăng xuất" className="flex items-center gap-2 p-2 text-sm text-danger hover:bg-danger-soft rounded cursor-pointer">
-                      <LogOut className="w-4 h-4" />
-                      <span>Đăng xuất</span>
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown.Popover>
-              </Dropdown>
+                  <Menu.Item
+                    leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
+                    onClick={() => router.push(getHomeLink())}
+                    className="text-text-app hover:bg-surface-soft cursor-pointer"
+                  >
+                    Dashboard
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<LogOut className="w-4 h-4" />}
+                    color="red"
+                    onClick={handleSignOut}
+                    className="hover:bg-danger-soft cursor-pointer"
+                  >
+                    Đăng xuất
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             </div>
           )}
         </div>
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {breadcrumbsList.length > 0 && (
-          <div className="mb-6">
-            <Breadcrumbs>
-              <BreadcrumbsItem href={getHomeLink()}>Trang chủ</BreadcrumbsItem>
-              {breadcrumbsList.map((crumb, idx) => (
-                <BreadcrumbsItem key={idx} href={crumb.href}>
-                  {crumb.label}
-                </BreadcrumbsItem>
-              ))}
-            </Breadcrumbs>
-          </div>
-        )}
+      <main className="flex-grow w-full flex flex-col min-h-0">
         {children}
       </main>
     </div>

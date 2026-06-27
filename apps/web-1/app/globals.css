@@ -1,8 +1,13 @@
 @import "tailwindcss";
-@import "@heroui/styles";
-
-@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
-@source "../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+@import "@mantine/core/styles.css";
+@import "@mantine/dates/styles.css";
+@import "@mantine/notifications/styles.css";
+@import "@mantine/spotlight/styles.css";
+@import "@mantine/carousel/styles.css";
+@import "@mantine/dropzone/styles.css";
+@import "@mantine/charts/styles.css";
+@import "@mantine/tiptap/styles.css";
+@import "@mantine/nprogress/styles.css";
 
 
 @theme {
@@ -34,16 +39,20 @@
   --color-text-muted: var(--color-text-muted);
   --color-text-subtle: var(--color-text-subtle);
 
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+
+  --font-sans: var(--font-google-sans-flex), sans-serif;
   --font-heading: var(--font-google-sans-flex), sans-serif;
   --font-body: var(--font-google-sans-flex), sans-serif;
 }
 
 :root {
-  /* Brand — Teal */
-  --color-brand: #0D9488;
-  --color-brand-hover: #0F766E;
-  --color-brand-soft: #CCFBF1;
-  --color-brand-subtle: #F0FDFA;
+  /* Brand — Sapphire Blue */
+  --color-brand: #2563EB;
+  --color-brand-hover: #1D4ED8;
+  --color-brand-soft: #DBEAFE;
+  --color-brand-subtle: #EFF6FF;
 
   /* Warm Accent — Orange */
   --color-accent-warm: #F97316;
@@ -61,36 +70,44 @@
   --color-info-soft: #DBEAFE;
 
   /* Neutral */
-  --color-bg: #FBFAF7;
+  --color-bg: #F8FAFC; /* Slate 50 */
   --color-surface: #FFFFFF;
-  --color-surface-soft: #F8FAFC;
-  --color-surface-muted: #F1F5F9;
-  --color-border: #E2E8F0;
-  --color-border-strong: #CBD5E1;
-  --color-text: #1F2937;
-  --color-text-muted: #64748B;
-  --color-text-subtle: #94A3B8;
+  --color-surface-soft: #F1F5F9; /* Slate 100 */
+  --color-surface-muted: #E2E8F0; /* Slate 200 */
+  --color-border: #E2E8F0; /* Slate 200 */
+  --color-border-strong: #CBD5E1; /* Slate 300 */
+  --color-text: #0F172A; /* Slate 900 */
+  --color-text-muted: #475569; /* Slate 600 */
+  --color-text-subtle: #64748B; /* Slate 500 */
+
+  /* 4-sided soft shadows for light mode */
+  --shadow-sm: 0 0 12px 1px rgba(15, 23, 42, 0.04), 0 2px 4px 0 rgba(15, 23, 42, 0.02);
+  --shadow-md: 0 0 18px 2px rgba(15, 23, 42, 0.06), 0 4px 6px -1px rgba(15, 23, 42, 0.03);
 
   /* Base next-themes backgrounds for compatibility */
   --background: var(--color-bg);
   --foreground: var(--color-text);
+
+  /* Mantine Overrides Light */
+  --mantine-color-body: var(--color-bg) !important;
+  --mantine-color-bg: var(--color-bg) !important;
 }
 
-.dark {
-  --color-bg: #0F172A;
-  --color-surface: #111827;
-  --color-surface-soft: #1E293B;
-  --color-surface-muted: #334155;
-  --color-border: #334155;
-  --color-border-strong: #475569;
+[data-mantine-color-scheme="dark"] {
+  --color-bg: #090E1A; /* Midnight Slate */
+  --color-surface: #121B2E; /* Deep blue-gray card */
+  --color-surface-soft: #1B2640;
+  --color-surface-muted: #243257;
+  --color-border: #1E294B;
+  --color-border-strong: #2E3D6B;
   --color-text: #F8FAFC;
-  --color-text-muted: #CBD5E1;
-  --color-text-subtle: #94A3B8;
+  --color-text-muted: #94A3B8;
+  --color-text-subtle: #64748B;
 
-  --color-brand: #14B8A6;
-  --color-brand-hover: #2DD4BF;
-  --color-brand-soft: rgba(45, 212, 191, 0.16);
-  --color-brand-subtle: rgba(20, 184, 166, 0.10);
+  --color-brand: #3B82F6;
+  --color-brand-hover: #60A5FA;
+  --color-brand-soft: rgba(59, 130, 246, 0.16);
+  --color-brand-subtle: rgba(59, 130, 246, 0.08);
 
   /* Status Soft Colors for Dark Theme */
   --color-success-soft: rgba(16, 185, 129, 0.15);
@@ -98,8 +115,21 @@
   --color-danger-soft: rgba(239, 68, 68, 0.15);
   --color-info-soft: rgba(59, 130, 246, 0.15);
 
+  /* Shadows for dark mode */
+  --shadow-sm: 0 0 12px 1px rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 0 18px 2px rgba(0, 0, 0, 0.35), 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+
   --background: var(--color-bg);
   --foreground: var(--color-text);
+
+  /* Mantine Overrides Dark */
+  --mantine-color-body: var(--color-bg) !important;
+  --mantine-color-bg: var(--color-bg) !important;
+  --mantine-color-dark-7: var(--color-bg) !important;
+  --mantine-color-dark-6: var(--color-surface) !important;
+  --mantine-color-dark-5: var(--color-surface-soft) !important;
+  --mantine-color-dark-4: var(--color-surface-muted) !important;
+  --mantine-color-dark-border: var(--color-border) !important;
 }
 
 /* Custom global styles */
@@ -113,4 +143,24 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-google-sans-flex), sans-serif;
   font-weight: 600;
+}
+
+/* Direct layout overrides for Mantine elements to match our color system */
+.mantine-Card-root,
+.mantine-Paper-root,
+.mantine-Menu-dropdown,
+.mantine-Modal-content,
+.mantine-Drawer-content,
+.mantine-Select-dropdown,
+.mantine-Combobox-dropdown,
+.mantine-Popover-dropdown {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Keep table borders clean */
+.mantine-Table-tr,
+.mantine-Table-th,
+.mantine-Table-td {
+  border-color: var(--color-border) !important;
 }
