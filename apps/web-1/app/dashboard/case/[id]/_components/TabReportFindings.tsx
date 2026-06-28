@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 import { Case } from "@/types";
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
 import { AlertCircle, HelpCircle, FileText, ChevronDown, ChevronUp, CheckCircle, Lightbulb, Play } from "lucide-react";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 

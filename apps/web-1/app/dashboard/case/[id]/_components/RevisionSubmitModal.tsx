@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import { Modal, Button, TextInput, Textarea } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Send, Plus, Trash, AlertCircle } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { useCaseRevision } from "../hooks/useCaseRevision";
 
 interface RevisionSubmitModalProps {
   isOpen: boolean;
@@ -14,7 +13,6 @@ interface RevisionSubmitModalProps {
 }
 
 export default function RevisionSubmitModal({ isOpen, onClose, caseId }: RevisionSubmitModalProps) {
-  const queryClient = useQueryClient();
   const [changeSummary, setChangeSummary] = useState("");
   const [remainingBlockers, setRemainingBlockers] = useState("");
   const [documents, setDocuments] = useState<Array<{ drive_url: string; document_type: string; role_description: string }>>([
@@ -22,28 +20,26 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
   ]);
   const [error, setError] = useState<string | null>(null);
 
-  const submitRevisionMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/cases/${caseId}/revisions`, {
-        change_summary: changeSummary,
+  const { submitRevision, isSubmitting } = useCaseRevision(caseId);
+
+  const handleSubmit = async () => {
+    setError(null);
+    try {
+      await submitRevision({
+        changeSummary,
         documents,
-        remaining_blockers: remainingBlockers || undefined,
+        remainingBlockers,
       });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
       notifications.show({
         title: "Nộp bản sửa thành công",
         message: "Đã gửi bản sửa đổi thành công! Dự án của bạn sẽ quay lại hàng chờ đánh giá.",
         color: "green",
       });
       handleClose();
-    },
-    onError: (err: any) => {
+    } catch (err: any) {
       setError(err.response?.data?.error || "Đã xảy ra lỗi khi gửi bản sửa đổi.");
     }
-  });
+  };
 
   const handleAddDocument = () => {
     setDocuments(prev => [
@@ -181,13 +177,13 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             Hủy bỏ
           </Button>
           <Button
-            onClick={() => submitRevisionMutation.mutate()}
-            disabled={!isFormValid || submitRevisionMutation.isPending}
+            onClick={handleSubmit}
+            disabled={!isFormValid || isSubmitting}
             color="brand"
             leftSection={<Send className="w-3.5 h-3.5" />}
             className="flex-1 font-semibold cursor-pointer"
           >
-            <span>{submitRevisionMutation.isPending ? "Đang gửi..." : "Gửi bản sửa"}</span>
+            <span>{isSubmitting ? "Đang gửi..." : "Gửi bản sửa"}</span>
           </Button>
         </div>
       </div>

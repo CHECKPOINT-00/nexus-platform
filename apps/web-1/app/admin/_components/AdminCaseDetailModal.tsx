@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Modal, Button, Badge, Loader } from "@mantine/core";
 import { ExternalLink } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
+import { useAdminCaseDetail } from "../hooks/useAdminCases";
 
 interface AdminCaseDetailModalProps {
   caseId: string | null;
@@ -22,32 +22,11 @@ export default function AdminCaseDetailModal({
   onApprove,
   onAssign,
 }: AdminCaseDetailModalProps) {
-  const [detailData, setDetailData] = useState<any | null>(null);
-  const [isFetchingDetail, setIsFetchingDetail] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data: detailData, isLoading: isFetchingDetail, error: queryError } = useAdminCaseDetail(caseId);
 
-  useEffect(() => {
-    if (!caseId) {
-      setDetailData(null);
-      setError(null);
-      return;
-    }
-
-    const fetchDetail = async () => {
-      setIsFetchingDetail(true);
-      setError(null);
-      try {
-        const response = await apiClient.get(`/admin/cases/${caseId}`);
-        setDetailData(response.data);
-      } catch (e: any) {
-        setError(e?.response?.data?.error || e?.message || "Không thể tải chi tiết dự án.");
-      } finally {
-        setIsFetchingDetail(false);
-      }
-    };
-
-    fetchDetail();
-  }, [caseId]);
+  const error = queryError
+    ? (queryError as any)?.response?.data?.error || (queryError as any)?.message || "Không thể tải chi tiết dự án."
+    : null;
 
   return (
     <Modal

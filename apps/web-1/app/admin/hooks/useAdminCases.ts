@@ -83,3 +83,14 @@ export function useAdminCases() {
     isAssigning: assignSupporterMutation.isPending,
   };
 }
+
+export function useAdminCaseDetail(caseId: string | null) {
+  return useQuery<any>({
+    queryKey: ["admin-case-detail", caseId],
+    queryFn: async () => {
+      const response = await apiClient.get(`/admin/cases/${caseId}`);
+      return response.data;
+    },
+    enabled: !!caseId,
+  });
+}
