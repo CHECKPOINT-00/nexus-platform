@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
 import { Settings, Save, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
@@ -18,11 +18,73 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
   const [courseContext, setCourseContext] = useState(caseData.course_context || "");
   const [groupNo, setGroupNo] = useState(caseData.group_no || "");
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const validate = (vals: { teamName: string; school: string; courseContext: string; groupNo: string }, checkTouched = false) => {
+    const nextErrors: Record<string, string> = {};
+
+    if (!checkTouched || touched.teamName) {
+      if (vals.teamName.trim().length > 0 && vals.teamName.trim().length < 2) {
+        nextErrors.teamName = "Tên nhóm/dự án phải từ 2 đến 100 ký tự.";
+      } else if (vals.teamName.length > 100) {
+        nextErrors.teamName = "Tên nhóm/dự án không được vượt quá 100 ký tự.";
+      }
+    }
+
+    if (!checkTouched || touched.groupNo) {
+      if (vals.groupNo.trim().length > 10) {
+        nextErrors.groupNo = "Số thứ tự nhóm không được vượt quá 10 ký tự.";
+      }
+    }
+
+    if (!checkTouched || touched.school) {
+      if (vals.school.trim().length > 0 && vals.school.trim().length < 2) {
+        nextErrors.school = "Tên trường phải từ 2 đến 100 ký tự.";
+      } else if (vals.school.length > 100) {
+        nextErrors.school = "Tên trường không được vượt quá 100 ký tự.";
+      }
+    }
+
+    if (!checkTouched || touched.courseContext) {
+      if (vals.courseContext.trim().length > 0 && vals.courseContext.trim().length < 2) {
+        nextErrors.courseContext = "Thông tin môn học phải từ 2 đến 100 ký tự.";
+      } else if (vals.courseContext.length > 100) {
+        nextErrors.courseContext = "Thông tin môn học không được vượt quá 100 ký tự.";
+      }
+    }
+
+    return nextErrors;
+  };
+
+  useEffect(() => {
+    const nextErrors = validate({ teamName, school, courseContext, groupNo }, true);
+    setErrors(nextErrors);
+  }, [teamName, school, courseContext, groupNo, touched]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMsg(null);
+
+    // Mark all fields as touched
+    const allTouched = {
+      teamName: true,
+      school: true,
+      courseContext: true,
+      groupNo: true,
+    };
+    setTouched(allTouched);
+
+    const clientErrors = validate({ teamName, school, courseContext, groupNo }, false);
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
+      setStatusMsg({
+        type: "error",
+        text: "Vui lòng sửa các lỗi nhập liệu trước khi lưu thay đổi.",
+      });
+      return;
+    }
 
     try {
       await updateSettings({
@@ -35,7 +97,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
     } catch (err: any) {
       setStatusMsg({
         type: "error",
-        text: err?.response?.data?.error || "Gặp lỗi khi lưu thông tin cấu hình.",
+        text: err?.response?.data?.message || err?.response?.data?.error || "Gặp lỗi khi lưu thông tin cấu hình.",
       });
     }
   };
@@ -76,7 +138,13 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
               label="Tên nhóm / Tên dự án"
               placeholder="Ví dụ: MedTech, Team Sáng Tạo..."
               value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
+              onChange={(e) => {
+                setTeamName(e.target.value);
+                setErrors(prev => ({ ...prev, teamName: "" }));
+              }}
+              onBlur={() => setTouched(prev => ({ ...prev, teamName: true }))}
+              error={touched.teamName ? errors.teamName : undefined}
+              maxLength={100}
               variant="default"
               radius="md"
             />
@@ -85,7 +153,13 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
               label="Mã số nhóm / Số thứ tự"
               placeholder="Ví dụ: N03, Group 5..."
               value={groupNo}
-              onChange={(e) => setGroupNo(e.target.value)}
+              onChange={(e) => {
+                setGroupNo(e.target.value);
+                setErrors(prev => ({ ...prev, groupNo: "" }));
+              }}
+              onBlur={() => setTouched(prev => ({ ...prev, groupNo: true }))}
+              error={touched.groupNo ? errors.groupNo : undefined}
+              maxLength={10}
               variant="default"
               radius="md"
             />
@@ -94,7 +168,13 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
               label="Trường học / Viện đào tạo"
               placeholder="Ví dụ: Đại học FPT, Đại học Bách Khoa..."
               value={school}
-              onChange={(e) => setSchool(e.target.value)}
+              onChange={(e) => {
+                setSchool(e.target.value);
+                setErrors(prev => ({ ...prev, school: "" }));
+              }}
+              onBlur={() => setTouched(prev => ({ ...prev, school: true }))}
+              error={touched.school ? errors.school : undefined}
+              maxLength={100}
               variant="default"
               radius="md"
             />
@@ -103,7 +183,13 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
               label="Lớp học / Môn học"
               placeholder="Ví dụ: EXE101, MKT301..."
               value={courseContext}
-              onChange={(e) => setCourseContext(e.target.value)}
+              onChange={(e) => {
+                setCourseContext(e.target.value);
+                setErrors(prev => ({ ...prev, courseContext: "" }));
+              }}
+              onBlur={() => setTouched(prev => ({ ...prev, courseContext: true }))}
+              error={touched.courseContext ? errors.courseContext : undefined}
+              maxLength={100}
               variant="default"
               radius="md"
             />
