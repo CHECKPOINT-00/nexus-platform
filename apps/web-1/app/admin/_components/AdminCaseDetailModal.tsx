@@ -60,7 +60,7 @@ export default function AdminCaseDetailModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                 <div className="space-y-1">
                   <span className="text-xs text-text-subtle font-medium">Tên nhóm / Dự án</span>
-                  <p className="font-bold text-sm text-text-app">{detailData.case.team_name || "Chưa đặt tên"}</p>
+                  <p className="font-bold text-sm text-text-app break-words break-all whitespace-normal">{detailData.case.team_name || "Chưa đặt tên"}</p>
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs text-text-subtle font-medium">Gói dịch vụ</span>
@@ -68,11 +68,11 @@ export default function AdminCaseDetailModal({
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs text-text-subtle font-medium">Trường học</span>
-                  <p className="font-semibold text-sm text-text-app">{detailData.case.school || "N/A"}</p>
+                  <p className="font-semibold text-sm text-text-app break-words break-all whitespace-normal">{detailData.case.school || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs text-text-subtle font-medium">Bối cảnh môn học</span>
-                  <p className="font-semibold text-sm text-text-app">{detailData.case.course_context || "N/A"}</p>
+                  <p className="font-semibold text-sm text-text-app break-words break-all whitespace-normal">{detailData.case.course_context || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs text-text-subtle font-medium">Ngày tạo</span>
@@ -114,19 +114,19 @@ export default function AdminCaseDetailModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Họ tên</span>
-                    <p className="font-bold text-sm text-text-app">{detailData.intake_snapshot.contact.full_name || "N/A"}</p>
+                    <p className="font-bold text-sm text-text-app break-words break-all whitespace-normal">{detailData.intake_snapshot.contact.full_name || "N/A"}</p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Mã sinh viên</span>
-                    <p className="font-semibold text-sm text-text-app">{detailData.intake_snapshot.contact.student_code || "N/A"}</p>
+                    <p className="font-semibold text-sm text-text-app break-words break-all whitespace-normal">{detailData.intake_snapshot.contact.student_code || "N/A"}</p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Email</span>
-                    <p className="text-sm font-medium text-text-app">{detailData.intake_snapshot.contact.email || "N/A"}</p>
+                    <p className="text-sm font-medium text-text-app break-words break-all whitespace-normal">{detailData.intake_snapshot.contact.email || "N/A"}</p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Zalo / Telegram</span>
-                    <p className="text-sm font-medium text-text-app">
+                    <p className="text-sm font-medium text-text-app break-words break-all whitespace-normal">
                       Zalo: {detailData.intake_snapshot.contact.zalo || "N/A"}
                       {detailData.intake_snapshot.contact.telegram && (
                         <span className="text-text-muted"> | Telegram: {detailData.intake_snapshot.contact.telegram}</span>
@@ -135,7 +135,7 @@ export default function AdminCaseDetailModal({
                   </div>
                   <div className="space-y-1 md:col-span-2">
                     <span className="text-xs text-text-subtle font-medium">Vai trò trong nhóm</span>
-                    <p className="text-sm text-text-app">{detailData.intake_snapshot.contact.team_role || "N/A"}</p>
+                    <p className="text-sm text-text-app break-words break-all whitespace-normal">{detailData.intake_snapshot.contact.team_role || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -150,7 +150,7 @@ export default function AdminCaseDetailModal({
                 {detailData.intake_snapshot?.case_summary && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Tóm tắt ý tưởng đề tài</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap break-words break-all">
                       {detailData.intake_snapshot.case_summary}
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export default function AdminCaseDetailModal({
                 {detailData.intake_snapshot?.support_needs?.primary_need && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Nhu cầu hỗ trợ chính</span>
-                    <p className="text-sm font-medium text-text-app">
+                    <p className="text-sm font-medium text-text-app break-words break-all whitespace-normal">
                       {detailData.intake_snapshot.support_needs.primary_need}
                     </p>
                   </div>
@@ -168,7 +168,7 @@ export default function AdminCaseDetailModal({
                 {detailData.intake_snapshot?.expected_outputs && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Kỳ vọng đầu ra</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap break-words break-all">
                       {detailData.intake_snapshot.expected_outputs}
                     </p>
                   </div>
@@ -177,7 +177,7 @@ export default function AdminCaseDetailModal({
                 {detailData.intake_snapshot?.support_needs?.extra_notes && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Ghi chú thêm cho Supporter</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap break-words break-all">
                       {detailData.intake_snapshot.support_needs.extra_notes}
                     </p>
                   </div>
@@ -186,7 +186,7 @@ export default function AdminCaseDetailModal({
                 {detailData.intake_snapshot?.lecturer_feedback && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Góp ý từ giảng viên (nếu có)</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap break-words break-all">
                       {detailData.intake_snapshot.lecturer_feedback}
                     </p>
                   </div>
