@@ -19,11 +19,90 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
     { drive_url: "", document_type: "Checkpoint 1 Revision", role_description: "Bản sửa đổi của nhóm sau phản biện" }
   ]);
   const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const { submitRevision, isSubmitting } = useCaseRevision(caseId);
 
+  const validateForm = (vals: { changeSummary: string; remainingBlockers: string; documents: typeof documents }, checkTouched = false) => {
+    const nextErrors: Record<string, string> = {};
+    
+    if (!checkTouched || touched.changeSummary) {
+      if (!vals.changeSummary.trim()) {
+        nextErrors.changeSummary = "Tóm tắt thay đổi là bắt buộc.";
+      } else if (vals.changeSummary.trim().length < 10) {
+        nextErrors.changeSummary = "Tóm tắt thay đổi phải chứa ít nhất 10 ký tự.";
+      } else if (vals.changeSummary.length > 1000) {
+        nextErrors.changeSummary = "Tóm tắt thay đổi không được vượt quá 1000 ký tự.";
+      }
+    }
+
+    if (!checkTouched || touched.remainingBlockers) {
+      if (vals.remainingBlockers.length > 1000) {
+        nextErrors.remainingBlockers = "Nội dung khó khăn không được vượt quá 1000 ký tự.";
+      }
+    }
+
+    vals.documents.forEach((doc, idx) => {
+      const urlKey = `doc_url_${idx}`;
+      const typeKey = `doc_type_${idx}`;
+      const descKey = `doc_desc_${idx}`;
+
+      if (!checkTouched || touched[urlKey]) {
+        if (!doc.drive_url.trim()) {
+          nextErrors[urlKey] = "Đường dẫn tài liệu là bắt buộc.";
+        } else if (doc.drive_url.length > 500) {
+          nextErrors[urlKey] = "Đường dẫn không được vượt quá 500 ký tự.";
+        } else if (!/^https?:\/\/(drive|docs)\.google\.com\/.*/.test(doc.drive_url.trim())) {
+          nextErrors[urlKey] = "Đường dẫn phải là liên kết Google Drive hoặc Google Docs hợp lệ.";
+        }
+      }
+
+      if (!checkTouched || touched[typeKey]) {
+        if (doc.document_type.length > 100) {
+          nextErrors[typeKey] = "Loại tài liệu không được vượt quá 100 ký tự.";
+        }
+      }
+
+      if (!checkTouched || touched[descKey]) {
+        if (doc.role_description.length > 250) {
+          nextErrors[descKey] = "Mô tả không được vượt quá 250 ký tự.";
+        }
+      }
+    });
+
+    return nextErrors;
+  };
+
+  React.useEffect(() => {
+    if (isOpen) {
+      const nextErrors = validateForm({ changeSummary, remainingBlockers, documents }, true);
+      setErrors(nextErrors);
+    }
+  }, [changeSummary, remainingBlockers, documents, touched, isOpen]);
+
   const handleSubmit = async () => {
     setError(null);
+
+    // Mark all fields as touched
+    const allTouched: Record<string, boolean> = {
+      changeSummary: true,
+      remainingBlockers: true,
+    };
+    documents.forEach((_, idx) => {
+      allTouched[`doc_url_${idx}`] = true;
+      allTouched[`doc_type_${idx}`] = true;
+      allTouched[`doc_desc_${idx}`] = true;
+    });
+    setTouched(allTouched);
+
+    const formErrors = validateForm({ changeSummary, remainingBlockers, documents }, false);
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      setError("Vui lòng sửa các lỗi nhập liệu trước khi nộp bản sửa.");
+      return;
+    }
+
     try {
       await submitRevision({
         changeSummary,
@@ -50,6 +129,20 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
 
   const handleRemoveDocument = (index: number) => {
     setDocuments(prev => prev.filter((_, i) => i !== index));
+    setErrors(prev => {
+      const copy = { ...prev };
+      delete copy[`doc_url_${index}`];
+      delete copy[`doc_type_${index}`];
+      delete copy[`doc_desc_${index}`];
+      return copy;
+    });
+    setTouched(prev => {
+      const copy = { ...prev };
+      delete copy[`doc_url_${index}`];
+      delete copy[`doc_type_${index}`];
+      delete copy[`doc_desc_${index}`];
+      return copy;
+    });
   };
 
   const handleDocChange = (index: number, field: string, val: string) => {
@@ -65,13 +158,10 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
     setRemainingBlockers("");
     setDocuments([{ drive_url: "", document_type: "Checkpoint 1 Revision", role_description: "Bản sửa đổi của nhóm sau phản biện" }]);
     setError(null);
+    setErrors({});
+    setTouched({});
     onClose();
   };
-
-  const isFormValid =
-    changeSummary.trim().length >= 10 &&
-    documents.length > 0 &&
-    documents.every(d => d.drive_url.trim().length > 0 && /^https?:\/\/(drive|docs)\.google\.com\/.*/.test(d.drive_url));
 
   return (
     <Modal
@@ -94,7 +184,13 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
           label="Tóm tắt thay đổi (Tối thiểu 10 ký tự)"
           placeholder="Ví dụ: Nhóm đã sửa lại chân dung khách hàng từ học sinh cấp 3 sang học sinh tiểu học như supporter góp ý, đồng thời thêm khảo sát thực tế..."
           value={changeSummary}
-          onChange={(e) => setChangeSummary(e.target.value)}
+          onChange={(e) => {
+            setChangeSummary(e.target.value);
+            setErrors(prev => ({ ...prev, changeSummary: "" }));
+          }}
+          onBlur={() => setTouched(prev => ({ ...prev, changeSummary: true }))}
+          error={touched.changeSummary ? errors.changeSummary : undefined}
+          maxLength={1000}
           required
           minRows={3}
           autosize
@@ -125,7 +221,13 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
                 label="Link Google Drive"
                 placeholder="Dán link thư mục hoặc file Google Drive mới"
                 value={doc.drive_url}
-                onChange={(e) => handleDocChange(idx, "drive_url", e.target.value)}
+                onChange={(e) => {
+                  handleDocChange(idx, "drive_url", e.target.value);
+                  setErrors(prev => ({ ...prev, [`doc_url_${idx}`]: "" }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, [`doc_url_${idx}`]: true }))}
+                error={touched[`doc_url_${idx}`] ? errors[`doc_url_${idx}`] : undefined}
+                maxLength={500}
                 variant="default"
                 radius="md"
               />
@@ -134,14 +236,26 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
                 <TextInput
                   label="Loại tài liệu"
                   value={doc.document_type}
-                  onChange={(e) => handleDocChange(idx, "document_type", e.target.value)}
+                  onChange={(e) => {
+                    handleDocChange(idx, "document_type", e.target.value);
+                    setErrors(prev => ({ ...prev, [`doc_type_${idx}`]: "" }));
+                  }}
+                  onBlur={() => setTouched(prev => ({ ...prev, [`doc_type_${idx}`]: true }))}
+                  error={touched[`doc_type_${idx}`] ? errors[`doc_type_${idx}`] : undefined}
+                  maxLength={100}
                   variant="default"
                   radius="md"
                 />
                 <TextInput
                   label="Mô tả"
                   value={doc.role_description}
-                  onChange={(e) => handleDocChange(idx, "role_description", e.target.value)}
+                  onChange={(e) => {
+                    handleDocChange(idx, "role_description", e.target.value);
+                    setErrors(prev => ({ ...prev, [`doc_desc_${idx}`]: "" }));
+                  }}
+                  onBlur={() => setTouched(prev => ({ ...prev, [`doc_desc_${idx}`]: true }))}
+                  error={touched[`doc_desc_${idx}`] ? errors[`doc_desc_${idx}`] : undefined}
+                  maxLength={250}
                   variant="default"
                   radius="md"
                 />
@@ -165,7 +279,13 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
           label="Khó khăn còn lại cần giải đáp thêm (Tùy chọn)"
           placeholder="Nếu còn điểm vướng mắc, hãy ghi tại đây để supporter giải đáp kỹ hơn ở round tới..."
           value={remainingBlockers}
-          onChange={(e) => setRemainingBlockers(e.target.value)}
+          onChange={(e) => {
+            setRemainingBlockers(e.target.value);
+            setErrors(prev => ({ ...prev, remainingBlockers: "" }));
+          }}
+          onBlur={() => setTouched(prev => ({ ...prev, remainingBlockers: true }))}
+          error={touched.remainingBlockers ? errors.remainingBlockers : undefined}
+          maxLength={1000}
           minRows={2}
           autosize
           variant="default"
@@ -178,7 +298,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!isFormValid || isSubmitting}
+            disabled={isSubmitting}
             color="brand"
             leftSection={<Send className="w-3.5 h-3.5" />}
             className="flex-1 font-semibold cursor-pointer"

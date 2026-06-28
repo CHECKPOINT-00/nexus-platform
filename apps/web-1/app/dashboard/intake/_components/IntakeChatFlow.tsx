@@ -24,23 +24,43 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
     case IntakeStep.PACKAGE:
       return !!values.package_id;
     case IntakeStep.SITUATION:
-      return !!values.case_summary && values.case_summary.length >= 20;
+      return (
+        !!values.case_summary &&
+        values.case_summary.length >= 20 &&
+        values.case_summary.length <= 1000 &&
+        (!values.current_situations || values.current_situations.join("\n").length <= 1000)
+      );
     case IntakeStep.CONTACT:
       return (
         !!values.contact?.full_name &&
         values.contact.full_name.trim().length >= 2 &&
+        values.contact.full_name.length <= 100 &&
         !!values.contact?.student_code &&
         values.contact.student_code.trim().length >= 5 &&
+        values.contact.student_code.length <= 20 &&
         !!values.contact?.team_role &&
+        values.contact.team_role.length <= 50 &&
         !!values.contact?.zalo &&
         /^\d{10}$/.test(values.contact.zalo.trim()) &&
         !!values.contact?.email &&
-        values.contact.email.includes("@")
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact.email.trim()) &&
+        values.contact.email.length <= 100 &&
+        (!values.contact?.telegram || values.contact.telegram.trim().length <= 50)
       );
     case IntakeStep.PROJECT_CONTEXT:
-      return true; // Optional context step
+      return (
+        (!values.team_context?.project_name || values.team_context.project_name.length <= 100) &&
+        (!values.team_context?.group_no || values.team_context.group_no.length <= 20) &&
+        (!values.school || values.school.length <= 100) &&
+        (!values.course_context || values.course_context.length <= 50) &&
+        (!values.team_context?.team_status_summary || values.team_context.team_status_summary.length <= 500)
+      );
     case IntakeStep.SUPPORT_NEEDS:
-      return !!values.support_needs?.primary_need && (!values.expected_outputs || values.expected_outputs.length >= 5);
+      return (
+        !!values.support_needs?.primary_need &&
+        (!values.expected_outputs || (values.expected_outputs.length >= 5 && values.expected_outputs.length <= 1000)) &&
+        (!values.support_needs?.extra_notes || values.support_needs.extra_notes.length <= 1000)
+      );
     case IntakeStep.DOCUMENTS:
       return (
         Array.isArray(values.documents) &&
@@ -49,6 +69,7 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
           (d: any) =>
             !!d.drive_url &&
             d.drive_url.trim().length > 0 &&
+            d.drive_url.length <= 500 &&
             /^https?:\/\/(drive|docs)\.google\.com\/.*/.test(d.drive_url) &&
             !!d.document_type &&
             d.document_type.trim().length > 0
@@ -63,7 +84,7 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
         selectedDate.setHours(0, 0, 0, 0);
         if (selectedDate <= today) return false;
       }
-      return true;
+      return !values.lecturer_feedback || values.lecturer_feedback.length <= 1000;
     }
     case IntakeStep.BOUNDARY:
       return Array.isArray(values.boundary_confirmations) && values.boundary_confirmations.length >= 3;
@@ -72,6 +93,50 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
     default:
       return false;
   }
+};
+
+const touchStepFields = (step: IntakeStep, form: any) => {
+  const stepFieldsMap: Record<IntakeStep, string[]> = {
+    [IntakeStep.PACKAGE]: ["package_id"],
+    [IntakeStep.SITUATION]: ["case_summary", "current_situations"],
+    [IntakeStep.CONTACT]: [
+      "contact.full_name",
+      "contact.student_code",
+      "contact.team_role",
+      "contact.zalo",
+      "contact.email",
+      "contact.telegram",
+    ],
+    [IntakeStep.PROJECT_CONTEXT]: [
+      "team_context.project_name",
+      "team_context.group_no",
+      "school",
+      "course_context",
+      "team_context.team_status_summary",
+    ],
+    [IntakeStep.SUPPORT_NEEDS]: [
+      "support_needs.primary_need",
+      "expected_outputs",
+      "support_needs.extra_notes",
+    ],
+    [IntakeStep.DOCUMENTS]: ["documents"],
+    [IntakeStep.DEADLINE]: [
+      "lecturer_feedback",
+      "deadline",
+      "urgency",
+      "needs_followup_review",
+    ],
+    [IntakeStep.BOUNDARY]: ["boundary_confirmations"],
+    [IntakeStep.REVIEW]: [],
+  };
+
+  const fields = stepFieldsMap[step] || [];
+  fields.forEach((field) => {
+    form.setFieldMeta(field, (meta: any) => ({
+      ...meta,
+      isTouched: true,
+    }));
+  });
 };
 
 interface IntakeChatFlowProps {
@@ -103,6 +168,8 @@ export default function IntakeChatFlow({
     if (isStepValid()) {
       saveDraft(values);
       setCurrentStep(currentStep + 1);
+    } else {
+      touchStepFields(currentStep, form);
     }
   };
 
@@ -270,7 +337,7 @@ export default function IntakeChatFlow({
           ) : (
             <Button
               onClick={handleNext}
-              disabled={!isStepValid()}
+              disabled={isSubmitting}
               color="brand"
               rightSection={<ArrowRight className="w-4 h-4" />}
               className="font-body font-semibold cursor-pointer disabled:opacity-50 h-9 px-4 text-xs"

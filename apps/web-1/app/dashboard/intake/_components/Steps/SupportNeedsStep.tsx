@@ -61,6 +61,9 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
               if (value && value.length < 5) {
                 return "Vui lòng mô tả chi tiết kỳ vọng đầu ra (tối thiểu 5 ký tự).";
               }
+              if (value && value.length > 1000) {
+                return "Kỳ vọng đầu ra không được vượt quá 1000 ký tự.";
+              }
               return undefined;
             },
           }}
@@ -89,6 +92,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={1000}
                 minRows={3}
                 autosize
                 radius="md"
@@ -97,19 +101,32 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
           }}
         </form.Field>
 
-        <form.Field name="support_needs.extra_notes">
-          {(field: any) => (
-            <Textarea
-              label="Ghi chú thêm cho Supporter (Tùy chọn)"
-              placeholder="Bất kỳ thông tin bổ sung nào khác giúp Supporter hiểu rõ hơn vấn đề của nhóm."
-              value={field.state.value || ""}
-              onBlur={field.handleBlur}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
-              minRows={2}
-              autosize
-              radius="md"
-            />
-          )}
+        <form.Field
+          name="support_needs.extra_notes"
+          validators={{
+            onChange: ({ value }: { value: string }) => {
+              if (value && value.length > 1000) return "Ghi chú không được vượt quá 1000 ký tự.";
+              return undefined;
+            },
+          }}
+        >
+          {(field: any) => {
+            const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
+            return (
+              <Textarea
+                label="Ghi chú thêm cho Supporter (Tùy chọn)"
+                placeholder="Bất kỳ thông tin bổ sung nào khác giúp Supporter hiểu rõ hơn vấn đề của nhóm."
+                value={field.state.value || ""}
+                onBlur={field.handleBlur}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={1000}
+                minRows={2}
+                autosize
+                radius="md"
+              />
+            );
+          }}
         </form.Field>
       </div>
     </div>

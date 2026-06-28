@@ -40,33 +40,46 @@ export default function DeadlineStep({ form, values }: DeadlineStepProps) {
       </div>
 
       <div className="space-y-4">
-        <form.Field name="lecturer_feedback">
-          {(field: any) => (
-            <Textarea
-              label={
-                <div className="flex items-center gap-1.5">
-                  <span>Phản hồi của giảng viên hướng dẫn (Tùy chọn)</span>
-                  <Tooltip
-                    label="Bao gồm các góp ý trực tiếp từ giảng viên hướng dẫn giúp supporter bám sát để phản biện đúng hướng."
-                    multiline
-                    w={220}
-                    withArrow
-                  >
-                    <span className="flex items-center">
-                      <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
-                    </span>
-                  </Tooltip>
-                </div>
-              }
-              placeholder="Ví dụ: Thầy nhận xét phần chân dung khách hàng còn chung chung..."
-              value={field.state.value || ""}
-              onBlur={field.handleBlur}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
-              minRows={2}
-              autosize
-              radius="md"
-            />
-          )}
+        <form.Field
+          name="lecturer_feedback"
+          validators={{
+            onChange: ({ value }: { value: string }) => {
+              if (value && value.length > 1000) return "Phản hồi giảng viên không được vượt quá 1000 ký tự.";
+              return undefined;
+            },
+          }}
+        >
+          {(field: any) => {
+            const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
+            return (
+              <Textarea
+                label={
+                  <div className="flex items-center gap-1.5">
+                    <span>Phản hồi của giảng viên hướng dẫn (Tùy chọn)</span>
+                    <Tooltip
+                      label="Bao gồm các góp ý trực tiếp từ giảng viên hướng dẫn giúp supporter bám sát để phản biện đúng hướng."
+                      multiline
+                      w={220}
+                      withArrow
+                    >
+                      <span className="flex items-center">
+                        <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
+                      </span>
+                    </Tooltip>
+                  </div>
+                }
+                placeholder="Ví dụ: Thầy nhận xét phần chân dung khách hàng còn chung chung..."
+                value={field.state.value || ""}
+                onBlur={field.handleBlur}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={1000}
+                minRows={2}
+                autosize
+                radius="md"
+              />
+            );
+          }}
         </form.Field>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -89,7 +102,7 @@ export default function DeadlineStep({ form, values }: DeadlineStepProps) {
             }}
           >
             {(field: any) => {
-              const hasError = !!field.state.meta.errors.length;
+              const hasError = field.state.meta.isTouched && !!field.state.meta.errors.length;
               return (
                 <DateInput
                   label={

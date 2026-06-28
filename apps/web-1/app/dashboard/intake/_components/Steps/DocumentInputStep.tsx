@@ -90,6 +90,7 @@ export default function DocumentInputStep({
           const hasUrlError =
             (parentField.state.meta.isTouched || !!firstDoc.drive_url) &&
             (!firstDoc.drive_url ||
+              firstDoc.drive_url.length > 500 ||
               !/^https?:\/\/(drive|docs)\.google\.com\/.*/.test(
                 firstDoc.drive_url.trim(),
               ));
@@ -120,10 +121,13 @@ export default function DocumentInputStep({
                   value={firstDoc.drive_url || ""}
                   onChange={handleUrlChange}
                   isInvalid={hasUrlError}
+                  maxLength={500}
                   errorMessage={
                     hasUrlError
                       ? !firstDoc.drive_url
                         ? "Đường dẫn thư mục Google Drive là bắt buộc."
+                        : firstDoc.drive_url.length > 500
+                        ? "Đường dẫn không được vượt quá 500 ký tự."
                         : "Đường dẫn phải là liên kết Google Drive hoặc Google Docs hợp lệ."
                       : undefined
                   }

@@ -7,6 +7,7 @@ interface DriveValidatorInputProps {
   onChange: (val: string) => void;
   isInvalid?: boolean;
   errorMessage?: string;
+  maxLength?: number;
 }
 
 export default function DriveValidatorInput({
@@ -14,6 +15,7 @@ export default function DriveValidatorInput({
   onChange,
   isInvalid,
   errorMessage,
+  maxLength,
 }: DriveValidatorInputProps) {
   const hasValue = !!value;
   const isValid = hasValue && !isInvalid;
@@ -40,6 +42,7 @@ export default function DriveValidatorInput({
         rightSection={rightSection}
         variant="default"
         radius="md"
+        maxLength={maxLength}
       />
     </div>
   );

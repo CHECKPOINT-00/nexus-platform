@@ -48,12 +48,12 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
       >
         {(field: any) => {
           const currentConfirmations = field.state.value || [];
-          const hasError = !!field.state.meta.errors.length;
+          const hasError = field.state.meta.isTouched && !!field.state.meta.errors.length;
 
           return (
             <div className="space-y-3">
               <div className={`p-4 border rounded-xl space-y-3 transition-all bg-surface-soft/60 ${
-                hasError && currentConfirmations.length === 0
+                hasError
                   ? "border-danger shadow-sm" 
                   : "border-border-strong"
               }`}>
@@ -66,7 +66,7 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
                       onChange={(e) => {
                         const checked = e.currentTarget.checked;
                         const next = checked
-                          ? [...currentConfirmations, rule.id]
+                           ? [...currentConfirmations, rule.id]
                           : currentConfirmations.filter((id: string) => id !== rule.id);
                         field.handleChange(next);
                       }}

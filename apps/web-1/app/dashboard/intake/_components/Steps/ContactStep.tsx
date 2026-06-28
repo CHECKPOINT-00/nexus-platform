@@ -26,6 +26,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Họ và tên là bắt buộc.";
               if (value.trim().length < 2) return "Họ và tên tối thiểu phải 2 ký tự.";
+              if (value.length > 100) return "Họ và tên không được vượt quá 100 ký tự.";
               return undefined;
             },
           }}
@@ -40,6 +41,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={100}
                 radius="md"
               />
             );
@@ -52,6 +54,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Mã số sinh viên là bắt buộc.";
               if (value.trim().length < 5) return "Mã số sinh viên tối thiểu phải 5 ký tự.";
+              if (value.length > 20) return "Mã số sinh viên không được vượt quá 20 ký tự.";
               return undefined;
             },
           }}
@@ -80,6 +83,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={20}
                 radius="md"
               />
             );
@@ -91,6 +95,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           validators={{
             onChange: ({ value }: { value: string }) => {
               if (!value || !value.trim()) return "Vai trò trong nhóm là bắt buộc.";
+              if (value.length > 50) return "Vai trò trong nhóm không được vượt quá 50 ký tự.";
               return undefined;
             },
           }}
@@ -119,6 +124,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={50}
                 radius="md"
               />
             );
@@ -159,6 +165,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={10}
                 radius="md"
               />
             );
@@ -170,7 +177,8 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           validators={{
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Email liên hệ là bắt buộc.";
-              if (!value.includes("@")) return "Email không đúng định dạng.";
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return "Email không đúng định dạng.";
+              if (value.length > 100) return "Email không được vượt quá 100 ký tự.";
               return undefined;
             },
           }}
@@ -187,6 +195,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
+                  maxLength={100}
                   radius="md"
                 />
               </div>
@@ -194,19 +203,32 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           }}
         </form.Field>
 
-        <form.Field name="contact.telegram">
-          {(field: any) => (
-            <div className="md:col-span-2">
-              <TextInput
-                label="Telegram Username (Tùy chọn)"
-                placeholder="Ví dụ: @annguyen_fpt"
-                value={field.state.value || ""}
-                onBlur={field.handleBlur}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
-                radius="md"
-              />
-            </div>
-          )}
+        <form.Field
+          name="contact.telegram"
+          validators={{
+            onChange: ({ value }: { value: string }) => {
+              if (value && value.trim().length > 50) return "Telegram username không được vượt quá 50 ký tự.";
+              return undefined;
+            },
+          }}
+        >
+          {(field: any) => {
+            const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
+            return (
+              <div className="md:col-span-2">
+                <TextInput
+                  label="Telegram Username (Tùy chọn)"
+                  placeholder="Ví dụ: @annguyen_fpt"
+                  value={field.state.value || ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
+                  error={hasError ? field.state.meta.errors[0] : undefined}
+                  maxLength={50}
+                  radius="md"
+                />
+              </div>
+            );
+          }}
         </form.Field>
       </div>
     </div>
