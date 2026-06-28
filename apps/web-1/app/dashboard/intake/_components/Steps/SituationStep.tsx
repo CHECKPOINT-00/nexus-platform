@@ -26,7 +26,8 @@ export default function SituationStep({ form, values }: SituationStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Tóm tắt dự án không được để trống";
               if (value.length < 20) return "Tóm tắt dự án tối thiểu phải 20 ký tự.";
-              if (value.length > 2000) return "Tóm tắt dự án không được vượt quá 2000 ký tự.";
+              const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+              if (wordCount > 1000) return "Tóm tắt dự án không được vượt quá 1000 chữ.";
               return undefined;
             },
           }}
@@ -41,7 +42,7 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={5000} // prevent browser crash but allow exceeding 2000 to show error
+                maxLength={20000} // prevent browser crash but allow exceeding limit to show error
                 minRows={3}
                 autosize
                 radius="md"
@@ -55,9 +56,10 @@ export default function SituationStep({ form, values }: SituationStepProps) {
           name="current_situations"
           validators={{
             onChange: ({ value }: { value: string[] }) => {
-              const joined = value ? value.join("\n") : "";
-              if (joined.length > 2000) {
-                return "Bối cảnh thực tế không được vượt quá 2000 ký tự.";
+              const joined = value ? value.join(" ") : "";
+              const wordCount = joined.trim() ? joined.trim().split(/\s+/).length : 0;
+              if (wordCount > 2000) {
+                return "Bối cảnh thực tế không được vượt quá 2000 chữ.";
               }
               return undefined;
             }
@@ -93,7 +95,7 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                   field.handleChange(arr);
                 }}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={5000} // prevent browser crash but allow exceeding 2000 to show error
+                maxLength={20000} // prevent browser crash but allow exceeding limit to show error
                 minRows={3}
                 autosize
                 radius="md"
