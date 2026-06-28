@@ -3,6 +3,7 @@ import { prisma } from "../../../../db.js";
 import { auth } from "../../../../auth.js";
 import fs from "fs";
 import path from "path";
+import { normalizePaymentStatus, requireCaseAccess } from "../../../../shared/infrastructure/authorization.js";
 
 export const paymentsRouter = new Hono();
 
@@ -36,7 +37,12 @@ paymentsRouter.get("/", async (c) => {
       orderBy: { created_at: "desc" },
     });
 
-    return c.json(payments);
+    return c.json(
+      payments.map((payment) => ({
+        ...payment,
+        status: normalizePaymentStatus(payment.status),
+      })),
+    );
   } catch (error: any) {
     return c.json({ error: error.message }, 500);
   }
@@ -52,10 +58,19 @@ paymentsRouter.post("/proof", async (c) => {
   try {
     const body = await c.req.parseBody();
     const file = body["file"] as any; // File or Blob object
-    const caseId = body["case_id"] as string;
+    const caseId = (body["case_id"] || body["caseId"]) as string;
 
     if (!file || !caseId) {
       return c.json({ error: "Thiếu tệp minh chứng hoặc ID dự án" }, 400);
+    }
+
+    const access = await requireCaseAccess(c, caseId, {
+      allowStudent: true,
+      allowSupporter: false,
+      allowAdmin: true,
+    });
+    if (!access.ok) {
+      return access.response;
     }
 
     // 1. Validate file format (jpg, jpeg, png, pdf)
@@ -81,7 +96,12 @@ paymentsRouter.post("/proof", async (c) => {
       return c.json({ error: "Không tìm thấy dự án" }, 404);
     }
 
-    const amount = caseObj.package?.price || 0;
+    const packageId = caseObj.package_id;
+    if (!packageId) {
+      return c.json({ error: "Dự án chưa có gói dịch vụ hợp lệ" }, 400);
+    }
+
+    const amount = caseObj.package?.price ?? 0;
 
     // 4. Save file to disk in apps/api/uploads/
     const uploadsDir = path.join(process.cwd(), "uploads");
@@ -91,49 +111,62 @@ paymentsRouter.post("/proof", async (c) => {
 
     const uniqueFileName = `${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}${ext}`;
     const filePath = path.join(uploadsDir, uniqueFileName);
+    const fileUrl = `/uploads/${uniqueFileName}`;
 
-    // Read stream / arraybuffer and save to disk
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     fs.writeFileSync(filePath, buffer);
 
-    const fileUrl = `/uploads/${uniqueFileName}`;
-
     // 5. Update DB inside a transaction: Create Payment and update Case state
     const result = await prisma.$transaction(async (tx) => {
-      // Create payment proof record
-      const payment = await tx.payment.create({
-        data: {
-          case_id: caseId,
-          package_id: caseObj.package_id || "",
-          amount,
-          status: "pending_verification",
-          proof_file_url: fileUrl,
-        },
-      });
+      try {
+        // Create payment proof record
+        const payment = await tx.payment.create({
+          data: {
+            case_id: caseId,
+            package_id: packageId,
+            amount,
+            status: "pending_verification",
+            proof_file_url: fileUrl,
+          },
+        });
 
-      // Update case status
-      await tx.case.update({
-        where: { id: caseId },
-        data: {
-          payment_status: "pending_verification",
-        },
-      });
+        // Update case status
+        await tx.case.update({
+          where: { id: caseId },
+          data: {
+            payment_status: "pending_verification",
+          },
+        });
 
-      // Log event
-      await tx.caseEvent.create({
-        data: {
-          case_id: caseId,
-          event_type: "payment_proof_uploaded",
-          actor_auth_user_id: session.user.id,
-          metadata_json: { payment_id: payment.id, amount },
-        },
-      });
+        // Log event
+        await tx.caseEvent.create({
+          data: {
+            case_id: caseId,
+            event_type: "payment_proof_uploaded",
+            actor_auth_user_id: session.user.id,
+            metadata_json: { payment_id: payment.id, amount },
+          },
+        });
 
-      return payment;
+        return payment;
+      } catch (error) {
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } catch {}
+        throw error;
+      }
     });
 
-    return c.json(result, 201);
+    return c.json(
+      {
+        ...result,
+        status: normalizePaymentStatus(result.status),
+      },
+      201,
+    );
   } catch (error: any) {
     return c.json({ error: error.message }, 500);
   }
@@ -170,7 +203,7 @@ paymentsRouter.post("/:id/verify", async (c) => {
       const updatedPayment = await tx.payment.update({
         where: { id: paymentId },
         data: {
-          status: status === "paid" ? "verified" : "rejected",
+          status: status === "paid" ? "paid" : "rejected",
           rejection_reason: status === "rejected" ? rejection_reason : null,
           verified_by_auth_user_id: session.user.id,
           verified_at: new Date(),
@@ -198,7 +231,10 @@ paymentsRouter.post("/:id/verify", async (c) => {
       return updatedPayment;
     });
 
-    return c.json(result);
+    return c.json({
+      ...result,
+      status: normalizePaymentStatus(result.status),
+    });
   } catch (error: any) {
     return c.json({ error: error.message }, 500);
   }

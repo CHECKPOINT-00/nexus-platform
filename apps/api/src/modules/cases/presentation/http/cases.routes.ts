@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "../../../../db.js";
 import { auth } from "../../../../auth.js";
+import { requireCaseAccess } from "../../../../shared/infrastructure/authorization.js";
 
 export const casesRouter = new Hono();
 
@@ -598,12 +599,11 @@ casesRouter.post("/:id/status", async (c) => {
 
 // 6. GET /api/cases/:id/messages - Fetch messages
 casesRouter.get("/:id/messages", async (c) => {
-  const session = await getSession(c);
-  if (!session) {
-    return c.json({ error: "Chưa đăng nhập" }, 401);
-  }
-
   const caseId = c.req.param("id");
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
 
   try {
     const messages = await prisma.caseMessage.findMany({
@@ -622,28 +622,38 @@ casesRouter.get("/:id/messages", async (c) => {
 
 // 7. POST /api/cases/:id/messages - Send message
 casesRouter.post("/:id/messages", async (c) => {
-  const session = await getSession(c);
-  if (!session) {
-    return c.json({ error: "Chưa đăng nhập" }, 401);
-  }
-
   const caseId = c.req.param("id");
-  const { content } = await c.req.json();
-
-  if (!content) {
-    return c.json({ error: "Nội dung tin nhắn trống" }, 400);
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
   }
 
   try {
+    const body = await c.req.json();
+    const content = typeof body.content === "string" ? body.content.trim() : "";
+
+    if (!content) {
+      return c.json({ error: "Nội dung tin nhắn không được để trống" }, 400);
+    }
+
     const newMessage = await prisma.caseMessage.create({
       data: {
         case_id: caseId,
-        sender_auth_user_id: session.user.id,
-        sender_role_snapshot: session.user.role,
+        sender_auth_user_id: access.session.user.id,
+        sender_role_snapshot: (access.session.user as any).role ?? null,
         content,
       },
       include: {
         sender: true,
+      },
+    });
+
+    await prisma.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "message_sent",
+        actor_auth_user_id: access.session.user.id,
+        metadata_json: { message_id: newMessage.id },
       },
     });
 
