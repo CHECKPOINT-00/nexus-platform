@@ -43,7 +43,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             <span className="text-xs font-semibold text-text-subtle uppercase font-body tracking-wider">
               {item.case_code}
             </span>
-            <h3 className="font-heading text-lg font-bold text-text-app group-hover:text-brand transition-colors">
+            <h3 className="font-heading text-lg font-bold text-text-app group-hover:text-brand transition-colors break-words break-all whitespace-normal line-clamp-2">
               {item.team_name || "Dự án chưa đặt tên"}
             </h3>
           </div>

@@ -203,9 +203,9 @@ export default function AdminCaseAssignmentTable({
                     <Table.Td className="font-heading font-bold text-xs">
                       {item.case_code}
                     </Table.Td>
-                    <Table.Td>
-                      <div className="font-semibold text-text-app">{item.team_name || "Chưa đặt tên"}</div>
-                      <div className="text-[10px] text-text-muted">Chủ sở hữu: {item.owner_name}</div>
+                    <Table.Td className="max-w-[240px]">
+                      <div className="font-semibold text-text-app break-words break-all whitespace-normal">{item.team_name || "Chưa đặt tên"}</div>
+                      <div className="text-[10px] text-text-muted truncate mt-0.5">Chủ sở hữu: {item.owner_name}</div>
                     </Table.Td>
                     <Table.Td className="text-text-muted">
                       {item.package_name}
