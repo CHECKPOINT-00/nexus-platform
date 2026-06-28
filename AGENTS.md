@@ -71,7 +71,11 @@ npm run prisma:migrate
 ## NOTES
 
 - `apps/web-1/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
-- `.agents/rules` exists but is empty right now.
+- **Agent Rules**: The [.agents/rules/](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/) directory contains project-wide guidelines for agent behavior, workflows, and standards:
+  - [development-rules.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, and the rule prohibiting direct `apiClient` calls in UI components.
+  - [documentation-management.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/documentation-management.md): Guidelines for maintaining roadmaps, changelogs, and plan files.
+  - [orchestration-protocol.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/orchestration-protocol.md): Standards for delegating tasks to subagents and parallel execution.
+  - [primary-workflow.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/primary-workflow.md): The step-by-step workflow covering planning, implementation, testing, code quality, integration, and visual explanations.
 
 ## UI-UX-PRO-MAX USAGE RULE FOR NEXUS
 
