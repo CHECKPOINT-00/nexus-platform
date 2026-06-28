@@ -25,7 +25,7 @@ Xây dựng trang chủ (Landing Page) giới thiệu dịch vụ hấp dẫn, p
 
 ## Implementation Steps
 1. Xây dựng hook `usePackages.ts` sử dụng TanStack Query để gọi `GET /api/packages` lấy danh sách gói dịch vụ động từ database.
-2. Dựng khung Landing page sử dụng các component của HeroUI trong các file components con của trang chủ (`LandingHero`, `PackagePreview`, `FAQSection`).
+2. Dựng khung Landing page sử dụng các component của Mantine UI trong các file components con của trang chủ (`LandingHero`, `PackagePreview`, `FAQSection`).
 3. Phát triển `AuthPanel` sử dụng TanStack Form để quản lý form và validate đầu vào (email hợp lệ, password dài >= 6 ký tự).
 4. Tích hợp Better Auth Client để xử lý đăng nhập Email/Password hoặc Google OAuth và thực hiện redirect về `/dashboard` khi có session hợp lệ.
 5. Đảm bảo form đăng nhập tuân thủ khả năng tiếp cận (Accessibility), các input luôn có nhãn `<label>` đi kèm chỉ định đúng `id`.

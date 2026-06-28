@@ -38,7 +38,7 @@ Xây dựng trang Chi tiết Dự án (Case Workspace) – màn hình trung tâm
 ## Implementation Steps
 1. Xây dựng hook `useCaseDetails.ts` để gọi API `GET /api/cases/:id` bằng TanStack Query.
 2. Xây dựng hook `useCaseChat.ts` để gọi tin nhắn và gửi tin nhắn bằng query/mutation.
-3. Dựng layout tổng quan cho `/dashboard/case/[id]` chia thành Header và hệ thống Tab chính sử dụng component HeroUI Tabs.
+3. Dựng layout tổng quan cho `/dashboard/case/[id]` chia thành Header và hệ thống Tab chính sử dụng component Mantine UI Tabs.
 4. Thiết kế `CaseStatusHeader` tích hợp logic đếm ngược SLA (với logic pause khi cần làm rõ) và hiển thị trạng thái động của case.
 5. Dựng tab "Ý tưởng nộp" hiển thị dữ liệu intake và link Google Drive.
 6. Dựng tab "Báo cáo phản biện" hiển thị các finding có cấu trúc rõ ràng (Field, Status, Evidence, Reason, Question, Next Action), kèm text input cho phép phản hồi làm rõ (Inline Clarification) ngay dưới mỗi finding.

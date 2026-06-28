@@ -49,4 +49,4 @@ Mô hình dữ liệu Postgres trung tâm.
 - Chỉ dùng một root `.env`.
 - API sở hữu auth và session.
 - Prisma dùng plural table + snake_case columns.
-- Web dùng HeroUI v3 và cấu trúc app router.
+- Web dùng Mantine UI v9 và cấu trúc app router.

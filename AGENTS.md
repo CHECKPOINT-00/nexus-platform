@@ -7,14 +7,14 @@
 
 ## OVERVIEW
 
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, HeroUI v3, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (with OpenAI/Google), shared `@repo/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (with OpenAI/Google), shared `@repo/*` packages.
 
 ## STRUCTURE
 
 ```
 root/
 ├── apps/api/      # Hono backend, auth, Prisma, streaming
-├── apps/web-1/    # Next.js product app, HeroUI v3, TanStack Query
+├── apps/web-1/    # Next.js product app, Mantine UI v9, TanStack Query
 ├── packages/ui/   # Shared React primitives used by docs
 ├── packages/*     # ESLint/TypeScript presets
 ├── prisma/        # Root Prisma schema
@@ -27,7 +27,7 @@ root/
 | Task            | Location                                              | Notes                                            |
 | --------------- | ----------------------------------------------------- | ------------------------------------------------ |
 | Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                |
-| Web UI          | `apps/web-1/app/*`                                    | HeroUI v3 app; read `apps/web-1/AGENTS.md` first |
+| Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first |
 | Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage         |
 | DB schema       | `prisma/schema.prisma`                                | Plural table names, snake_case fields            |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                |
@@ -40,7 +40,7 @@ root/
 - API on `8000`; web on `3000`.
 - Better Auth lives in `apps/api`; frontend only consumes client/session helpers.
 - Prisma schema follows plural tables + snake_case columns.
-- HeroUI is web-only.
+- Mantine UI is web-only.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
@@ -49,12 +49,12 @@ root/
 - Edit `apps/web-1` without checking `apps/web-1/AGENTS.md`.
 - Reintroduce shadcn-style web components into `apps/web-1`.
 - Change Prisma names away from plural/snake_case.
-- Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or HeroUI code.
-- Tự tiện thêm các Tailwind class định vị thủ công (như `fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào các component của HeroUI (như `Modal.Backdrop`, `Modal.Container`). Các component này đã có style định vị mặc định, việc viết đè class sẽ gây lỗi hiển thị (làm lệch căn giữa modal, v.v.).
+- Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or Mantine UI code.
+- Tự tiện thêm các Tailwind class định vị thủ công (như `fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào các component của Mantine UI (như `Modal`, `Drawer`). Các component này đã có style định vị mặc định, việc viết đè class sẽ gây lỗi hiển thị (làm lệch căn giữa modal, v.v.).
 
 ## UNIQUE STYLES
 
-- `apps/web-1` uses HeroUI v3 + `next-themes` + TanStack Form for form state & validation + Lucide React for UI icons.
+- `apps/web-1` uses Mantine UI v9 + TanStack Form for form state & validation + Lucide React for UI icons.
 - `apps/api` uses Hono streaming helpers, Better Auth plugins, and Vercel AI SDK for Google/OpenAI integrations.
 - `packages/ui` is tiny, stable, and shared; keep changes minimal.
 
@@ -70,7 +70,7 @@ npm run prisma:migrate
 
 ## NOTES
 
-- `apps/web-1/AGENTS.md` is the child-specific HeroUI note; keep it in sync with web work.
+- `apps/web-1/AGENTS.md` is the child-specific Mantine UI note; keep it in sync with web work.
 - **Agent Rules**: The [.agents/rules/](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/) directory contains project-wide guidelines for agent behavior, workflows, and standards:
   - [development-rules.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, and the rule prohibiting direct `apiClient` calls in UI components.
   - [documentation-management.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/documentation-management.md): Guidelines for maintaining roadmaps, changelogs, and plan files.

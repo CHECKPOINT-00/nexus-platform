@@ -57,7 +57,7 @@ apps/web-1/
 
 ## Tech Stack
 1. **Framework**: Next.js 16 (App Router), React 19.
-2. **UI Library**: Chỉ sử dụng duy nhất **HeroUI v3** làm nền tảng chính cho các component tương tác.
+2. **UI Library**: Chỉ sử dụng duy nhất **Mantine UI v9** làm nền tảng chính cho các component tương tác.
 3. **Styling**: Tailwind CSS v4 (cấu hình `@theme` trực tiếp trong `globals.css`).
 4. **State & Form**: 
    - **TanStack Query (React Query)** để quản lý state server-side, fetching/caching dữ liệu từ backend Hono.

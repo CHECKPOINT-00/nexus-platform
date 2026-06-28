@@ -24,7 +24,7 @@
 ## Web standards
 
 - Next.js app tách theo route group rõ ràng: public, auth, dashboard, supporter, admin.
-- Giữ UI consistent với HeroUI v3 và shared primitives.
+- Giữ UI consistent với Mantine UI v9 và shared primitives.
 - Tránh đưa business logic nặng vào component page nếu có thể tách hook/module.
 
 ## API module organization

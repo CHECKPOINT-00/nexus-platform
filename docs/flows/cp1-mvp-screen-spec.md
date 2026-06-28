@@ -569,7 +569,7 @@ User-facing label nên dùng:
 - Chỉ mô tả `layout + logic + state + CTA`.
 - Không mô tả chi tiết thẩm mỹ như màu cụ thể, font cụ thể, bo góc theo px, shadow, animation detail, hoặc spacing pixel.
 - Nếu cần nhấn mạnh ưu tiên thị giác, chỉ mô tả ở mức vai trò như `khối nổi bật nhất`, `CTA chính`, `panel phụ`, `notice cần thấy ngay`.
-- HeroUI, theme tokens, và global styling layer sẽ quyết định phần thẩm mỹ chi tiết khi implement.
+- Mantine UI, theme tokens, và global styling layer sẽ quyết định phần thẩm mỹ chi tiết khi implement.
 
 ## 9. Anti-pattern cần tránh
 

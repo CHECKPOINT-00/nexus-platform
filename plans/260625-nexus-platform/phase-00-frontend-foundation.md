@@ -7,7 +7,7 @@ Khởi tạo cấu trúc giao diện nền tảng, thiết lập các Provider, 
 Học viên và các đối tượng sử dụng khác truy cập ứng dụng với tốc độ tải trang nhanh, không bị nhấp nháy màn hình (flash) khi chuyển đổi theme sáng/tối, font chữ hiển thị đồng bộ chuyên nghiệp và các API client được kết nối an toàn.
 
 ## Scope
-- Cấu hình file `providers.tsx` chứa `HeroUIProvider`, `ThemeProvider` (next-themes) và `QueryClientProvider` (TanStack Query).
+- Cấu hình file `providers.tsx` chứa `MantineProvider` và `QueryClientProvider` (TanStack Query).
 - Tích hợp font chữ **Space Grotesk** (cho headings/tiêu đề) và **DM Sans** (cho body/nội dung) qua Google Fonts.
 - Thiết lập global styles và design tokens bằng Tailwind CSS v4.
 - Cấu hình client kết nối:
@@ -35,7 +35,7 @@ Học viên và các đối tượng sử dụng khác truy cập ứng dụng v
 - Chuyển theme mượt mà, hỗ trợ người dùng có xu hướng dùng dark mode ban đêm.
 
 ## Implementation Steps
-1. Khởi tạo `providers.tsx` tích hợp `HeroUIProvider`, `ThemeProvider` và `QueryClientProvider`.
+1. Khởi tạo `providers.tsx` tích hợp `MantineProvider` và `QueryClientProvider`.
 2. Import font Space Grotesk và DM Sans trong root layout, cấu hình CSS variables và `@theme` cho Tailwind CSS v4.
 3. Cấu hình `auth-client.ts` và `api-client.ts` kết nối với API backend port 8000.
 4. Xây dựng các Layout Shell dùng chung. DashboardShell cần tích hợp Breadcrumbs hiển thị vị trí hiện tại của user.

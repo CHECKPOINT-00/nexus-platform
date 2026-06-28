@@ -35,7 +35,7 @@
 - Sửa file canonical trước: `project-context.md`, `prd/core-product-prd.md`, `flows/*`, `requirements/*`, `technical-notes/*`.
 - Không dùng `archive/` làm nơi cập nhật chính.
 - Giữ tài liệu ngắn, quét nhanh được, và tách ý theo heading rõ.
-- Dùng `docs/tech-doc-urls.txt` khi cần nguồn ngoài cho Hono, Better Auth, HeroUI, TanStack, hoặc thư viện khác.
+- Dùng `docs/tech-doc-urls.txt` when/khi cần nguồn ngoài cho Hono, Better Auth, Mantine UI, TanStack, hoặc thư viện khác.
 - Bám quy ước repo: một root `.env`, auth/session ở `apps/api`, Prisma plural table + snake_case, web app ở `apps/web-1`.
 
 ## Cách chọn nơi sửa

@@ -8,7 +8,7 @@ Monorepo for `apps/api`, `apps/web`, and shared `packages/*`.
 - Hono
 - Better Auth
 - Prisma 7
-- HeroUI v3
+- Mantine UI v9
 - Turborepo
 - Vercel AI SDK (with OpenAI & Google providers)
 - TanStack Stack (Query v5, Form v1, Virtual v3)
@@ -67,5 +67,5 @@ npm run prisma:migrate
 
 - One root `.env` only.
 - API owns auth and session logic.
-- Web uses HeroUI and `next-themes`.
+- Web uses Mantine UI v9.
 - `docs/tech-doc-urls.txt` is the source of truth for external library docs.
