@@ -129,23 +129,23 @@ export default function CaseStatusHeader({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs font-body text-text-muted">
+        <div className="flex flex-wrap items-center gap-4 text-xs font-body text-text-muted max-w-full">
           {caseData.team_name && (
-            <div className="flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-text-subtle" />
-              <span>Nhóm: <strong>{caseData.team_name}</strong></span>
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <Users className="w-4 h-4 text-text-subtle shrink-0" />
+              <span className="break-all">Nhóm: <strong>{caseData.team_name}</strong></span>
             </div>
           )}
           {caseData.school && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-text-subtle">|</span>
-              <span>Trường: <strong>{caseData.school}</strong></span>
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <span className="text-text-subtle shrink-0">|</span>
+              <span className="break-all">Trường: <strong>{caseData.school}</strong></span>
             </div>
           )}
           {caseData.course_context && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-text-subtle">|</span>
-              <span>Lớp/Môn: <strong>{caseData.course_context}</strong></span>
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <span className="text-text-subtle shrink-0">|</span>
+              <span className="break-all">Lớp/Môn: <strong>{caseData.course_context}</strong></span>
             </div>
           )}
         </div>

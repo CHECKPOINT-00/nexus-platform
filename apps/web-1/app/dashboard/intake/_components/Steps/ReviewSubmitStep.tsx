@@ -64,22 +64,22 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm">
             <div className="text-text-muted">Gói phản biện đã chọn:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {selectedPackage?.name} ({formatPrice(selectedPackage?.price || 0)})
             </div>
 
             <div className="text-text-muted">Hạn nộp bài mong muốn:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {formatDate(values.deadline)}
             </div>
 
             <div className="text-text-muted">Mức độ ưu tiên xử lý:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {values.urgency === "urgent" ? "Gấp (trong 24h)" : "Bình thường"}
             </div>
 
             <div className="text-text-muted">Vòng phản biện bổ sung:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {values.needs_followup_review ? "Đăng ký thêm 1 vòng phản biện phụ" : "Không đăng ký"}
             </div>
           </div>
@@ -92,23 +92,23 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm">
             <div className="text-text-muted">Họ tên &amp; Vai trò:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-all min-w-0">
               {values.contact?.full_name || "N/A"}
               {values.contact?.team_role ? ` (${values.contact.team_role})` : ""}
             </div>
 
             <div className="text-text-muted">Mã sinh viên:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-all min-w-0">
               {values.contact?.student_code || "N/A"}
             </div>
 
             <div className="text-text-muted">Số điện thoại Zalo:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-all min-w-0">
               {values.contact?.zalo || "N/A"}
             </div>
 
             <div className="text-text-muted">Email liên hệ:</div>
-            <div className="text-text-app break-all">
+            <div className="text-text-app break-all min-w-0">
               {values.contact?.email || "N/A"}
             </div>
           </div>
@@ -121,17 +121,17 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm">
             <div className="text-text-muted">Tên đề tài / Dự án:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {values.team_context?.project_name || "N/A"}
             </div>
 
             <div className="text-text-muted">Trường học:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {values.school || "N/A"}
             </div>
 
             <div className="text-text-muted">Môn học &amp; Nhóm lớp:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {values.course_context || "N/A"}
               {values.team_context?.group_no ? ` - Nhóm ${values.team_context.group_no}` : ""}
             </div>
@@ -139,7 +139,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
             {values.team_context?.team_status_summary && (
               <>
                 <div className="text-text-muted">Hiện trạng hoạt động của nhóm:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+                <div className="text-text-app leading-relaxed whitespace-pre-wrap break-words min-w-0">
                   {values.team_context.team_status_summary}
                 </div>
               </>
@@ -154,7 +154,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm">
             <div className="text-text-muted">Tóm tắt ý tưởng dự án:</div>
-            <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+            <div className="text-text-app leading-relaxed whitespace-pre-wrap break-words min-w-0">
               {values.case_summary || "Chưa cung cấp"}
             </div>
 
@@ -164,7 +164,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
                 <div className="text-text-app">
                   <ul className="list-disc pl-5 space-y-1.5">
                     {values.current_situations.map((situation: string, index: number) => (
-                      <li key={index} className="leading-relaxed">{situation}</li>
+                      <li key={index} className="leading-relaxed break-words min-w-0">{situation}</li>
                     ))}
                   </ul>
                 </div>
@@ -180,19 +180,19 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm">
             <div className="text-text-muted">Nhu cầu hỗ trợ chính:</div>
-            <div className="text-text-app">
+            <div className="text-text-app break-words min-w-0">
               {PRIMARY_NEEDS_MAP[values.support_needs?.primary_need] || values.support_needs?.primary_need || "N/A"}
             </div>
 
             <div className="text-text-muted">Kỳ vọng đầu ra chi tiết:</div>
-            <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+            <div className="text-text-app leading-relaxed whitespace-pre-wrap break-words min-w-0">
               {values.expected_outputs || "Chưa cung cấp"}
             </div>
 
             {values.support_needs?.extra_notes && (
               <>
                 <div className="text-text-muted">Ghi chú thêm cho Supporter:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+                <div className="text-text-app leading-relaxed whitespace-pre-wrap break-words min-w-0">
                   {values.support_needs.extra_notes}
                 </div>
               </>
@@ -201,7 +201,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
             {values.lecturer_feedback && (
               <>
                 <div className="text-text-muted">Phản hồi của giảng viên hướng dẫn:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+                <div className="text-text-app leading-relaxed whitespace-pre-wrap break-words min-w-0">
                   {values.lecturer_feedback}
                 </div>
               </>

@@ -91,7 +91,7 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
                   <p className="font-body text-[11px] text-text-muted">{section.desc}</p>
                 </div>
               </div>
-              <p className="font-body text-xs text-text-app leading-relaxed whitespace-pre-wrap pl-1">
+              <p className="font-body text-xs text-text-app leading-relaxed whitespace-pre-wrap pl-1 break-all">
                 {section.content || "Chưa cung cấp thông tin."}
               </p>
             </div>
