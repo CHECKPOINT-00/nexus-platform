@@ -1,0 +1,150 @@
+import { auth } from "../../../auth.js";
+import type { Context } from "hono";
+import { handleError, readJsonBody } from "../../../shared/infrastructure/http-helpers.js";
+import { listAdminCasesUseCase } from "../application/list-admin-cases.usecase.js";
+import { getAdminCaseDetailUseCase } from "../application/get-admin-case-detail.usecase.js";
+import { acceptCaseUseCase } from "../application/accept-case.usecase.js";
+import { rejectCaseUseCase } from "../application/reject-case.usecase.js";
+import { adminRequestMoreInfoUseCase } from "../application/request-more-info.usecase.js";
+import { adminAssignSupporterUseCase } from "../application/assign-supporter.usecase.js";
+import type { ListAdminCasesRequest } from "../application/admin.dto.js";
+
+// ---------------------------------------------------------------------------
+// Auth helper — admin-specific
+// ---------------------------------------------------------------------------
+
+async function getAdminSession(c: Context) {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session) {
+    return { ok: false as const, error: "Chưa đăng nhập", status: 401 as const };
+  }
+  if (session.user.role !== "admin") {
+    return { ok: false as const, error: "Không có quyền quản trị", status: 403 as const };
+  }
+  return { ok: true as const, session };
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/cases — List all cases with triage filter options
+// ---------------------------------------------------------------------------
+
+export async function listAdminCasesHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const query = c.req.query() as ListAdminCasesRequest;
+    const result = await listAdminCasesUseCase(query);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/cases/:id — Get details of case for triage
+// ---------------------------------------------------------------------------
+
+export async function getAdminCaseDetailHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const result = await getAdminCaseDetailUseCase(caseId);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/cases/:id/accept — Approve case, transition status
+// ---------------------------------------------------------------------------
+
+export async function acceptCaseHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  const session = authResult.session;
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const result = await acceptCaseUseCase(session.user.id, caseId);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/cases/:id/reject — Reject case with a reason
+// ---------------------------------------------------------------------------
+
+export async function rejectCaseHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  const session = authResult.session;
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { reason?: string };
+    const reason = body?.reason || "";
+    const result = await rejectCaseUseCase(session.user.id, caseId, reason);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/cases/:id/request-more-info — Request more details
+// ---------------------------------------------------------------------------
+
+export async function adminRequestMoreInfoHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  const session = authResult.session;
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { query?: string };
+    const query = body?.query || "";
+    const result = await adminRequestMoreInfoUseCase(session.user.id, caseId, query);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/cases/:id/assign — Assign supporter to case
+// ---------------------------------------------------------------------------
+
+export async function adminAssignSupporterHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  const session = authResult.session;
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { supporter_id?: string };
+    const supporter_id = body?.supporter_id || "";
+    const result = await adminAssignSupporterUseCase(session.user.id, caseId, supporter_id);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}

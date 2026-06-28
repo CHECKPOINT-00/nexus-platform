@@ -164,15 +164,3 @@ export async function requireReportCaseAccess(
     return { ok: false as const, response: c.json({ error: "Lỗi hệ thống khi xác thực quyền truy cập báo cáo" }, 500) };
   }
 }
-
-export function normalizePaymentStatus(status: string) {
-  return status === "verified" ? "paid" : status;
-}
-
-export function isFinalPaymentStatus(status?: string | null) {
-  return status === "paid" || status === "verified" || status === "rejected";
-}
-
-export function isFinalCaseStage(stage?: string | null) {
-  return stage === "closed" || stage === "completed" || stage === "rejected";
-}

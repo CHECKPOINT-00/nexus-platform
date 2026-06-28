@@ -1,0 +1,513 @@
+import { prisma } from "../../../../db.js";
+
+export async function findManyCasesByRole(userId: string, role: string) {
+  if (role === "admin") {
+    return await prisma.case.findMany({
+      include: {
+        owner: true,
+        assigned_supporter: true,
+        package: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+  } else if (role === "supporter") {
+    return await prisma.case.findMany({
+      where: {
+        assigned_supporter_auth_user_id: userId,
+      },
+      include: {
+        owner: true,
+        package: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+  } else {
+    return await prisma.case.findMany({
+      where: {
+        OR: [
+          { owner_auth_user_id: userId },
+          { members: { some: { auth_user_id: userId } } },
+        ],
+      },
+      include: {
+        assigned_supporter: true,
+        package: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+  }
+}
+
+export async function findManyCasesAdmin(where: any, take?: number) {
+  return await prisma.case.findMany({
+    where,
+    include: {
+      owner: true,
+      assigned_supporter: true,
+      package: true,
+      lifecycle_units: {
+        where: { unit_type: "intake" },
+        take: 1,
+      },
+    },
+    orderBy: { created_at: "desc" },
+    take,
+  });
+}
+
+export async function findCaseById(id: string) {
+  return await prisma.case.findUnique({
+    where: { id },
+  });
+}
+
+export async function findCaseByIdWithAllRelations(id: string) {
+  return await prisma.case.findUnique({
+    where: { id },
+    include: {
+      owner: true,
+      assigned_supporter: true,
+      package: true,
+      checkpoints: {
+        include: {
+          lifecycle_units: true,
+        },
+      },
+      members: {
+        include: {
+          user: true,
+        },
+      },
+      events: {
+        include: {
+          actor: true,
+        },
+        orderBy: { created_at: "desc" },
+      },
+      payments: {
+        orderBy: { created_at: "desc" },
+      },
+      reports: {
+        orderBy: { created_at: "desc" },
+      },
+    },
+  });
+}
+
+export async function findCaseByIdWithLifecycleUnitsAndEvents(id: string) {
+  return await prisma.case.findUnique({
+    where: { id },
+    include: {
+      owner: true,
+      assigned_supporter: true,
+      package: true,
+      lifecycle_units: true,
+      events: {
+        include: { actor: true },
+        orderBy: { created_at: "desc" },
+      },
+    },
+  });
+}
+
+export async function findCaseByIdWithMembers(id: string) {
+  return await prisma.case.findUnique({
+    where: { id },
+    include: { members: true },
+  });
+}
+
+export async function findCaseByIdWithMembersAndCheckpoints(id: string) {
+  return await prisma.case.findUnique({
+    where: { id },
+    include: {
+      members: true,
+      checkpoints: true,
+    },
+  });
+}
+
+export async function findCaseByCode(case_code: string) {
+  return await prisma.case.findUnique({
+    where: { case_code },
+  });
+}
+
+export async function createCaseWithCheckpointAndIntake(data: {
+  caseCode: string;
+  userId: string;
+  teamName: string | null;
+  school: string | null;
+  courseContext: string | null;
+  groupNo: string | null;
+  packageId: string;
+  deadline: Date | null;
+  isFree: boolean;
+  rawBody: any;
+}) {
+  const {
+    caseCode,
+    userId,
+    teamName,
+    school,
+    courseContext,
+    groupNo,
+    packageId,
+    deadline,
+    isFree,
+    rawBody,
+  } = data;
+
+  return await prisma.$transaction(async (tx: any) => {
+    const newCase = await tx.case.create({
+      data: {
+        case_code: caseCode,
+        owner_auth_user_id: userId,
+        team_name: teamName,
+        school,
+        course_context: courseContext,
+        group_no: groupNo,
+        package_id: packageId,
+        deadline,
+        user_facing_stage: "submitted",
+        internal_status: "triage_pending",
+        payment_status: isFree ? "paid" : "unpaid",
+        current_checkpoint: "CP1",
+      },
+    });
+
+    const checkpoint = await tx.checkpoint.create({
+      data: {
+        case_id: newCase.id,
+        checkpoint_code: "CP1",
+        checkpoint_status: "submitted",
+        latest_version_no: 1,
+      },
+    });
+
+    await tx.lifecycleUnit.create({
+      data: {
+        case_id: newCase.id,
+        checkpoint_id: checkpoint.id,
+        unit_code: "v00",
+        unit_type: "intake",
+        version_no: 1,
+        content: JSON.stringify(rawBody),
+        file_url: rawBody.documents?.[0]?.drive_url || null,
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: newCase.id,
+        event_type: "case_submitted",
+        actor_auth_user_id: userId,
+        metadata_json: { case_code: caseCode },
+      },
+    });
+
+    return newCase;
+  });
+}
+
+export async function acceptCase(caseId: string, adminId: string) {
+  return await prisma.$transaction(async (tx: any) => {
+    const updated = await tx.case.update({
+      where: { id: caseId },
+      data: {
+        user_facing_stage: "under_review",
+        internal_status: "accepted_unassigned",
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "case_accepted",
+        actor_auth_user_id: adminId,
+      },
+    });
+
+    return updated;
+  });
+}
+
+export async function rejectCase(caseId: string, adminId: string, reason: string) {
+  return await prisma.$transaction(async (tx: any) => {
+    const updated = await tx.case.update({
+      where: { id: caseId },
+      data: {
+        user_facing_stage: "rejected",
+        internal_status: "cancelled",
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "case_rejected",
+        actor_auth_user_id: adminId,
+        metadata_json: { reason },
+      },
+    });
+
+    return updated;
+  });
+}
+
+export async function requestCaseMoreInfo(caseId: string, actorId: string, eventType: string, query: string, nextStage: string, nextStatus: string) {
+  return await prisma.$transaction(async (tx: any) => {
+    const updated = await tx.case.update({
+      where: { id: caseId },
+      data: {
+        user_facing_stage: nextStage,
+        internal_status: nextStatus,
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: eventType,
+        actor_auth_user_id: actorId,
+        metadata_json: { query },
+      },
+    });
+
+    return updated;
+  });
+}
+
+export async function assignCaseSupporter(caseId: string, adminId: string, supporterId: string | null, nextStatus: string, supporterName?: string) {
+  return await prisma.$transaction(async (tx: any) => {
+    const updated = await tx.case.update({
+      where: { id: caseId },
+      data: {
+        assigned_supporter_auth_user_id: supporterId,
+        internal_status: nextStatus,
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "supporter_assigned",
+        actor_auth_user_id: adminId,
+        metadata_json: {
+          supporter_id: supporterId,
+          ...(supporterName ? { supporter_name: supporterName } : {}),
+        },
+      },
+    });
+
+    return updated;
+  });
+}
+
+export async function findFirstIntakeUnit(caseId: string) {
+  return await prisma.lifecycleUnit.findFirst({
+    where: {
+      case_id: caseId,
+      unit_type: "intake",
+      unit_code: "v00",
+    },
+  });
+}
+
+export async function findLatestIntakeUnit(caseId: string) {
+  return await prisma.lifecycleUnit.findFirst({
+    where: {
+      case_id: caseId,
+      unit_code: "intake",
+    },
+    orderBy: { version_no: "desc" },
+  });
+}
+
+export async function findFirstUserEvent(caseId: string) {
+  return await prisma.caseEvent.findFirst({
+    where: {
+      case_id: caseId,
+      actor: {
+        role: "user",
+      },
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+export async function findLifecycleUnits(caseId: string) {
+  return await prisma.lifecycleUnit.findMany({
+    where: { case_id: caseId },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+export async function findOpenRequestsForMoreInfo(caseId: string) {
+  return await prisma.caseEvent.findMany({
+    where: {
+      case_id: caseId,
+      event_type: "more_info_requested",
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+export async function submitCaseRevision(data: {
+  caseId: string;
+  checkpointId: string;
+  nextVersion: number;
+  userId: string;
+  changeSummary: string;
+  documents: any[];
+  remainingBlockers: any;
+}) {
+  const {
+    caseId,
+    checkpointId,
+    nextVersion,
+    userId,
+    changeSummary,
+    documents,
+    remainingBlockers,
+  } = data;
+
+  return await prisma.$transaction(async (tx: any) => {
+    await tx.checkpoint.update({
+      where: { id: checkpointId },
+      data: { latest_version_no: nextVersion },
+    });
+
+    const revisionUnit = await tx.lifecycleUnit.create({
+      data: {
+        case_id: caseId,
+        checkpoint_id: checkpointId,
+        unit_code: `v0${nextVersion}`,
+        unit_type: "revision",
+        version_no: nextVersion,
+        content: JSON.stringify({
+          change_summary: changeSummary,
+          documents,
+          remaining_blockers: remainingBlockers,
+        }),
+        file_url: documents[0]?.drive_url || documents[0]?.file_url || null,
+      },
+    });
+
+    await tx.case.update({
+      where: { id: caseId },
+      data: {
+        user_facing_stage: "revision_submitted",
+        internal_status: "assigned",
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "revision_submitted",
+        actor_auth_user_id: userId,
+        metadata_json: { version_no: nextVersion, change_summary: changeSummary },
+      },
+    });
+
+    return revisionUnit;
+  });
+}
+
+export async function updateCaseStatus(caseId: string, userId: string, nextStage?: string, nextStatus?: string) {
+  return await prisma.case.update({
+    where: { id: caseId },
+    data: {
+      user_facing_stage: nextStage !== undefined ? nextStage : undefined,
+      internal_status: nextStatus !== undefined ? nextStatus : undefined,
+    },
+  });
+}
+
+export async function createCaseEvent(caseId: string, userId: string, eventType: string, metadataJson?: any) {
+  return await prisma.caseEvent.create({
+    data: {
+      case_id: caseId,
+      event_type: eventType,
+      actor_auth_user_id: userId,
+      metadata_json: metadataJson,
+    },
+  });
+}
+
+export async function listCaseMessages(caseId: string) {
+  return await prisma.caseMessage.findMany({
+    where: { case_id: caseId },
+    include: {
+      sender: true,
+    },
+    orderBy: { created_at: "asc" },
+  });
+}
+
+export async function createCaseMessage(data: {
+  caseId: string;
+  userId: string;
+  userRole: string;
+  content: string;
+}) {
+  const { caseId, userId, userRole, content } = data;
+  return await prisma.$transaction(async (tx: any) => {
+    const newMessage = await tx.caseMessage.create({
+      data: {
+        case_id: caseId,
+        sender_auth_user_id: userId,
+        sender_role_snapshot: userRole ?? null,
+        content,
+      },
+      include: {
+        sender: true,
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "message_sent",
+        actor_auth_user_id: userId,
+        metadata_json: { message_id: newMessage.id },
+      },
+    });
+
+    return newMessage;
+  });
+}
+
+export async function updateCaseSettings(caseId: string, data: {
+  team_name: string | null;
+  school: string | null;
+  course_context: string | null;
+  group_no: string | null;
+}) {
+  return await prisma.case.update({
+    where: { id: caseId },
+    data,
+  });
+}
+
+// User-related functional persistence methods (meaningful DDD isolation)
+export async function findSupporterById(id: string) {
+  return await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, role: true, name: true },
+  });
+}
+
+export async function listAllSupporters() {
+  return await prisma.user.findMany({
+    where: {
+      OR: [{ role: "supporter" }, { role: "admin" }],
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+}
