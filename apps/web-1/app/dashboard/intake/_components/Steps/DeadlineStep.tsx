@@ -73,7 +73,7 @@ export default function DeadlineStep({ form, values }: DeadlineStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={2000}
+                maxLength={1001}
                 minRows={2}
                 autosize
                 radius="md"

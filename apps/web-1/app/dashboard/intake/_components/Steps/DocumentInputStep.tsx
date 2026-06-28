@@ -121,7 +121,7 @@ export default function DocumentInputStep({
                   value={firstDoc.drive_url || ""}
                   onChange={handleUrlChange}
                   isInvalid={hasUrlError}
-                  maxLength={1000}
+                  maxLength={501}
                   errorMessage={
                     hasUrlError
                       ? !firstDoc.drive_url
