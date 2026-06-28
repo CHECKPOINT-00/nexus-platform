@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FindingEditor from "./FindingEditor";
 import { 
   AlertCircle, 
@@ -15,6 +15,7 @@ import {
 import { Button } from "@mantine/core";
 
 interface Finding {
+  id: string;
   field: string;
   status: string;
   evidence: string;
@@ -32,6 +33,11 @@ interface FindingCardProps {
 export default function FindingCard({ finding, onUpdate, onDelete }: FindingCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedFinding, setEditedFinding] = useState<Finding>({ ...finding });
+
+  useEffect(() => {
+    setEditedFinding({ ...finding });
+    setIsEditing(false);
+  }, [finding]);
 
   const getFieldDetails = (field: string) => {
     switch (field) {
@@ -89,7 +95,7 @@ export default function FindingCard({ finding, onUpdate, onDelete }: FindingCard
 
         <FindingEditor
           finding={editedFinding}
-          onChange={setEditedFinding}
+          onChange={(updated) => setEditedFinding(updated as Finding)}
         />
       </div>
     );

@@ -34,6 +34,7 @@ export default function AdminCaseAssignmentTable({
   const itemsPerPage = 5;
 
   const [loadingCaseId, setLoadingCaseId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Modal: Reject
   const [rejectingCaseId, setRejectingCaseId] = useState<string | null>(null);
@@ -58,14 +59,17 @@ export default function AdminCaseAssignmentTable({
   const [selectedCompleteness, setSelectedCompleteness] = useState("all");
   const [sortBy, setSortBy] = useState("created_at_desc");
 
+  const extractErrorMessage = (error: any) => error?.response?.data?.error || error?.message || "Đã xảy ra lỗi";
+
   const handleViewDetails = async (caseId: string) => {
+    setActionError(null);
     setDetailCaseId(caseId);
     setIsFetchingDetail(true);
     try {
       const response = await apiClient.get(`/admin/cases/${caseId}`);
       setDetailData(response.data);
     } catch (e) {
-      console.error("Error fetching case details:", e);
+      setActionError(extractErrorMessage(e));
     } finally {
       setIsFetchingDetail(false);
     }
@@ -74,8 +78,9 @@ export default function AdminCaseAssignmentTable({
   const handleAcceptClick = async (caseId: string) => {
     if (window.confirm("Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện?")) {
       setLoadingCaseId(caseId);
+      setActionError(null);
       try { await onAccept(caseId); }
-      catch (e) {}
+      catch (e) { setActionError(extractErrorMessage(e)); }
       finally { setLoadingCaseId(null); }
     }
   };
@@ -83,33 +88,36 @@ export default function AdminCaseAssignmentTable({
   const handleRejectSubmit = async () => {
     if (!rejectingCaseId || rejectReason.trim().length < 10) return;
     setLoadingCaseId(rejectingCaseId);
+    setActionError(null);
     try {
       await onReject(rejectingCaseId, rejectReason.trim());
       setRejectingCaseId(null);
       setRejectReason("");
-    } catch (e) {}
+    } catch (e) { setActionError(extractErrorMessage(e)); }
     finally { setLoadingCaseId(null); }
   };
 
   const handleInfoRequestSubmit = async () => {
     if (!infoRequestCaseId || infoQuery.trim().length < 5) return;
     setLoadingCaseId(infoRequestCaseId);
+    setActionError(null);
     try {
       await onRequestMoreInfo(infoRequestCaseId, infoQuery.trim());
       setInfoRequestCaseId(null);
       setInfoQuery("");
-    } catch (e) {}
+    } catch (e) { setActionError(extractErrorMessage(e)); }
     finally { setLoadingCaseId(null); }
   };
 
   const handleAssignSubmit = async () => {
     if (!assignCaseId || !assignSelectedId) return;
     setLoadingCaseId(assignCaseId);
+    setActionError(null);
     try {
       await onAssign(assignCaseId, assignSelectedId);
       setAssignCaseId(null);
       setAssignSelectedId("");
-    } catch (e) {}
+    } catch (e) { setActionError(extractErrorMessage(e)); }
     finally { setLoadingCaseId(null); }
   };
 
@@ -202,6 +210,11 @@ export default function AdminCaseAssignmentTable({
 
   return (
     <div className="space-y-4 font-body text-xs text-text-app">
+      {actionError && (
+        <div className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-danger text-xs">
+          {actionError}
+        </div>
+      )}
       {/* Search and Filters */}
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput

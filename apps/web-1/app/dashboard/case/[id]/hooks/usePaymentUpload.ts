@@ -9,16 +9,12 @@ export function usePaymentUpload(caseId: string) {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append("caseId", caseId);
+      formData.append("case_id", caseId);
       formData.append("file", file);
 
       setUploadProgress(0);
 
-      const response = await apiClient.post("/payments/proof", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
+      const response = await apiClient.post("/payments/proof", formData, {        onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(progress);

@@ -2,6 +2,7 @@ import React from "react";
 import { Select, TextInput, Textarea } from "@mantine/core";
 
 interface Finding {
+  id?: string;
   field: string;
   status: string;
   evidence: string;

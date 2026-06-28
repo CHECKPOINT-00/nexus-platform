@@ -17,6 +17,7 @@ interface PageProps {
 }
 
 interface Finding {
+  id: string;
   field: string;
   status: string;
   evidence: string;
@@ -65,7 +66,11 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
     if (draftReport?.content_md) {
       try {
         const parsed = JSON.parse(draftReport.content_md);
-        setFindings(parsed.findings || []);
+        setFindings((parsed.findings || []).map((finding: Finding, index: number) => ({
+          ...finding,
+          id: finding.id || `${finding.field || "finding"}-${index}`,
+        })));
+
       } catch (e) {
         setFindings([]);
       }
@@ -89,6 +94,7 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
 
   const handleAddFinding = () => {
     const newFinding: Finding = {
+      id: crypto.randomUUID(),
       field: "idea",
       status: "Chưa hoàn thiện",
       evidence: "Chưa dẫn chiếu bằng chứng từ tài liệu nộp.",
@@ -215,7 +221,7 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
             ) : (
               findings.map((finding, index) => (
                 <FindingCard
-                  key={index}
+                  key={finding.id}
                   finding={finding}
                   onUpdate={(updated) => handleUpdateFinding(index, updated)}
                   onDelete={() => handleDeleteFinding(index)}

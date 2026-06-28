@@ -70,7 +70,9 @@ export function useIntakeForm(initialPackageId?: string | null) {
             // Prioritize URL packageId if provided
             package_id: initialPackageId || parsed.package_id || "",
           }));
-        } catch (e) {}
+        } catch (e) {
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
       }
       setIsLoaded(true);
     }
@@ -99,6 +101,12 @@ export function useIntakeForm(initialPackageId?: string | null) {
       await submitMutation.mutateAsync(value);
     },
   });
+
+  useEffect(() => {
+    if (isLoaded) {
+      form.reset(draftValues);
+    }
+  }, [isLoaded, draftValues, form]);
 
   // Save draft values to localStorage on changes
   const saveDraft = (values: IntakeData) => {
