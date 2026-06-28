@@ -27,7 +27,7 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
       return (
         !!values.case_summary &&
         values.case_summary.length >= 20 &&
-        (values.case_summary.trim() ? values.case_summary.trim().split(/\s+/).length <= 1000 : true) &&
+        (values.case_summary.trim() ? values.case_summary.trim().split(/\s+/).length <= 2000 : true) &&
         (!values.current_situations || (values.current_situations.join(" ").trim() ? values.current_situations.join(" ").trim().split(/\s+/).length <= 2000 : true))
       );
     case IntakeStep.CONTACT:
