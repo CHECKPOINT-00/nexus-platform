@@ -39,7 +39,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={100}
+                maxLength={200}
                 radius="md"
               />
             );
@@ -65,7 +65,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={20}
+                maxLength={50}
                 radius="md"
               />
             );
@@ -91,7 +91,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={100}
+                maxLength={200}
                 radius="md"
               />
             );
@@ -117,7 +117,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={50}
+                maxLength={100}
                 radius="md"
               />
             );
@@ -158,7 +158,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
-                  maxLength={500}
+                  maxLength={1000}
                   minRows={2}
                   autosize
                   radius="md"

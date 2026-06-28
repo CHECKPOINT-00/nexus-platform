@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { Textarea, Tooltip } from "@mantine/core";
 import { HelpCircle } from "lucide-react";
-import { notifications } from "@mantine/notifications";
 
 interface SituationStepProps {
   form: any;
@@ -11,9 +10,6 @@ interface SituationStepProps {
 }
 
 export default function SituationStep({ form, values }: SituationStepProps) {
-  const summaryNotifiedRef = useRef(false);
-  const situationNotifiedRef = useRef(false);
-
   return (
     <div className="space-y-5">
       <div className="space-y-1">
@@ -43,24 +39,9 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 placeholder="Hãy giới thiệu ngắn gọn ý tưởng dự án của bạn (ví dụ: Nền tảng kết nối gia sư với học sinh thông qua ứng dụng định vị và đánh giá chất lượng...)"
                 value={field.state.value || ""}
                 onBlur={field.handleBlur}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  const val = e.target.value;
-                  if (val.length > 2000) {
-                    if (!summaryNotifiedRef.current) {
-                      notifications.show({
-                        title: "Đạt giới hạn ký tự",
-                        message: "Tóm tắt dự án chỉ cho phép tối đa 2000 ký tự.",
-                        color: "red",
-                      });
-                      summaryNotifiedRef.current = true;
-                    }
-                    field.handleChange(val.slice(0, 2000));
-                  } else {
-                    summaryNotifiedRef.current = false;
-                    field.handleChange(val);
-                  }
-                }}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={5000} // prevent browser crash but allow exceeding 2000 to show error
                 minRows={3}
                 autosize
                 radius="md"
@@ -106,25 +87,13 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 value={rawSituationsValue}
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  let val = e.target.value;
-                  if (val.length > 2000) {
-                    if (!situationNotifiedRef.current) {
-                      notifications.show({
-                        title: "Đạt giới hạn ký tự",
-                        message: "Bối cảnh thực tế chỉ cho phép tối đa 2000 ký tự.",
-                        color: "red",
-                      });
-                      situationNotifiedRef.current = true;
-                    }
-                    val = val.slice(0, 2000);
-                  } else {
-                    situationNotifiedRef.current = false;
-                  }
+                  const val = e.target.value;
                   // Fix array newline bug by not filtering out empty lines immediately
                   const arr = val.split("\n");
                   field.handleChange(arr);
                 }}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={5000} // prevent browser crash but allow exceeding 2000 to show error
                 minRows={3}
                 autosize
                 radius="md"

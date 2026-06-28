@@ -41,7 +41,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={100}
+                maxLength={200}
                 radius="md"
               />
             );
@@ -83,7 +83,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={20}
+                maxLength={50}
                 radius="md"
               />
             );
@@ -124,7 +124,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={50}
+                maxLength={100}
                 radius="md"
               />
             );
@@ -165,7 +165,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={10}
+                maxLength={20}
                 radius="md"
               />
             );
@@ -195,7 +195,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
-                  maxLength={100}
+                  maxLength={200}
                   radius="md"
                 />
               </div>
@@ -223,7 +223,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
-                  maxLength={50}
+                  maxLength={100}
                   radius="md"
                 />
               </div>
