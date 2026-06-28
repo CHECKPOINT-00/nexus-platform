@@ -4,6 +4,7 @@ import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createTheme, MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 
 const theme = createTheme({
   primaryColor: "brand",
@@ -43,8 +44,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <NextThemesProvider attribute="data-mantine-color-scheme" defaultTheme="system" enableSystem>
-        <MantineProvider theme={theme} defaultColorScheme="auto">
+      <NextThemesProvider attribute="data-mantine-color-scheme" defaultTheme="light" enableSystem>
+        <MantineProvider theme={theme} defaultColorScheme="light">
+          <Notifications position="top-right" zIndex={1000} />
           {children}
         </MantineProvider>
       </NextThemesProvider>

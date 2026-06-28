@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { Drawer, Button } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { usePaymentUpload } from "../hooks/usePaymentUpload";
 import { Case } from "@/types";
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
@@ -57,13 +58,21 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
     reset();
     // Validate size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Kích thước file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.");
+      notifications.show({
+        title: "Kích thước file quá lớn",
+        message: "Kích thước file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.",
+        color: "red",
+      });
       return;
     }
     // Validate type (image or pdf)
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
-      alert("Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP) hoặc PDF.");
+      notifications.show({
+        title: "Định dạng không hợp lệ",
+        message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP) hoặc PDF.",
+        color: "red",
+      });
       return;
     }
     setSelectedFile(file);

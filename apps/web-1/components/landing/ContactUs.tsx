@@ -3,11 +3,16 @@
 import React from "react";
 import { Container, Title, Text, TextInput, Textarea, Button, Card, SimpleGrid, Group } from "@mantine/core";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { notifications } from "@mantine/notifications";
 
 export default function ContactUs() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Cảm ơn bạn đã gửi lời nhắn! Chúng tôi sẽ phản hồi sớm nhất có thể.");
+    notifications.show({
+      title: "Gửi tin nhắn thành công",
+      message: "Cảm ơn bạn đã gửi lời nhắn! Chúng tôi sẽ phản hồi sớm nhất có thể.",
+      color: "green",
+    });
   };
 
   return (

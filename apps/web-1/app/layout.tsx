@@ -26,7 +26,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <ColorSchemeScript defaultColorScheme="auto" />
+        <ColorSchemeScript defaultColorScheme="light" />
       </head>
       <body className="min-h-full flex flex-col bg-bg-app text-text-app">
         <Providers>{children}</Providers>

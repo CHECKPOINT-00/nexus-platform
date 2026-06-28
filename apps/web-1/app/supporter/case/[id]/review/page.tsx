@@ -11,6 +11,7 @@ import ReviewActionsPanel from "./_components/ReviewActionsPanel";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Sparkles, ArrowLeft, Bot, AlertTriangle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -112,16 +113,28 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
       const contentMd = JSON.stringify({ findings });
       await updateDraft({ reportId: draftReport.id, contentMd });
       setHasUnsavedChanges(false);
-      alert("Đã lưu bản nháp báo cáo thành công.");
+      notifications.show({
+        title: "Lưu bản nháp thành công",
+        message: "Đã lưu bản nháp báo cáo thành công.",
+        color: "green",
+      });
     } catch (e) {
-      alert("Lỗi khi lưu bản nháp.");
+      notifications.show({
+        title: "Lỗi",
+        message: "Lỗi khi lưu bản nháp.",
+        color: "red",
+      });
     }
   };
 
   const handleApproveAndSend = async () => {
     if (!draftReport) return;
     if (findings.length === 0) {
-      alert("Báo cáo phải có ít nhất 1 khía cạnh phản biện.");
+      notifications.show({
+        title: "Không thể phê duyệt",
+        message: "Báo cáo phải có ít nhất 1 khía cạnh phản biện.",
+        color: "yellow",
+      });
       return;
     }
     
@@ -138,10 +151,18 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
         // Call approve
         await approveReport(draftReport.id);
         setHasUnsavedChanges(false);
-        alert("Đã duyệt và gửi báo cáo phản biện thành công!");
+        notifications.show({
+          title: "Phê duyệt thành công",
+          message: "Đã duyệt và gửi báo cáo phản biện thành công!",
+          color: "green",
+        });
         router.push(`/dashboard/case/${caseId}`);
       } catch (e) {
-        alert("Lỗi khi phê duyệt báo cáo.");
+        notifications.show({
+          title: "Lỗi",
+          message: "Lỗi khi phê duyệt báo cáo.",
+          color: "red",
+        });
       }
     }
   };

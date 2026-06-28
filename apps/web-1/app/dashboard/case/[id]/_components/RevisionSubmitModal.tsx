@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal, Button, TextInput, Textarea } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { Send, Plus, Trash, AlertCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
@@ -32,7 +33,11 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-      alert("Đã gửi bản sửa đổi thành công! Dự án của bạn sẽ quay lại hàng chờ đánh giá.");
+      notifications.show({
+        title: "Nộp bản sửa thành công",
+        message: "Đã gửi bản sửa đổi thành công! Dự án của bạn sẽ quay lại hàng chờ đánh giá.",
+        color: "green",
+      });
       handleClose();
     },
     onError: (err: any) => {

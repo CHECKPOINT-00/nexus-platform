@@ -9,6 +9,7 @@ import RejectionReasonModal from "./_components/RejectionReasonModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Shield, CreditCard, UserCheck, CheckCircle } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
 
 export default function AdminHubPage() {
@@ -41,9 +42,17 @@ export default function AdminHubPage() {
     if (window.confirm("Xác nhận đã nhận đủ số tiền thanh toán cho giao dịch này?")) {
       try {
         await verifyPayment({ paymentId, status: "paid" });
-        alert("Đã duyệt thanh toán thành công!");
+        notifications.show({
+          title: "Duyệt thanh toán thành công",
+          message: "Đã duyệt thanh toán thành công!",
+          color: "green",
+        });
       } catch (e) {
-        alert("Gặp lỗi khi duyệt thanh toán.");
+        notifications.show({
+          title: "Lỗi",
+          message: "Gặp lỗi khi duyệt thanh toán.",
+          color: "red",
+        });
       }
     }
   };
@@ -61,45 +70,85 @@ export default function AdminHubPage() {
         rejectionReason: reason,
       });
       setRejectingPaymentId(null);
-      alert("Đã từ chối minh chứng thanh toán và gửi lý do cho sinh viên.");
+      notifications.show({
+        title: "Đã từ chối thanh toán",
+        message: "Đã từ chối minh chứng thanh toán và gửi lý do cho sinh viên.",
+        color: "green",
+      });
     } catch (e) {
-      alert("Gặp lỗi khi thực hiện từ chối thanh toán.");
+      notifications.show({
+        title: "Lỗi",
+        message: "Gặp lỗi khi thực hiện từ chối thanh toán.",
+        color: "red",
+      });
     }
   };
 
   const handleAssignSupporter = async (caseId: string, supporterId: string) => {
     try {
       await assignSupporter({ caseId, supporterId });
-      alert("Đã phân công Supporter chuyên môn phụ trách case thành công!");
+      notifications.show({
+        title: "Phân công thành công",
+        message: "Đã phân công Supporter chuyên môn phụ trách case thành công!",
+        color: "green",
+      });
     } catch (e) {
-      alert("Gặp lỗi khi thực hiện phân công.");
+      notifications.show({
+        title: "Lỗi",
+        message: "Gặp lỗi khi thực hiện phân công.",
+        color: "red",
+      });
     }
   };
 
   const handleAcceptCase = async (caseId: string) => {
     try {
       await acceptCase(caseId);
-      alert("Đã duyệt hồ sơ và chuyển sang hàng chờ phân công.");
+      notifications.show({
+        title: "Duyệt hồ sơ thành công",
+        message: "Đã duyệt hồ sơ và chuyển sang hàng chờ phân công.",
+        color: "green",
+      });
     } catch (e) {
-      alert("Gặp lỗi khi duyệt hồ sơ.");
+      notifications.show({
+        title: "Lỗi",
+        message: "Gặp lỗi khi duyệt hồ sơ.",
+        color: "red",
+      });
     }
   };
 
   const handleRejectCase = async (caseId: string, reason: string) => {
     try {
       await rejectCase({ caseId, reason });
-      alert("Đã từ chối hồ sơ thành công.");
+      notifications.show({
+        title: "Từ chối hồ sơ thành công",
+        message: "Đã từ chối hồ sơ thành công.",
+        color: "green",
+      });
     } catch (e) {
-      alert("Gặp lỗi khi từ chối hồ sơ.");
+      notifications.show({
+        title: "Lỗi",
+        message: "Gặp lỗi khi từ chối hồ sơ.",
+        color: "red",
+      });
     }
   };
 
   const handleRequestMoreInfo = async (caseId: string, query: string) => {
     try {
       await requestMoreInfo({ caseId, query });
-      alert("Đã gửi yêu cầu làm rõ cho học viên.");
+      notifications.show({
+        title: "Gửi yêu cầu thành công",
+        message: "Đã gửi yêu cầu làm rõ cho học viên.",
+        color: "green",
+      });
     } catch (e) {
-      alert("Gặp lỗi khi gửi yêu cầu.");
+      notifications.show({
+        title: "Lỗi",
+        message: "Gặp lỗi khi gửi yêu cầu.",
+        color: "red",
+      });
     }
   };
 
