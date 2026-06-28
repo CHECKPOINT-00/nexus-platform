@@ -1,20 +1,20 @@
 # Phase 6: Frontend QA & Polish
 
 ## Goal
-Thực hiện kiểm thử chất lượng giao diện (Frontend QA), tinh chỉnh thẩm mỹ (Polish), bảo vệ định tuyến (Route Guard Middleware), xử lý các trạng thái tải trang (Loading), lỗi (Error) và đảm bảo tính nhất quán visual trên toàn bộ ứng dụng.
+Thực hiện kiểm thử chất lượng giao diện (Frontend QA), tinh chỉnh thẩm mỹ (Polish), bảo vệ định tuyến bằng `apps/web-1/proxy.ts`, xử lý các trạng thái tải trang (Loading), lỗi (Error) và đảm bảo tính nhất quán visual trên toàn bộ ứng dụng.
 
 ## User Outcome
 - Trải nghiệm sử dụng mượt mà, không gặp lỗi giao diện vỡ hay trang trống không phản hồi.
 - Điều hướng mượt mà, phân quyền hiển thị (role-based) hoạt động chính xác giữa các tài khoản Học viên, Supporter và Admin.
 
 ## Scope
-- Triển khai Middleware (`middleware.ts`) chặn học viên truy cập trái phép vào `/admin` hoặc `/supporter` và chuyển hướng họ về `/dashboard`.
+- Triển khai `proxy.ts` chặn học viên truy cập trái phép vào `/admin` hoặc `/supporter` và chuyển hướng họ về `/dashboard`.
 - Kiểm tra tính tương thích Responsive (Mobile, Tablet, Desktop) cho toàn bộ các màn hình chính.
 - Triển khai Loading Skeletons, Error Boundaries và các trang báo lỗi tùy chỉnh (404, 500) thuần Việt.
 - Tối ưu hóa hiệu năng render giao diện client-side.
 
 ## Key Files & Directories to Build
-- **Route Guard Middleware**: `apps/web-1/middleware.ts`
+- **Route Guard Proxy**: `apps/web-1/proxy.ts`
 - **Common Loading Skeletons**: `apps/web-1/components/ui/LoadingSkeleton.tsx`
 - **Root Error Templates**:
   - `apps/web-1/app/not-found.tsx` (Trang lỗi 404 tùy chỉnh)
@@ -26,7 +26,7 @@ Thực hiện kiểm thử chất lượng giao diện (Frontend QA), tinh chỉ
 - **Tính nhất quán**: Đảm bảo toàn bộ font chữ, màu sắc semantic, border, spacing và hover transition tuân thủ chặt chẽ design direction đã đề ra.
 
 ## Implementation Steps
-1. Xây dựng Next.js `middleware.ts` sử dụng Better Auth Session check để thực hiện định tuyến và phân quyền.
+1. Hoàn thiện `apps/web-1/proxy.ts` bằng Better Auth session check để thực hiện định tuyến và phân quyền.
 2. Thực hiện rà soát responsive trên các trình giả lập thiết bị (Mobile/Tablet).
 3. Tích hợp `LoadingSkeleton` cho Dashboard và Case Workspace khi đang tải dữ liệu từ React Query.
 4. Thiết lập các Error Boundary (`error.tsx`) bao bọc các vùng chức năng quan trọng để bảo vệ app khỏi crash trắng màn hình.
