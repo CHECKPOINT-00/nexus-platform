@@ -2,30 +2,30 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User } from "@/types";
-import {
-  UserCheck, CheckCircle, Loader2, XCircle, Info,
-  MoreVertical, CheckCheck, Ban, HelpCircle, ExternalLink,
-  FolderOpen, Target, Users, Mail, Phone, Calendar, Search
-} from "lucide-react";
-import { Button, Select, Modal, Textarea, Badge, ActionIcon, Table, Menu, Pagination, TextInput, Group } from "@mantine/core";
-import { apiClient } from "@/lib/api-client";
+import { CheckCircle, Search } from "lucide-react";
+import { Button, Select, Badge, Table, Pagination, TextInput, Group } from "@mantine/core";
+
+// Import extracted modals
+import AdminCaseDetailModal from "./AdminCaseDetailModal";
+import AssignSupporterModal from "./AssignSupporterModal";
+import RejectCaseModal from "./RejectCaseModal";
+import RequestMoreInfoModal from "./RequestMoreInfoModal";
+import ApproveCaseModal from "./ApproveCaseModal";
 
 interface AdminCaseAssignmentTableProps {
   cases: any[];
   supporters: User[];
   onAssign: (caseId: string, supporterId: string) => Promise<void>;
-  isAssigning: boolean;
+  isAssigning?: boolean;
   onAccept: (caseId: string) => Promise<void>;
   onReject: (caseId: string, reason: string) => Promise<void>;
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function AdminCaseAssignmentTable({
   cases,
   supporters,
   onAssign,
-  isAssigning,
   onAccept,
   onReject,
   onRequestMoreInfo,
@@ -33,98 +33,18 @@ export default function AdminCaseAssignmentTable({
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 5;
 
-  const [loadingCaseId, setLoadingCaseId] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-
-  // Modal: Reject
-  const [rejectingCaseId, setRejectingCaseId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-
-  // Modal: Request Info
-  const [infoRequestCaseId, setInfoRequestCaseId] = useState<string | null>(null);
-  const [infoQuery, setInfoQuery] = useState("");
-
-  // Modal: Assign Supporter
-  const [assignCaseId, setAssignCaseId] = useState<string | null>(null);
-  const [assignSelectedId, setAssignSelectedId] = useState<string>("");
-
-  // Modal: View Case Detail
+  // Modal control states (store the ID of the active case for the modal)
   const [detailCaseId, setDetailCaseId] = useState<string | null>(null);
-  const [detailData, setDetailData] = useState<any | null>(null);
-  const [isFetchingDetail, setIsFetchingDetail] = useState(false);
+  const [assignCaseId, setAssignCaseId] = useState<string | null>(null);
+  const [rejectingCaseId, setRejectingCaseId] = useState<string | null>(null);
+  const [infoRequestCaseId, setInfoRequestCaseId] = useState<string | null>(null);
+  const [acceptingCaseId, setAcceptingCaseId] = useState<string | null>(null);
 
   // Search, filter, and sort state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("all");
   const [selectedCompleteness, setSelectedCompleteness] = useState("all");
   const [sortBy, setSortBy] = useState("created_at_desc");
-
-  const extractErrorMessage = (error: any) => error?.response?.data?.error || error?.message || "Đã xảy ra lỗi";
-
-  const handleViewDetails = async (caseId: string) => {
-    setActionError(null);
-    setDetailCaseId(caseId);
-    setIsFetchingDetail(true);
-    try {
-      const response = await apiClient.get(`/admin/cases/${caseId}`);
-      setDetailData(response.data);
-    } catch (e) {
-      setActionError(extractErrorMessage(e));
-    } finally {
-      setIsFetchingDetail(false);
-    }
-  };
-
-  const handleAcceptClick = async (caseId: string) => {
-    if (window.confirm("Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện?")) {
-      setLoadingCaseId(caseId);
-      setActionError(null);
-      try { await onAccept(caseId); }
-      catch (e) { setActionError(extractErrorMessage(e)); }
-      finally { setLoadingCaseId(null); }
-    }
-  };
-
-  const handleRejectSubmit = async () => {
-    if (!rejectingCaseId || rejectReason.trim().length < 10) return;
-    setLoadingCaseId(rejectingCaseId);
-    setActionError(null);
-    try {
-      await onReject(rejectingCaseId, rejectReason.trim());
-      setRejectingCaseId(null);
-      setRejectReason("");
-    } catch (e) { setActionError(extractErrorMessage(e)); }
-    finally { setLoadingCaseId(null); }
-  };
-
-  const handleInfoRequestSubmit = async () => {
-    if (!infoRequestCaseId || infoQuery.trim().length < 5) return;
-    setLoadingCaseId(infoRequestCaseId);
-    setActionError(null);
-    try {
-      await onRequestMoreInfo(infoRequestCaseId, infoQuery.trim());
-      setInfoRequestCaseId(null);
-      setInfoQuery("");
-    } catch (e) { setActionError(extractErrorMessage(e)); }
-    finally { setLoadingCaseId(null); }
-  };
-
-  const handleAssignSubmit = async () => {
-    if (!assignCaseId || !assignSelectedId) return;
-    setLoadingCaseId(assignCaseId);
-    setActionError(null);
-    try {
-      await onAssign(assignCaseId, assignSelectedId);
-      setAssignCaseId(null);
-      setAssignSelectedId("");
-    } catch (e) { setActionError(extractErrorMessage(e)); }
-    finally { setLoadingCaseId(null); }
-  };
-
-  const openAssignModal = (caseId: string) => {
-    setAssignCaseId(caseId);
-    setAssignSelectedId("");
-  };
 
   // Extract unique packages dynamically
   const uniquePackages = useMemo(() => {
@@ -210,11 +130,6 @@ export default function AdminCaseAssignmentTable({
 
   return (
     <div className="space-y-4 font-body text-xs text-text-app">
-      {actionError && (
-        <div className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-danger text-xs">
-          {actionError}
-        </div>
-      )}
       {/* Search and Filters */}
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput
@@ -283,8 +198,6 @@ export default function AdminCaseAssignmentTable({
               </Table.Tr>
             ) : (
               paginatedCases.map((item) => {
-                const isLoadingThis = loadingCaseId === item.id;
-
                 return (
                   <Table.Tr key={item.id} className="hover:bg-surface-soft/30 transition-colors">
                     <Table.Td className="font-heading font-bold text-xs">
@@ -326,15 +239,10 @@ export default function AdminCaseAssignmentTable({
                         variant="subtle"
                         size="xs"
                         color="brand"
-                        onClick={() => handleViewDetails(item.id)}
-                        disabled={isLoadingThis}
+                        onClick={() => setDetailCaseId(item.id)}
                         className="font-semibold cursor-pointer mx-auto"
                       >
-                        {isLoadingThis ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          "Xem chi tiết"
-                        )}
+                        Xem chi tiết
                       </Button>
                     </Table.Td>
                   </Table.Tr>
@@ -358,389 +266,40 @@ export default function AdminCaseAssignmentTable({
         </div>
       )}
 
-      {/* ── Assign Supporter Modal ── */}
-      <Modal
-        opened={assignCaseId !== null}
-        onClose={() => { setAssignCaseId(null); setAssignSelectedId(""); }}
-        title={
-          <div className="flex items-center gap-1.5 text-brand font-heading font-bold text-sm">
-            <UserCheck className="w-4 h-4" />
-            <span>Phân công Supporter</span>
-          </div>
-        }
-        centered
-      >
-        <div className="space-y-4 font-body">
-          <p className="text-[11px] text-text-muted">Chọn Supporter chuyên môn phụ trách đánh giá và hỗ trợ case này.</p>
-          <Select
-            label="Supporter"
-            placeholder="Chọn Supporter"
-            data={supporters.map(sup => ({ value: sup.id, label: `${sup.name} (${sup.email})` }))}
-            value={assignSelectedId}
-            onChange={(val) => setAssignSelectedId(val || "")}
-            disabled={isAssigning}
-            radius="md"
-            comboboxProps={{ withinPortal: false }}
-          />
-          <div className="flex gap-3 pt-4 border-t border-border-app">
-            <Button
-              onClick={() => { setAssignCaseId(null); setAssignSelectedId(""); }}
-              variant="default"
-              className="flex-1"
-            >
-              Hủy
-            </Button>
-            <Button
-              onClick={handleAssignSubmit}
-              disabled={!assignSelectedId || isAssigning}
-              color="brand"
-              leftSection={isAssigning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserCheck className="w-3.5 h-3.5" />}
-              className="flex-1"
-            >
-              Xác nhận Phân công
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      {/* ── Render Extracted Modals ── */}
+      <AdminCaseDetailModal
+        caseId={detailCaseId}
+        onClose={() => setDetailCaseId(null)}
+        onReject={(id) => { setRejectingCaseId(id); setDetailCaseId(null); }}
+        onRequestMoreInfo={(id) => { setInfoRequestCaseId(id); setDetailCaseId(null); }}
+        onApprove={(id) => { setAcceptingCaseId(id); setDetailCaseId(null); }}
+        onAssign={(id) => { setAssignCaseId(id); setDetailCaseId(null); }}
+      />
 
-      {/* ── Reject Modal ── */}
-      <Modal
-        opened={rejectingCaseId !== null}
+      <AssignSupporterModal
+        caseId={assignCaseId}
+        onClose={() => setAssignCaseId(null)}
+        supporters={supporters}
+        onAssign={onAssign}
+      />
+
+      <RejectCaseModal
+        caseId={rejectingCaseId}
         onClose={() => setRejectingCaseId(null)}
-        title={
-          <div className="flex items-center gap-1.5 text-danger font-heading font-bold text-sm">
-            <XCircle className="w-4 h-4" />
-            <span>Từ chối hồ sơ phản biện</span>
-          </div>
-        }
-        centered
-      >
-        <div className="space-y-4 font-body">
-          <Textarea
-            label="Lý do từ chối (Bắt buộc, tối thiểu 10 ký tự)"
-            placeholder="Nhập lý do chi tiết từ chối hồ sơ..."
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            minRows={3}
-            autosize
-            variant="default"
-            radius="md"
-          />
-          <div className="flex gap-3 pt-4 border-t border-border-app">
-            <Button
-              onClick={() => setRejectingCaseId(null)}
-              variant="default"
-              className="flex-1"
-            >
-              Hủy
-            </Button>
-            <Button
-              onClick={handleRejectSubmit}
-              disabled={rejectReason.length < 10}
-              color="red"
-              className="flex-1"
-            >
-              Xác nhận Từ chối
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onReject={onReject}
+      />
 
-      {/* ── Request More Info Modal ── */}
-      <Modal
-        opened={infoRequestCaseId !== null}
+      <RequestMoreInfoModal
+        caseId={infoRequestCaseId}
         onClose={() => setInfoRequestCaseId(null)}
-        title={
-          <div className="flex items-center gap-1.5 text-warning font-heading font-bold text-sm">
-            <Info className="w-4 h-4" />
-            <span>Yêu cầu bổ sung thông tin</span>
-          </div>
-        }
-        centered
-      >
-        <div className="space-y-4 font-body">
-          <Textarea
-            label="Yêu cầu làm rõ (Bắt buộc, tối thiểu 5 ký tự)"
-            placeholder="Ví dụ: Link Drive không chia sẻ công khai. Vui lòng cấp quyền xem cho nhóm..."
-            value={infoQuery}
-            onChange={(e) => setInfoQuery(e.target.value)}
-            minRows={3}
-            autosize
-            variant="default"
-            radius="md"
-          />
-          <div className="flex gap-3 pt-4 border-t border-border-app">
-            <Button
-              onClick={() => setInfoRequestCaseId(null)}
-              variant="default"
-              className="flex-1"
-            >
-              Hủy
-            </Button>
-            <Button
-              onClick={handleInfoRequestSubmit}
-              disabled={infoQuery.length < 5}
-              color="brand"
-              className="flex-1"
-            >
-              Gửi yêu cầu
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onRequestMoreInfo={onRequestMoreInfo}
+      />
 
-      {/* ── Case Detail Modal ── */}
-      <Modal
-        opened={detailCaseId !== null}
-        onClose={() => { setDetailCaseId(null); setDetailData(null); }}
-        title={
-          <span className="font-heading font-bold text-base text-text-app">
-            Chi tiết dự án: {detailData?.case?.case_code || (isFetchingDetail ? "Đang tải..." : "")}
-          </span>
-        }
-        size="lg"
-        centered
-      >
-        <div className="space-y-6 font-body text-sm text-text-app max-h-[70vh] overflow-y-auto pr-1">
-          {isFetchingDetail ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3 text-text-muted">
-              <Loader2 className="w-8 h-8 animate-spin text-brand" />
-              <p className="text-xs">Đang tải thông tin chi tiết dự án...</p>
-            </div>
-          ) : !detailData ? (
-            <div className="text-center py-12 text-danger font-semibold text-xs">
-              Không thể tải chi tiết dự án. Vui lòng thử lại sau.
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Section 1: General Info */}
-              <div>
-                <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                  Thông tin chung
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Tên nhóm / Dự án</span>
-                    <p className="font-bold text-sm text-text-app">{detailData.case.team_name || "Chưa đặt tên"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Gói dịch vụ</span>
-                    <p className="font-bold text-sm text-brand">{detailData.case.package?.name || "N/A"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Trường học</span>
-                    <p className="font-semibold text-sm text-text-app">{detailData.case.school || "N/A"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Bối cảnh môn học</span>
-                    <p className="font-semibold text-sm text-text-app">{detailData.case.course_context || "N/A"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Ngày tạo</span>
-                    <p className="text-sm font-medium text-text-app">
-                      {new Date(detailData.case.created_at).toLocaleDateString("vi-VN")}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Trạng thái nội bộ</span>
-                    <div className="pt-0.5">
-                      <Badge
-                        color={
-                          detailData.case.internal_status === "triage_pending"
-                            ? "gray"
-                            : detailData.case.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
-                        }
-                        variant="light"
-                        size="sm"
-                      >
-                        {detailData.case.internal_status === "triage_pending"
-                          ? "Chờ Triage"
-                          : detailData.case.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 2: Contact Info */}
-              {detailData.intake_snapshot?.contact && (
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                    Người liên hệ chính (Đại diện nhóm)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Họ tên</span>
-                      <p className="font-bold text-sm text-text-app">{detailData.intake_snapshot.contact.full_name || "N/A"}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Mã sinh viên</span>
-                      <p className="font-semibold text-sm text-text-app">{detailData.intake_snapshot.contact.student_code || "N/A"}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Email</span>
-                      <p className="text-sm font-medium text-text-app">{detailData.intake_snapshot.contact.email || "N/A"}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Zalo / Telegram</span>
-                      <p className="text-sm font-medium text-text-app">
-                        Zalo: {detailData.intake_snapshot.contact.zalo || "N/A"}
-                        {detailData.intake_snapshot.contact.telegram && (
-                          <span className="text-text-muted"> | Telegram: {detailData.intake_snapshot.contact.telegram}</span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="space-y-1 md:col-span-2">
-                      <span className="text-xs text-text-subtle font-medium">Vai trò trong nhóm</span>
-                      <p className="text-sm text-text-app">{detailData.intake_snapshot.contact.team_role || "N/A"}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Section 3: Idea and Support Needs */}
-              <div>
-                <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                  Ý tưởng &amp; Nhu cầu hỗ trợ
-                </h4>
-                <div className="space-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
-                  {detailData.intake_snapshot?.case_summary && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Tóm tắt ý tưởng đề tài</span>
-                      <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
-                        {detailData.intake_snapshot.case_summary}
-                      </p>
-                    </div>
-                  )}
-
-                  {detailData.intake_snapshot?.support_needs?.primary_need && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Nhu cầu hỗ trợ chính</span>
-                      <p className="text-sm font-medium text-text-app">
-                        {detailData.intake_snapshot.support_needs.primary_need}
-                      </p>
-                    </div>
-                  )}
-
-                  {detailData.intake_snapshot?.expected_outputs && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Kỳ vọng đầu ra</span>
-                      <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
-                        {detailData.intake_snapshot.expected_outputs}
-                      </p>
-                    </div>
-                  )}
-
-                  {detailData.intake_snapshot?.support_needs?.extra_notes && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Ghi chú thêm cho Supporter</span>
-                      <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
-                        {detailData.intake_snapshot.support_needs.extra_notes}
-                      </p>
-                    </div>
-                  )}
-
-                  {detailData.intake_snapshot?.lecturer_feedback && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-text-subtle font-medium">Góp ý từ giảng viên (nếu có)</span>
-                      <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
-                        {detailData.intake_snapshot.lecturer_feedback}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Section 4: Documents */}
-              {detailData.intake_snapshot?.documents && detailData.intake_snapshot.documents.length > 0 && (
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                    Tài liệu đính kèm
-                  </h4>
-                  <div className="bg-surface-app p-5 rounded-xl border border-border-app shadow-sm divide-y divide-border-app/40">
-                    {detailData.intake_snapshot.documents.map((doc: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center py-3 first:pt-0 last:pb-0 gap-4">
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                          <p className="font-bold text-sm text-text-app truncate">
-                            {doc.document_type || "Tài liệu đính kèm"}
-                          </p>
-                          {doc.role_description && (
-                            <p className="text-xs text-text-muted">{doc.role_description}</p>
-                          )}
-                        </div>
-                        {doc.drive_url && (
-                          <a
-                            href={doc.drive_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 font-semibold text-sm text-brand hover:underline shrink-0"
-                          >
-                            <span>Mở Google Drive</span>
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <div className="flex justify-between items-center pt-4 border-t border-border-app gap-3">
-            <Button
-              onClick={() => { setDetailCaseId(null); setDetailData(null); }}
-              variant="default"
-            >
-              Đóng
-            </Button>
-
-            <div className="flex gap-2">
-              {detailData?.case?.internal_status === "triage_pending" && (
-                <>
-                  <Button
-                    onClick={() => { if (detailData) { setInfoRequestCaseId(detailData.case.id); setDetailCaseId(null); } }}
-                    variant="outline"
-                    color="yellow"
-                    className="font-semibold cursor-pointer"
-                  >
-                    Yêu cầu làm rõ
-                  </Button>
-                  <Button
-                    onClick={() => { if (detailData) { setRejectingCaseId(detailData.case.id); setDetailCaseId(null); } }}
-                    variant="outline"
-                    color="red"
-                    className="font-semibold cursor-pointer"
-                  >
-                    Từ chối
-                  </Button>
-                  <Button
-                    onClick={() => { if (detailData) { handleAcceptClick(detailData.case.id); setDetailCaseId(null); } }}
-                    color="green"
-                    className="font-semibold cursor-pointer"
-                  >
-                    Duyệt hồ sơ
-                  </Button>
-                </>
-              )}
-
-              {detailData?.case && (detailData.case.internal_status === "accepted_unassigned" || detailData.case.internal_status === "assigned") && (
-                <Button
-                  onClick={() => { if (detailData) { openAssignModal(detailData.case.id); setDetailCaseId(null); } }}
-                  color="brand"
-                  className="font-semibold cursor-pointer"
-                >
-                  {detailData.case.internal_status === "assigned" ? "Phân công lại" : "Phân công Supporter"}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </Modal>
+      <ApproveCaseModal
+        caseId={acceptingCaseId}
+        onClose={() => setAcceptingCaseId(null)}
+        onApprove={onAccept}
+      />
     </div>
   );
 }
