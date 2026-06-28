@@ -91,39 +91,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           <Link href={getHomeLink()} className="flex items-center">
             <Logo height={52} />
           </Link>
- 
-          <div className="hidden sm:flex gap-4">
-            {user?.role === "admin" && (
-              <Link
-                href="/admin"
-                className={`font-body text-sm font-medium ${
-                  pathname.startsWith("/admin") ? "text-brand font-semibold" : "text-text-muted hover:text-brand"
-                }`}
-              >
-                Admin Panel
-              </Link>
-            )}
-            {user?.role === "supporter" && (
-              <Link
-                href="/supporter"
-                className={`font-body text-sm font-medium ${
-                  pathname.startsWith("/supporter") ? "text-brand font-semibold" : "text-text-muted hover:text-brand"
-                }`}
-              >
-                Supporter Dashboard
-              </Link>
-            )}
-            {user?.role !== "admin" && user?.role !== "supporter" && (
-              <Link
-                href="/dashboard"
-                className={`font-body text-sm font-medium ${
-                  pathname === "/dashboard" ? "text-brand font-semibold" : "text-text-muted hover:text-brand"
-                }`}
-              >
-                Dự án của tôi
-              </Link>
-            )}
-          </div>
         </div>
  
         <div className="flex items-center gap-4">
@@ -132,8 +99,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           {/* User Menu */}
           {!isPending && user && (
             <div className="flex items-center gap-3">
-              {getRoleBadge(user.role)}
-              <Menu shadow="md" width={200} position="bottom-end">
+              <Menu shadow="md" width={240} position="bottom-end">
                 <Menu.Target>
                   <div className="cursor-pointer">
                     <Avatar
@@ -147,16 +113,29 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                   </div>
                 </Menu.Target>
                 <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
-                  <div className="px-3 py-2 border-b border-border-app mb-1">
-                    <p className="font-semibold font-body text-sm text-text-app">{user.name || "User"}</p>
+                  <div className="px-3 py-2 border-b border-border-app mb-1 flex flex-col gap-1.5">
+                    <p className="font-semibold font-body text-sm text-text-app truncate">{user.name || "User"}</p>
                     <p className="font-semibold text-text-muted font-body text-xs truncate">{user.email}</p>
+                    <div className="flex mt-0.5">
+                      {getRoleBadge(user.role)}
+                    </div>
                   </div>
                   <Menu.Item
-                    leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
+                    leftSection={
+                      user.role === "admin" ? (
+                        <Shield className="w-4 h-4 text-text-muted" />
+                      ) : (
+                        <LayoutDashboard className="w-4 h-4 text-text-muted" />
+                      )
+                    }
                     onClick={() => router.push(getHomeLink())}
                     className="text-text-app hover:bg-surface-soft cursor-pointer"
                   >
-                    Dashboard
+                    {user.role === "admin"
+                      ? "Admin Panel"
+                      : user.role === "supporter"
+                      ? "Supporter Dashboard"
+                      : "Dự án của tôi"}
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<LogOut className="w-4 h-4" />}

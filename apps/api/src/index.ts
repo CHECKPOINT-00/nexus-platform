@@ -12,6 +12,8 @@ import { packagesRouter } from './modules/packages/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
 import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
+import { prisma } from './db.js'
+
 
 const app = new Hono()
 const port = Number(process.env.PORT ?? 8000)
@@ -33,9 +35,35 @@ app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
 
-app.get('/health', (c) => {
-  return c.json({ ok: true })
+app.get('/health', async (c) => {
+  let dbStatus = 'unknown'
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    dbStatus = 'connected'
+  } catch (error) {
+    dbStatus = 'disconnected'
+  }
+
+  const isHealthy = dbStatus === 'connected'
+
+  const healthData = {
+    status: isHealthy ? 'ok' : 'error',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV ?? 'development',
+    checks: {
+      database: dbStatus,
+    },
+    memory: {
+      heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`,
+      rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
+    }
+  }
+
+  return c.json(healthData, isHealthy ? 200 : 503)
 })
+
 
 app.get('/stream', (c) => {
   return streamText(c, async (stream) => {

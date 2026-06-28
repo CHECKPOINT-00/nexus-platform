@@ -26,10 +26,22 @@ export function GoogleButton(props: any) {
     <Button
       leftSection={
         <svg viewBox="0 0 48 48" width="16" height="16">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.5 24c0-1.61-.15-3.16-.42-4.69H24v8.89h12.66c-.55 2.92-2.2 5.39-4.69 7.06l7.29 5.65C43.62 36.2 46.5 30.65 46.5 24z"/>
-          <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.29-5.65c-2.03 1.37-4.63 2.19-8.6 2.19-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path
+            fill="#EA4335"
+            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+          />
+          <path
+            fill="#4285F4"
+            d="M46.5 24c0-1.61-.15-3.16-.42-4.69H24v8.89h12.66c-.55 2.92-2.2 5.39-4.69 7.06l7.29 5.65C43.62 36.2 46.5 30.65 46.5 24z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"
+          />
+          <path
+            fill="#34A853"
+            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.29-5.65c-2.03 1.37-4.63 2.19-8.6 2.19-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+          />
         </svg>
       }
       variant="default"
@@ -40,11 +52,13 @@ export function GoogleButton(props: any) {
   );
 }
 
+// Cấu hình bật/tắt tính năng đăng nhập Google bằng hằng số
+const ENABLE_GOOGLE_LOGIN = true; // Thay đổi thành true để kích hoạt đăng nhập Google
 
 export default function AuthPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +68,7 @@ export default function AuthPanel() {
     setAuthError(null);
     setIsLoading(true);
     const packageId = searchParams.get("packageId");
-    const callbackUrl = packageId 
+    const callbackUrl = packageId
       ? `/dashboard/intake?packageId=${packageId}`
       : "/dashboard";
 
@@ -71,9 +85,11 @@ export default function AuthPanel() {
           },
           onError: (ctx) => {
             setIsLoading(false);
-            setAuthError(ctx.error.message || "Đăng nhập nhanh không thành công.");
+            setAuthError(
+              ctx.error.message || "Đăng nhập nhanh không thành công.",
+            );
           },
-        }
+        },
       );
     } catch (err) {
       setIsLoading(false);
@@ -81,12 +97,39 @@ export default function AuthPanel() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    notifications.show({
-      title: "Tính năng đang phát triển",
-      message: "Đăng nhập bằng Google hiện đang được phát triển và sẽ sớm ra mắt.",
-      color: "blue",
-    });
+  const handleGoogleSignIn = async () => {
+    if (!ENABLE_GOOGLE_LOGIN) {
+      notifications.show({
+        title: "Tính năng đang phát triển",
+        message:
+          "Đăng nhập bằng Google hiện đang được phát triển và sẽ sớm ra mắt.",
+        color: "blue",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setAuthError(null);
+
+    const packageId = searchParams.get("packageId");
+    const callbackUrl = packageId
+      ? `${window.location.origin}/dashboard/intake?packageId=${packageId}`
+      : `${window.location.origin}/dashboard`;
+
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: callbackUrl,
+      });
+    } catch (err) {
+      setIsLoading(false);
+      notifications.show({
+        title: "Lỗi đăng nhập",
+        message:
+          "Không thể khởi tạo đăng nhập bằng Google. Vui lòng thử lại sau.",
+        color: "red",
+      });
+    }
   };
 
   // Read initial tab and package ID from URL search parameters
@@ -113,7 +156,7 @@ export default function AuthPanel() {
       setIsLoading(true);
 
       const packageId = searchParams.get("packageId");
-      const callbackUrl = packageId 
+      const callbackUrl = packageId
         ? `/dashboard/intake?packageId=${packageId}`
         : "/dashboard";
 
@@ -131,9 +174,12 @@ export default function AuthPanel() {
               },
               onError: (ctx) => {
                 setIsLoading(false);
-                setAuthError(ctx.error.message || "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.");
+                setAuthError(
+                  ctx.error.message ||
+                    "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.",
+                );
               },
-            }
+            },
           );
         } else {
           if (value.password !== value.confirmPassword) {
@@ -161,9 +207,12 @@ export default function AuthPanel() {
               },
               onError: (ctx) => {
                 setIsLoading(false);
-                setAuthError(ctx.error.message || "Đăng ký không thành công. Email có thể đã tồn tại.");
+                setAuthError(
+                  ctx.error.message ||
+                    "Đăng ký không thành công. Email có thể đã tồn tại.",
+                );
               },
-            }
+            },
           );
         }
       } catch (err) {
@@ -175,8 +224,6 @@ export default function AuthPanel() {
 
   return (
     <div className="w-full font-body text-xs text-text-app space-y-6">
-
-
       {/* Social Provider: Google Only */}
       <Group grow mb="md">
         <GoogleButton onClick={handleGoogleSignIn}>Google</GoogleButton>
@@ -211,7 +258,8 @@ export default function AuthPanel() {
             <form.Field
               name="name"
               validators={{
-                onChange: ({ value }) => !value ? "Họ và tên là bắt buộc" : undefined,
+                onChange: ({ value }) =>
+                  !value ? "Họ và tên là bắt buộc" : undefined,
               }}
               children={(field) => (
                 <TextInput
@@ -223,7 +271,11 @@ export default function AuthPanel() {
                   label="Họ và tên"
                   placeholder="Nguyễn Văn A"
                   leftSection={<User className="w-4 h-4 text-text-subtle" />}
-                  error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                  error={
+                    field.state.meta.errors.length > 0
+                      ? field.state.meta.errors[0]
+                      : undefined
+                  }
                   required
                   variant="default"
                   radius="md"
@@ -238,7 +290,8 @@ export default function AuthPanel() {
             validators={{
               onChange: ({ value }) => {
                 if (!value) return "Email là bắt buộc";
-                if (!/\S+@\S+\.\S+/.test(value)) return "Email không đúng định dạng";
+                if (!/\S+@\S+\.\S+/.test(value))
+                  return "Email không đúng định dạng";
                 return undefined;
               },
             }}
@@ -253,7 +306,11 @@ export default function AuthPanel() {
                 label="Địa chỉ Email"
                 placeholder="name@example.com"
                 leftSection={<Mail className="w-4 h-4 text-text-subtle" />}
-                error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                error={
+                  field.state.meta.errors.length > 0
+                    ? field.state.meta.errors[0]
+                    : undefined
+                }
                 required
                 variant="default"
                 radius="md"
@@ -267,7 +324,8 @@ export default function AuthPanel() {
             validators={{
               onChange: ({ value }) => {
                 if (!value) return "Mật khẩu là bắt buộc";
-                if (value.length < 6) return "Mật khẩu phải chứa ít nhất 6 ký tự";
+                if (value.length < 6)
+                  return "Mật khẩu phải chứa ít nhất 6 ký tự";
                 return undefined;
               },
             }}
@@ -281,7 +339,11 @@ export default function AuthPanel() {
                 label="Mật khẩu"
                 placeholder="••••••••"
                 leftSection={<Lock className="w-4 h-4 text-text-subtle" />}
-                error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                error={
+                  field.state.meta.errors.length > 0
+                    ? field.state.meta.errors[0]
+                    : undefined
+                }
                 required
                 variant="default"
                 radius="md"
@@ -294,7 +356,8 @@ export default function AuthPanel() {
             <form.Field
               name="confirmPassword"
               validators={{
-                onChange: ({ value }) => !value ? "Xác nhận mật khẩu là bắt buộc" : undefined,
+                onChange: ({ value }) =>
+                  !value ? "Xác nhận mật khẩu là bắt buộc" : undefined,
               }}
               children={(field) => (
                 <PasswordInput
@@ -306,7 +369,11 @@ export default function AuthPanel() {
                   label="Xác nhận mật khẩu"
                   placeholder="••••••••"
                   leftSection={<Lock className="w-4 h-4 text-text-subtle" />}
-                  error={field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                  error={
+                    field.state.meta.errors.length > 0
+                      ? field.state.meta.errors[0]
+                      : undefined
+                  }
                   required
                   variant="default"
                   radius="md"
@@ -334,9 +401,15 @@ export default function AuthPanel() {
             ) : (
               <div />
             )}
-            
+
             {activeTab === "login" && (
-              <Anchor component={Link} href="/auth/forgot-password" size="xs" c="dimmed" className="font-semibold">
+              <Anchor
+                component={Link}
+                href="/auth/forgot-password"
+                size="xs"
+                c="dimmed"
+                className="font-semibold"
+              >
                 Quên mật khẩu?
               </Anchor>
             )}
@@ -385,9 +458,11 @@ export default function AuthPanel() {
           className="w-full flex items-center justify-between py-2 text-xs font-semibold font-body text-text-muted hover:text-brand transition-colors cursor-pointer"
         >
           <span>Đăng nhập nhanh (Tài khoản Test)</span>
-          <span className="text-base leading-none">{showQuickLogin ? "−" : "+"}</span>
+          <span className="text-base leading-none">
+            {showQuickLogin ? "−" : "+"}
+          </span>
         </button>
-        
+
         {showQuickLogin && (
           <div className="mt-3 grid grid-cols-3 gap-2 animate-fade-in">
             <button
@@ -396,8 +471,12 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">Student</span>
-              <span className="text-[9px] text-text-subtle mt-0.5 break-all">student@example.com</span>
+              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">
+                Student
+              </span>
+              <span className="text-[9px] text-text-subtle mt-0.5 break-all">
+                student@example.com
+              </span>
             </button>
             <button
               type="button"
@@ -405,8 +484,12 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">Supporter</span>
-              <span className="text-[9px] text-text-subtle mt-0.5 break-all">supporter@example.com</span>
+              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">
+                Supporter
+              </span>
+              <span className="text-[9px] text-text-subtle mt-0.5 break-all">
+                supporter@example.com
+              </span>
             </button>
             <button
               type="button"
@@ -414,8 +497,12 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">Admin</span>
-              <span className="text-[9px] text-text-subtle mt-0.5 break-all">admin@example.com</span>
+              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">
+                Admin
+              </span>
+              <span className="text-[9px] text-text-subtle mt-0.5 break-all">
+                admin@example.com
+              </span>
             </button>
           </div>
         )}
