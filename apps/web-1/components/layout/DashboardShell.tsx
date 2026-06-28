@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import ThemeToggler from "../ui/ThemeToggler";
+import Logo from "../ui/Logo";
 import {
   Avatar,
   Menu,
@@ -87,9 +88,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       {/* Top Navbar */}
       <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="flex items-center gap-6">
-          <Link href={getHomeLink()} className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold">N</span>
-            <span className="font-heading font-semibold text-lg hidden sm:block text-brand">Nexus</span>
+          <Link href={getHomeLink()} className="flex items-center">
+            <Logo height={52} />
           </Link>
  
           <div className="hidden sm:flex gap-4">

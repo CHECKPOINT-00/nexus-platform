@@ -17,6 +17,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import ThemeToggler from "../ui/ThemeToggler";
+import Logo from "../ui/Logo";
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -99,12 +100,9 @@ export default function AppShell({ children }: AppShellProps) {
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 font-heading font-semibold text-xl text-brand"
+              className="flex items-center"
             >
-              <span className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold">
-                N
-              </span>
-              <span>Nexus</span>
+              <Logo height={52} />
             </Link>
 
             {/* Desktop Navigation Links */}
@@ -164,13 +162,10 @@ export default function AppShell({ children }: AppShellProps) {
         title={
           <Link
             href="/"
-            className="flex items-center gap-2 font-heading font-semibold text-lg text-brand"
+            className="flex items-center"
             onClick={closeDrawer}
           >
-            <span className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white font-bold">
-              N
-            </span>
-            <span>Nexus</span>
+            <Logo height={44} />
           </Link>
         }
         hiddenFrom="md"
@@ -235,12 +230,9 @@ export default function AppShell({ children }: AppShellProps) {
           {/* Logo Centered */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-heading font-semibold text-brand text-lg"
+            className="flex items-center"
           >
-            <span className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white font-bold">
-              N
-            </span>
-            <span>Nexus Platform</span>
+            <Logo height={44} />
           </Link>
 
           {/* Centered Navigation Links */}
