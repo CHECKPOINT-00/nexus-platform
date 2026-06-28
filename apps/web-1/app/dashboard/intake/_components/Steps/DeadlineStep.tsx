@@ -2,13 +2,32 @@
 
 import React from "react";
 import { Textarea, Checkbox, Tooltip, Radio } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates";
+import { DateInput } from "@mantine/dates";
 import { HelpCircle } from "lucide-react";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 interface DeadlineStepProps {
   form: any;
   values: any;
 }
+
+// Helper to parse date string in local time to avoid timezone shifts
+const parseLocalDate = (val: any) => {
+  if (!val) return null;
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  const parsed = dayjs(val);
+  return parsed.isValid() ? parsed.toDate() : null;
+};
+
+// Parser to convert manually typed DD/MM/YYYY string to YYYY-MM-DD
+const dateParser = (input: string) => {
+  if (!input) return null;
+  const parsed = dayjs(input, "DD/MM/YYYY", true);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : null;
+};
 
 export default function DeadlineStep({ form, values }: DeadlineStepProps) {
   return (
@@ -58,10 +77,12 @@ export default function DeadlineStep({ form, values }: DeadlineStepProps) {
                 if (!value) return undefined;
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                const selectedDate = new Date(value);
-                selectedDate.setHours(0, 0, 0, 0);
-                if (selectedDate <= today) {
-                  return "Hạn nộp bài mong muốn phải sau ngày hiện tại.";
+                const selectedDate = parseLocalDate(value);
+                if (selectedDate) {
+                  selectedDate.setHours(0, 0, 0, 0);
+                  if (selectedDate <= today) {
+                    return "Hạn nộp bài mong muốn phải sau ngày hiện tại.";
+                  }
                 }
                 return undefined;
               },
@@ -69,9 +90,8 @@ export default function DeadlineStep({ form, values }: DeadlineStepProps) {
           >
             {(field: any) => {
               const hasError = !!field.state.meta.errors.length;
-              const dateVal = field.state.value ? new Date(field.state.value) : null;
               return (
-                <DatePickerInput
+                <DateInput
                   label={
                     <div className="flex items-center gap-1.5">
                       <span>Hạn nộp bài mong muốn</span>
@@ -87,18 +107,12 @@ export default function DeadlineStep({ form, values }: DeadlineStepProps) {
                       </Tooltip>
                     </div>
                   }
-                  placeholder="Chọn ngày nộp bài"
-                  value={dateVal}
+                  placeholder="dd/MM/yyyy"
+                  valueFormat="DD/MM/YYYY"
+                  dateParser={dateParser}
+                  value={field.state.value || null}
                   onChange={(val) => {
-                    const dateValObj = val as any;
-                    if (dateValObj instanceof Date) {
-                      const year = dateValObj.getFullYear();
-                      const month = String(dateValObj.getMonth() + 1).padStart(2, "0");
-                      const day = String(dateValObj.getDate()).padStart(2, "0");
-                      field.handleChange(`${year}-${month}-${day}`);
-                    } else {
-                      field.handleChange("");
-                    }
+                    field.handleChange(val || "");
                   }}
                   error={hasError ? field.state.meta.errors[0] : undefined}
                   radius="md"
