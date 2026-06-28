@@ -3,13 +3,18 @@ import { prisma } from "../../../../db.js";
 import { auth } from "../../../../auth.js";
 import fs from "fs";
 import path from "path";
-import { normalizePaymentStatus, requireCaseAccess } from "../../../../shared/infrastructure/authorization.js";
+import { isFinalPaymentStatus, normalizePaymentStatus, requireCaseAccess } from "../../../../shared/infrastructure/authorization.js";
 
 export const paymentsRouter = new Hono();
 
 // Helper to get authenticated session
 async function getSession(c: any) {
-  return await auth.api.getSession({ headers: c.req.raw.headers });
+  try {
+    return await auth.api.getSession({ headers: c.req.raw.headers });
+  } catch (error) {
+    console.error("Error in payments getSession:", error);
+    return null;
+  }
 }
 
 // 1. GET /api/payments - Get all payments (Admin only)
@@ -97,11 +102,18 @@ paymentsRouter.post("/proof", async (c) => {
     }
 
     const packageId = caseObj.package_id;
-    if (!packageId) {
+    if (!packageId || !caseObj.package) {
       return c.json({ error: "Dự án chưa có gói dịch vụ hợp lệ" }, 400);
     }
 
-    const amount = caseObj.package?.price ?? 0;
+    if (caseObj.payment_status && caseObj.payment_status !== "unpaid" && caseObj.payment_status !== "rejected") {
+      return c.json({ error: "Dự án đã có trạng thái thanh toán khác, không thể tạo minh chứng mới" }, 409);
+    }
+
+    const amount = caseObj.package.price;
+    if (amount <= 0) {
+      return c.json({ error: "Gói dịch vụ không hợp lệ để tạo minh chứng thanh toán" }, 400);
+    }
 
     // 4. Save file to disk in apps/api/uploads/
     const uploadsDir = path.join(process.cwd(), "uploads");
@@ -180,13 +192,15 @@ paymentsRouter.post("/:id/verify", async (c) => {
   }
 
   const paymentId = c.req.param("id");
-  const { status, rejection_reason } = await c.req.json();
+  const body = await c.req.json();
+  const status = typeof body.status === "string" ? body.status : "";
+  const rejection_reason = typeof body.rejection_reason === "string" ? body.rejection_reason.trim() : "";
 
   if (status !== "paid" && status !== "rejected") {
     return c.json({ error: "Trạng thái phê duyệt không hợp lệ" }, 400);
   }
 
-  if (status === "rejected" && (!rejection_reason || rejection_reason.length < 10)) {
+  if (status === "rejected" && rejection_reason.length < 10) {
     return c.json({ error: "Lý do từ chối tối thiểu phải có 10 ký tự" }, 400);
   }
 
@@ -197,6 +211,10 @@ paymentsRouter.post("/:id/verify", async (c) => {
 
     if (!payment) {
       return c.json({ error: "Không tìm thấy thông tin giao dịch" }, 404);
+    }
+
+    if (isFinalPaymentStatus(payment.status)) {
+      return c.json({ error: "Giao dịch đã ở trạng thái cuối, không thể cập nhật lại" }, 409);
     }
 
     const result = await prisma.$transaction(async (tx) => {

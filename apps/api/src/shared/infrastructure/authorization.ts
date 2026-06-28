@@ -13,6 +13,8 @@ type CaseAccessRecord = {
   id: string;
   owner_auth_user_id: string;
   assigned_supporter_auth_user_id: string | null;
+  user_facing_stage?: string;
+  internal_status?: string;
   members: Array<{ auth_user_id: string }>;
 };
 
@@ -29,7 +31,12 @@ const defaultScope: Required<CaseAccessScope> = {
 };
 
 export async function getSession(c: any): Promise<Session> {
-  return await auth.api.getSession({ headers: c.req.raw.headers });
+  try {
+    return await auth.api.getSession({ headers: c.req.raw.headers });
+  } catch (error) {
+    console.error("Error in getSession:", error);
+    return null;
+  }
 }
 
 function hasCaseAccess(
@@ -66,35 +73,42 @@ export async function requireCaseAccess(
   caseId: string,
   scope: CaseAccessScope = defaultScope,
 ) {
-  const session = await getSession(c);
-  if (!session) {
-    return { ok: false as const, response: c.json({ error: "Chưa đăng nhập" }, 401) };
-  }
+  try {
+    const session = await getSession(c);
+    if (!session) {
+      return { ok: false as const, response: c.json({ error: "Chưa đăng nhập" }, 401) };
+    }
 
-  const caseRecord = (await prisma.case.findUnique({
-    where: { id: caseId },
-    select: {
-      id: true,
-      owner_auth_user_id: true,
-      assigned_supporter_auth_user_id: true,
-      members: {
-        select: {
-          auth_user_id: true,
+    const caseRecord = (await prisma.case.findUnique({
+      where: { id: caseId },
+      select: {
+        id: true,
+        owner_auth_user_id: true,
+        assigned_supporter_auth_user_id: true,
+        user_facing_stage: true,
+        internal_status: true,
+        members: {
+          select: {
+            auth_user_id: true,
+          },
         },
       },
-    },
-  })) as CaseAccessRecord | null;
+    })) as CaseAccessRecord | null;
 
-  if (!caseRecord) {
-    return { ok: false as const, response: c.json({ error: "Không tìm thấy dự án" }, 404) };
+    if (!caseRecord) {
+      return { ok: false as const, response: c.json({ error: "Không tìm thấy dự án" }, 404) };
+    }
+
+    const mergedScope = { ...defaultScope, ...scope };
+    if (!hasCaseAccess(session, caseRecord, mergedScope)) {
+      return { ok: false as const, response: c.json({ error: "Không có quyền truy cập dự án này" }, 403) };
+    }
+
+    return { ok: true as const, session, caseRecord };
+  } catch (error: any) {
+    console.error("Error in requireCaseAccess:", error);
+    return { ok: false as const, response: c.json({ error: "Lỗi hệ thống khi xác thực quyền truy cập dự án" }, 500) };
   }
-
-  const mergedScope = { ...defaultScope, ...scope };
-  if (!hasCaseAccess(session, caseRecord, mergedScope)) {
-    return { ok: false as const, response: c.json({ error: "Không có quyền truy cập dự án này" }, 403) };
-  }
-
-  return { ok: true as const, session, caseRecord };
 }
 
 export async function requireReportCaseAccess(
@@ -102,48 +116,63 @@ export async function requireReportCaseAccess(
   reportId: string,
   scope: CaseAccessScope = defaultScope,
 ) {
-  const session = await getSession(c);
-  if (!session) {
-    return { ok: false as const, response: c.json({ error: "Chưa đăng nhập" }, 401) };
-  }
+  try {
+    const session = await getSession(c);
+    if (!session) {
+      return { ok: false as const, response: c.json({ error: "Chưa đăng nhập" }, 401) };
+    }
 
-  const report = (await prisma.report.findUnique({
-    where: { id: reportId },
-    select: {
-      id: true,
-      case_id: true,
-      case: {
-        select: {
-          id: true,
-          owner_auth_user_id: true,
-          assigned_supporter_auth_user_id: true,
-          members: {
-            select: {
-              auth_user_id: true,
+    const report = (await prisma.report.findUnique({
+      where: { id: reportId },
+      select: {
+        id: true,
+        case_id: true,
+        case: {
+          select: {
+            id: true,
+            owner_auth_user_id: true,
+            assigned_supporter_auth_user_id: true,
+            user_facing_stage: true,
+            internal_status: true,
+            members: {
+              select: {
+                auth_user_id: true,
+              },
             },
           },
         },
       },
-    },
-  })) as ReportAccessRecord | null;
+    })) as ReportAccessRecord | null;
 
-  if (!report) {
-    return { ok: false as const, response: c.json({ error: "Không tìm thấy báo cáo" }, 404) };
+    if (!report) {
+      return { ok: false as const, response: c.json({ error: "Không tìm thấy báo cáo" }, 404) };
+    }
+
+    const caseRecord = report.case;
+    if (!caseRecord) {
+      return { ok: false as const, response: c.json({ error: "Không tìm thấy dự án liên quan đến báo cáo" }, 404) };
+    }
+
+    const mergedScope = { ...defaultScope, ...scope };
+    if (!hasCaseAccess(session, caseRecord, mergedScope)) {
+      return { ok: false as const, response: c.json({ error: "Không có quyền truy cập báo cáo này" }, 403) };
+    }
+
+    return { ok: true as const, session, report, caseRecord };
+  } catch (error: any) {
+    console.error("Error in requireReportCaseAccess:", error);
+    return { ok: false as const, response: c.json({ error: "Lỗi hệ thống khi xác thực quyền truy cập báo cáo" }, 500) };
   }
-
-  const caseRecord = report.case;
-  if (!caseRecord) {
-    return { ok: false as const, response: c.json({ error: "Không tìm thấy dự án" }, 404) };
-  }
-
-  const mergedScope = { ...defaultScope, ...scope };
-  if (!hasCaseAccess(session, caseRecord, mergedScope)) {
-    return { ok: false as const, response: c.json({ error: "Không có quyền truy cập báo cáo này" }, 403) };
-  }
-
-  return { ok: true as const, session, report, caseRecord };
 }
 
 export function normalizePaymentStatus(status: string) {
   return status === "verified" ? "paid" : status;
+}
+
+export function isFinalPaymentStatus(status?: string | null) {
+  return status === "paid" || status === "verified" || status === "rejected";
+}
+
+export function isFinalCaseStage(stage?: string | null) {
+  return stage === "closed" || stage === "completed" || stage === "rejected";
 }

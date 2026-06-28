@@ -66,9 +66,13 @@ app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
 app.route('/api/supporter', supporterRouter)
 
-serve({
-  fetch: app.fetch,
-  port
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+export { app }
+
+if (process.env.NODE_ENV !== 'test') {
+  serve({
+    fetch: app.fetch,
+    port
+  }, (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`)
+  })
+}

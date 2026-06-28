@@ -1,34 +1,59 @@
 import { Hono } from "hono";
 import { prisma } from "../../../../db.js";
 import { auth } from "../../../../auth.js";
+import { isFinalCaseStage } from "../../../../shared/infrastructure/authorization.js";
 
 export const adminRouter = new Hono();
 
 // Helper to get authenticated session and verify admin role
 async function getAdminSession(c: any) {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) return null;
-  if (session.user.role !== "admin") return null;
-  return session;
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) {
+      return { ok: false as const, error: "Chưa đăng nhập", status: 401 as const };
+    }
+    if (session.user.role !== "admin") {
+      return { ok: false as const, error: "Không có quyền quản trị", status: 403 as const };
+    }
+    return { ok: true as const, session };
+  } catch (error) {
+    console.error("Error in getAdminSession:", error);
+    return { ok: false as const, error: "Chưa đăng nhập", status: 401 as const };
+  }
 }
 
 // 1. GET /api/admin/cases - List all cases with triage filter options
 adminRouter.get("/cases", async (c) => {
-  const session = await getAdminSession(c);
-  if (!session) {
-    return c.json({ error: "Không có quyền quản trị" }, 403);
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ error: authResult.error }, authResult.status);
   }
+  const session = authResult.session;
 
   try {
     const { stage, internal_status, limit } = c.req.query();
-    
-    // Build query conditions
+
     const where: any = {};
     if (stage) {
+      if (!isFinalCaseStage(stage) && !["submitted", "need_more_information", "under_review", "report_ready", "waiting_for_revision", "revision_submitted"].includes(stage)) {
+        return c.json({ error: "stage không hợp lệ" }, 400);
+      }
       where.user_facing_stage = stage;
     }
     if (internal_status) {
+      if (!["triage_pending", "accepted_unassigned", "assigned", "waiting_user", "supporter_working", "report_ready_to_publish", "done", "cancelled"].includes(internal_status)) {
+        return c.json({ error: "internal_status không hợp lệ" }, 400);
+      }
       where.internal_status = internal_status;
+    }
+
+    let take: number | undefined;
+    if (limit) {
+      const parsedLimit = Number.parseInt(limit, 10);
+      if (!Number.isInteger(parsedLimit) || parsedLimit <= 0 || parsedLimit > 100) {
+        return c.json({ error: "limit không hợp lệ" }, 400);
+      }
+      take = parsedLimit;
     }
 
     const cases = await prisma.case.findMany({
@@ -43,7 +68,7 @@ adminRouter.get("/cases", async (c) => {
         },
       },
       orderBy: { created_at: "desc" },
-      take: limit ? parseInt(limit) : undefined,
+      take,
     });
 
     // Map case completeness score
@@ -90,12 +115,16 @@ adminRouter.get("/cases", async (c) => {
 
 // 2. GET /api/admin/cases/:id - Get details of case for triage
 adminRouter.get("/cases/:id", async (c) => {
-  const session = await getAdminSession(c);
-  if (!session) {
-    return c.json({ error: "Không có quyền quản trị" }, 403);
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ error: authResult.error }, authResult.status);
   }
+  const session = authResult.session;
 
   const caseId = c.req.param("id");
+  if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
+    return c.json({ error: "ID dự án không hợp lệ" }, 400);
+  }
 
   try {
     const item = await prisma.case.findUnique({
@@ -135,17 +164,28 @@ adminRouter.get("/cases/:id", async (c) => {
 
 // 3. POST /api/admin/cases/:id/accept - Approve case, transition status
 adminRouter.post("/cases/:id/accept", async (c) => {
-  const session = await getAdminSession(c);
-  if (!session) {
-    return c.json({ error: "Không có quyền quản trị" }, 403);
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ error: authResult.error }, authResult.status);
   }
+  const session = authResult.session;
 
   const caseId = c.req.param("id");
+  if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
+    return c.json({ error: "ID dự án không hợp lệ" }, 400);
+  }
 
   try {
-    const caseItem = await prisma.case.findUnique({ where: { id: caseId } });
+    const caseItem = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { id: true, user_facing_stage: true, internal_status: true },
+    });
     if (!caseItem) {
       return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (caseItem.user_facing_stage === "under_review" && caseItem.internal_status === "accepted_unassigned") {
+      return c.json(caseItem);
     }
 
     const updatedCase = await prisma.$transaction(async (tx) => {
@@ -176,21 +216,33 @@ adminRouter.post("/cases/:id/accept", async (c) => {
 
 // 4. POST /api/admin/cases/:id/reject - Reject case with a reason
 adminRouter.post("/cases/:id/reject", async (c) => {
-  const session = await getAdminSession(c);
-  if (!session) {
-    return c.json({ error: "Không có quyền quản trị" }, 403);
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ error: authResult.error }, authResult.status);
   }
+  const session = authResult.session;
 
   const caseId = c.req.param("id");
+  if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
+    return c.json({ error: "ID dự án không hợp lệ" }, 400);
+  }
   try {
-    const { reason } = await c.req.json();
-    if (!reason || reason.trim().length < 10) {
+    const body = await c.req.json();
+    const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+    if (reason.length < 10) {
       return c.json({ error: "Lý do từ chối tối thiểu phải 10 ký tự" }, 400);
     }
 
-    const caseItem = await prisma.case.findUnique({ where: { id: caseId } });
+    const caseItem = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { id: true, user_facing_stage: true, internal_status: true },
+    });
     if (!caseItem) {
       return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (caseItem.user_facing_stage === "rejected" && caseItem.internal_status === "cancelled") {
+      return c.json(caseItem);
     }
 
     const updatedCase = await prisma.$transaction(async (tx) => {
@@ -222,21 +274,33 @@ adminRouter.post("/cases/:id/reject", async (c) => {
 
 // 5. POST /api/admin/cases/:id/request-more-info - Request more details from student
 adminRouter.post("/cases/:id/request-more-info", async (c) => {
-  const session = await getAdminSession(c);
-  if (!session) {
-    return c.json({ error: "Không có quyền quản trị" }, 403);
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ error: authResult.error }, authResult.status);
   }
+  const session = authResult.session;
 
   const caseId = c.req.param("id");
+  if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
+    return c.json({ error: "ID dự án không hợp lệ" }, 400);
+  }
   try {
-    const { query } = await c.req.json();
-    if (!query || query.trim().length < 5) {
+    const body = await c.req.json();
+    const query = typeof body.query === "string" ? body.query.trim() : "";
+    if (query.length < 5) {
       return c.json({ error: "Yêu cầu làm rõ tối thiểu phải 5 ký tự" }, 400);
     }
 
-    const caseItem = await prisma.case.findUnique({ where: { id: caseId } });
+    const caseItem = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { id: true, user_facing_stage: true, internal_status: true },
+    });
     if (!caseItem) {
       return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (caseItem.user_facing_stage === "need_more_information" && caseItem.internal_status === "waiting_user") {
+      return c.json(caseItem);
     }
 
     const updatedCase = await prisma.$transaction(async (tx) => {
@@ -268,29 +332,41 @@ adminRouter.post("/cases/:id/request-more-info", async (c) => {
 
 // 6. POST /api/admin/cases/:id/assign - Assign supporter to case
 adminRouter.post("/cases/:id/assign", async (c) => {
-  const session = await getAdminSession(c);
-  if (!session) {
-    return c.json({ error: "Không có quyền quản trị" }, 403);
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ error: authResult.error }, authResult.status);
   }
+  const session = authResult.session;
 
   const caseId = c.req.param("id");
+  if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
+    return c.json({ error: "ID dự án không hợp lệ" }, 400);
+  }
   try {
-    const { supporter_id } = await c.req.json();
+    const body = await c.req.json();
+    const supporter_id = typeof body.supporter_id === "string" ? body.supporter_id.trim() : "";
     if (!supporter_id) {
       return c.json({ error: "Thiếu ID của supporter chuyên môn" }, 400);
     }
 
-    // Verify supporter exists
     const supporterUser = await prisma.user.findUnique({
       where: { id: supporter_id },
+      select: { id: true, role: true, name: true },
     });
     if (!supporterUser || (supporterUser.role !== "supporter" && supporterUser.role !== "admin")) {
       return c.json({ error: "Supporter được gán không hợp lệ" }, 400);
     }
 
-    const caseItem = await prisma.case.findUnique({ where: { id: caseId } });
+    const caseItem = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { id: true, assigned_supporter_auth_user_id: true, internal_status: true },
+    });
     if (!caseItem) {
       return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (caseItem.assigned_supporter_auth_user_id === supporter_id) {
+      return c.json(caseItem);
     }
 
     const updatedCase = await prisma.$transaction(async (tx) => {

@@ -12,13 +12,18 @@ export interface AuthEnv {
 }
 
 export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers })
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers })
 
-  if (!session) {
+    if (!session) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    c.set('user', session.user)
+    c.set('session', session.session)
+    await next()
+  } catch (error) {
+    console.error("Middleware requireAuth error:", error);
     return c.json({ error: 'Unauthorized' }, 401)
   }
-
-  c.set('user', session.user)
-  c.set('session', session.session)
-  await next()
 })

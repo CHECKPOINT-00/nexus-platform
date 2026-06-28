@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "../../../../db.js";
 import { generateReportDraft } from "../../../../services/ai.js";
-import { requireCaseAccess, requireReportCaseAccess } from "../../../../shared/infrastructure/authorization.js";
+import { isFinalCaseStage, requireCaseAccess, requireReportCaseAccess } from "../../../../shared/infrastructure/authorization.js";
 
 export const supporterRouter = new Hono();
 
@@ -19,6 +19,24 @@ supporterRouter.post("/cases/:caseId/reports/draft", async (c) => {
   }
 
   try {
+    const caseRecord = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: {
+        id: true,
+        user_facing_stage: true,
+        internal_status: true,
+        assigned_supporter_auth_user_id: true,
+      },
+    });
+
+    if (!caseRecord) {
+      return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (isFinalCaseStage(caseRecord.user_facing_stage)) {
+      return c.json({ error: "Dự án đã ở trạng thái cuối, không thể tạo bản nháp mới" }, 409);
+    }
+
     const latestUnit = await prisma.lifecycleUnit.findFirst({
       where: {
         case_id: caseId,
@@ -38,19 +56,26 @@ supporterRouter.post("/cases/:caseId/reports/draft", async (c) => {
       return c.json({ error: "Dữ liệu intake bị lỗi định dạng JSON" }, 400);
     }
 
-    const aiOutput = await generateReportDraft(rawData);
+    let aiOutput;
+    try {
+      aiOutput = await generateReportDraft(rawData);
+    } catch (aiError: any) {
+      console.error("AI Generation failed:", aiError);
+      return c.json({ error: "Dịch vụ AI phản biện gặp sự cố, vui lòng thử lại sau" }, 502);
+    }
     const contentMd = JSON.stringify(aiOutput);
 
-    const existingDraft = await prisma.report.findFirst({
-      where: {
-        case_id: caseId,
-        status: "draft",
-      },
-      orderBy: { updated_at: "desc" },
-    });
+    const report = await prisma.$transaction(async (tx) => {
+      const existingDraft = await tx.report.findFirst({
+        where: {
+          case_id: caseId,
+          status: "draft",
+        },
+        orderBy: { updated_at: "desc" },
+      });
 
-    const report = existingDraft
-      ? await prisma.report.update({
+      if (existingDraft) {
+        return await tx.report.update({
           where: { id: existingDraft.id },
           data: {
             checkpoint_id: latestUnit.checkpoint_id,
@@ -59,8 +84,9 @@ supporterRouter.post("/cases/:caseId/reports/draft", async (c) => {
             content_md: contentMd,
             created_by: access.session.user.id,
           },
-        })
-      : await prisma.report.create({
+        });
+      } else {
+        return await tx.report.create({
           data: {
             case_id: caseId,
             checkpoint_id: latestUnit.checkpoint_id,
@@ -71,8 +97,10 @@ supporterRouter.post("/cases/:caseId/reports/draft", async (c) => {
             created_by: access.session.user.id,
           },
         });
+      }
+    });
 
-    return c.json(report, existingDraft ? 200 : 201);
+    return c.json(report, 201);
   } catch (error: any) {
     return c.json({ error: error.message }, 500);
   }
@@ -120,8 +148,22 @@ supporterRouter.put("/reports/:reportId", async (c) => {
   }
 
   try {
-    const { contentMd } = await c.req.json();
-    if (typeof contentMd !== "string" || !contentMd.trim()) {
+    const report = await prisma.report.findUnique({
+      where: { id: reportId },
+      select: { status: true },
+    });
+
+    if (!report) {
+      return c.json({ error: "Không tìm thấy báo cáo" }, 404);
+    }
+
+    if (report.status !== "draft") {
+      return c.json({ error: "Báo cáo đã được xuất bản hoặc đã chốt trạng thái, không thể chỉnh sửa" }, 409);
+    }
+
+    const body = await c.req.json();
+    const contentMd = typeof body.contentMd === "string" ? body.contentMd.trim() : "";
+    if (!contentMd) {
       return c.json({ error: "Nội dung báo cáo không được để trống" }, 400);
     }
 
@@ -154,10 +196,23 @@ supporterRouter.post("/reports/:reportId/publish", async (c) => {
   try {
     const report = await prisma.report.findUnique({
       where: { id: reportId },
+      include: {
+        case: {
+          select: {
+            id: true,
+            user_facing_stage: true,
+            internal_status: true,
+          },
+        },
+      },
     });
 
     if (!report) {
       return c.json({ error: "Không tìm thấy báo cáo" }, 404);
+    }
+
+    if (report.status !== "draft") {
+      return c.json({ error: "Báo cáo đã được xuất bản hoặc đã chốt trạng thái" }, 409);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -202,10 +257,31 @@ supporterRouter.post("/cases/:caseId/request-more-info", async (c) => {
 
   try {
     const body = await c.req.json();
-    const query = typeof body.query === "string" ? body.query : "";
+    const query = typeof body.query === "string" ? body.query.trim() : "";
 
-    if (!query.trim()) {
+    if (!query) {
       return c.json({ error: "Thiếu nội dung yêu cầu bổ sung" }, 400);
+    }
+
+    const currentCase = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: {
+        id: true,
+        user_facing_stage: true,
+        internal_status: true,
+      },
+    });
+
+    if (!currentCase) {
+      return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (isFinalCaseStage(currentCase.user_facing_stage)) {
+      return c.json({ error: "Dự án đã ở trạng thái cuối, không thể yêu cầu bổ sung thông tin" }, 400);
+    }
+
+    if (currentCase.user_facing_stage === "need_more_information" && currentCase.internal_status === "waiting_user") {
+      return c.json(currentCase);
     }
 
     const updatedCase = await prisma.case.update({
@@ -245,6 +321,23 @@ supporterRouter.post("/cases/:caseId/close", async (c) => {
   }
 
   try {
+    const currentCase = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: {
+        id: true,
+        user_facing_stage: true,
+        internal_status: true,
+      },
+    });
+
+    if (!currentCase) {
+      return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (currentCase.user_facing_stage === "closed" && currentCase.internal_status === "done") {
+      return c.json(currentCase);
+    }
+
     const updatedCase = await prisma.case.update({
       where: { id: caseId },
       data: {

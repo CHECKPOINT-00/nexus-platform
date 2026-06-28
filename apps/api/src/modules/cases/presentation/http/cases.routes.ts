@@ -1,14 +1,55 @@
 import { Hono } from "hono";
 import { prisma } from "../../../../db.js";
 import { auth } from "../../../../auth.js";
-import { requireCaseAccess } from "../../../../shared/infrastructure/authorization.js";
+import { requireCaseAccess, isFinalCaseStage } from "../../../../shared/infrastructure/authorization.js";
 
 export const casesRouter = new Hono();
 
 // Helper to get authenticated session
 async function getSession(c: any) {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  return session;
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    return session;
+  } catch (error) {
+    console.error("Error in cases getSession:", error);
+    return null;
+  }
+}
+
+async function readJsonBody(c: any) {
+  try {
+    return await c.req.json();
+  } catch {
+    return null;
+  }
+}
+
+function asNonEmptyString(value: unknown, min = 1) {
+  return typeof value === "string" && value.trim().length >= min ? value.trim() : "";
+}
+
+function isValidCaseStage(stage: unknown) {
+  return typeof stage === "string" && ["submitted", "need_more_information", "under_review", "report_ready", "waiting_for_revision", "revision_submitted", "completed", "rejected", "closed"].includes(stage);
+}
+
+function isValidInternalStatus(status: unknown) {
+  return typeof status === "string" && ["triage_pending", "accepted_unassigned", "assigned", "waiting_user", "supporter_working", "report_ready_to_publish", "done", "cancelled"].includes(status);
+}
+
+function isValidStageTransition(from: string, to: string): boolean {
+  if (from === to) return true;
+  if (isFinalCaseStage(from)) return false;
+  
+  const allowed: Record<string, string[]> = {
+    submitted: ["need_more_information", "under_review", "rejected", "closed"],
+    need_more_information: ["revision_submitted", "closed"],
+    under_review: ["report_ready", "need_more_information", "closed"],
+    report_ready: ["waiting_for_revision", "completed", "closed"],
+    waiting_for_revision: ["revision_submitted", "closed"],
+    revision_submitted: ["under_review", "need_more_information", "closed"],
+  };
+  
+  return allowed[from]?.includes(to) ?? false;
 }
 
 // 1. GET /api/cases - List cases based on role
@@ -139,7 +180,10 @@ casesRouter.post("/", async (c) => {
   }
 
   try {
-    const body = await c.req.json();
+    const body = await readJsonBody(c);
+    if (!body) {
+      return c.json({ error: "Dữ liệu JSON không hợp lệ" }, 400);
+    }
     const validationErrors = validateCp1Intake(body);
     if (validationErrors.length > 0) {
       return c.json({ error: "Dữ liệu không hợp lệ", details: validationErrors }, 400);
@@ -151,8 +195,13 @@ casesRouter.post("/", async (c) => {
       team_context,
     } = body;
 
-    if (!package_id) {
+    if (!asNonEmptyString(package_id)) {
       return c.json({ error: "Thiếu gói dịch vụ (package_id)" }, 400);
+    }
+
+    const parsedDeadline = deadline ? new Date(deadline) : null;
+    if (deadline && Number.isNaN(parsedDeadline?.getTime())) {
+      return c.json({ error: "Deadline không hợp lệ" }, 400);
     }
 
     // Generate random unique case code: NX-XXXXXX
@@ -198,7 +247,7 @@ casesRouter.post("/", async (c) => {
           course_context,
           group_no,
           package_id,
-          deadline: deadline ? new Date(deadline) : null,
+          deadline: parsedDeadline,
           user_facing_stage: "submitted",
           internal_status: "triage_pending",
           payment_status: isFree ? "paid" : "unpaid",
@@ -445,21 +494,36 @@ casesRouter.post("/:id/revisions", async (c) => {
       return c.json({ error: "Không có quyền nộp sửa đổi cho dự án này" }, 403);
     }
 
-    // Ensure status allows revision
+    // Ensure status allows revision and is not final
+    if (isFinalCaseStage(caseDetails.user_facing_stage)) {
+      return c.json({ error: "Dự án đã ở trạng thái cuối, không thể nộp bản sửa đổi" }, 400);
+    }
+
     const validStages = ["report_ready", "waiting_for_revision", "need_more_information"];
     if (!validStages.includes(caseDetails.user_facing_stage)) {
       return c.json({ error: "Trạng thái hiện tại của dự án không cho phép nộp bản sửa đổi" }, 400);
     }
 
-    const body = await c.req.json();
+    const body = await readJsonBody(c);
+    if (!body) {
+      return c.json({ error: "Dữ liệu JSON không hợp lệ" }, 400);
+    }
+
     const { change_summary, documents, remaining_blockers } = body;
 
-    if (!change_summary || change_summary.trim().length < 10) {
+    if (typeof change_summary !== "string" || change_summary.trim().length < 10) {
       return c.json({ error: "Tóm tắt thay đổi tối thiểu phải 10 ký tự" }, 400);
     }
 
     if (!Array.isArray(documents) || documents.length === 0) {
       return c.json({ error: "Phải đính kèm ít nhất một tài liệu sửa đổi" }, 400);
+    }
+
+    for (const doc of documents) {
+      const driveUrl = doc?.drive_url || doc?.file_url;
+      if (typeof driveUrl !== "string" || !driveUrl.trim()) {
+        return c.json({ error: "Tài liệu sửa đổi đính kèm phải có đường dẫn hợp lệ" }, 400);
+      }
     }
 
     const checkpoint = caseDetails.checkpoints[0];
@@ -522,29 +586,76 @@ casesRouter.post("/:id/revisions", async (c) => {
 // 4. POST /api/cases/:id/assign - Assign supporter (Admin only)
 casesRouter.post("/:id/assign", async (c) => {
   const session = await getSession(c);
-  if (!session || session.user.role !== "admin") {
+  if (!session) {
+    return c.json({ error: "Chưa đăng nhập" }, 401);
+  }
+  if (session.user.role !== "admin") {
     return c.json({ error: "Không có quyền quản trị" }, 403);
   }
 
   const caseId = c.req.param("id");
-  const { supporter_id } = await c.req.json();
 
   try {
-    const updatedCase = await prisma.case.update({
+    const existingCase = await prisma.case.findUnique({
       where: { id: caseId },
-      data: {
-        assigned_supporter_auth_user_id: supporter_id || null,
-        internal_status: supporter_id ? "assigned" : "unassigned",
+      select: {
+        id: true,
+        assigned_supporter_auth_user_id: true,
+        internal_status: true,
+        user_facing_stage: true,
       },
     });
 
-    // Create log event
+    if (!existingCase) {
+      return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (isFinalCaseStage(existingCase.user_facing_stage)) {
+      return c.json({ error: "Dự án đã ở trạng thái cuối, không thể gán supporter" }, 400);
+    }
+
+    const body = await readJsonBody(c);
+    if (!body) {
+      return c.json({ error: "Dữ liệu JSON không hợp lệ" }, 400);
+    }
+
+    const supporterId = typeof body.supporter_id === "string" ? body.supporter_id.trim() : "";
+    const unassign = supporterId.length === 0;
+
+    if (!unassign) {
+      const supporterUser = await prisma.user.findUnique({
+        where: { id: supporterId },
+        select: { id: true, role: true, name: true },
+      });
+
+      if (!supporterUser || (supporterUser.role !== "supporter" && supporterUser.role !== "admin")) {
+        return c.json({ error: "Supporter được gán không hợp lệ" }, 400);
+      }
+    }
+
+    const nextSupporterId = unassign ? null : supporterId;
+    if (existingCase.assigned_supporter_auth_user_id === nextSupporterId) {
+      return c.json({
+        id: existingCase.id,
+        assigned_supporter_auth_user_id: existingCase.assigned_supporter_auth_user_id,
+        internal_status: existingCase.internal_status,
+      });
+    }
+
+    const updatedCase = await prisma.case.update({
+      where: { id: caseId },
+      data: {
+        assigned_supporter_auth_user_id: nextSupporterId,
+        internal_status: nextSupporterId ? "assigned" : "accepted_unassigned",
+      },
+    });
+
     await prisma.caseEvent.create({
       data: {
         case_id: caseId,
         event_type: "supporter_assigned",
         actor_auth_user_id: session.user.id,
-        metadata_json: { supporter_id },
+        metadata_json: { supporter_id: nextSupporterId },
       },
     });
 
@@ -557,37 +668,81 @@ casesRouter.post("/:id/assign", async (c) => {
 // 5. POST /api/cases/:id/status - Update stage/status (Admin/Supporter only)
 casesRouter.post("/:id/status", async (c) => {
   const session = await getSession(c);
-  if (!session || (session.user.role !== "admin" && session.user.role !== "supporter")) {
+  if (!session) {
+    return c.json({ error: "Chưa đăng nhập" }, 401);
+  }
+  if (session.user.role !== "admin" && session.user.role !== "supporter") {
     return c.json({ error: "Không có quyền cập nhật trạng thái" }, 403);
   }
 
   const caseId = c.req.param("id");
-  const { user_facing_stage, internal_status } = await c.req.json();
 
   try {
-    // Check permission: if supporter, must be assigned
-    if (session.user.role === "supporter") {
-      const caseObj = await prisma.case.findUnique({ where: { id: caseId } });
-      if (caseObj?.assigned_supporter_auth_user_id !== session.user.id) {
-        return c.json({ error: "Không được phân công quản lý dự án này" }, 403);
-      }
+    const body = await readJsonBody(c);
+    if (!body) {
+      return c.json({ error: "Dữ liệu JSON không hợp lệ" }, 400);
+    }
+
+    const caseObj = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: {
+        id: true,
+        assigned_supporter_auth_user_id: true,
+        user_facing_stage: true,
+        internal_status: true,
+      },
+    });
+
+    if (!caseObj) {
+      return c.json({ error: "Không tìm thấy case" }, 404);
+    }
+
+    if (session.user.role === "supporter" && caseObj.assigned_supporter_auth_user_id !== session.user.id) {
+      return c.json({ error: "Không được phân công quản lý dự án này" }, 403);
+    }
+
+    const nextStage = body.user_facing_stage;
+    const nextStatus = body.internal_status;
+
+    if (nextStage !== undefined && !isValidCaseStage(nextStage)) {
+      return c.json({ error: "user_facing_stage không hợp lệ" }, 400);
+    }
+
+    if (nextStatus !== undefined && !isValidInternalStatus(nextStatus)) {
+      return c.json({ error: "internal_status không hợp lệ" }, 400);
+    }
+
+    if (nextStage === undefined && nextStatus === undefined) {
+      return c.json({ error: "Thiếu trạng thái cần cập nhật" }, 400);
+    }
+
+    if (nextStage === caseObj.user_facing_stage && nextStatus === caseObj.internal_status) {
+      return c.json(caseObj);
+    }
+
+    // Guard final stage and invalid transitions
+    if (isFinalCaseStage(caseObj.user_facing_stage)) {
+      return c.json({ error: "Dự án đã ở trạng thái cuối, không thể cập nhật trạng thái" }, 400);
+    }
+
+    if (nextStage !== undefined && !isValidStageTransition(caseObj.user_facing_stage, nextStage)) {
+      return c.json({ error: `Không thể chuyển trạng thái từ '${caseObj.user_facing_stage}' sang '${nextStage}'` }, 400);
     }
 
     const updatedCase = await prisma.case.update({
       where: { id: caseId },
       data: {
-        user_facing_stage: user_facing_stage || undefined,
-        internal_status: internal_status || undefined,
+        user_facing_stage: nextStage !== undefined ? nextStage : undefined,
+        internal_status: nextStatus !== undefined ? nextStatus : undefined,
       },
     });
 
-    // Create log event
     await prisma.caseEvent.create({
       data: {
         case_id: caseId,
         event_type: "status_updated",
         actor_auth_user_id: session.user.id,
-        metadata_json: { user_facing_stage, internal_status },
+        metadata_json: { user_facing_stage: nextStage, internal_status: nextStatus },
       },
     });
 
@@ -629,11 +784,19 @@ casesRouter.post("/:id/messages", async (c) => {
   }
 
   try {
-    const body = await c.req.json();
+    const body = await readJsonBody(c);
+    if (!body) {
+      return c.json({ error: "Dữ liệu JSON không hợp lệ" }, 400);
+    }
+
     const content = typeof body.content === "string" ? body.content.trim() : "";
 
     if (!content) {
       return c.json({ error: "Nội dung tin nhắn không được để trống" }, 400);
+    }
+
+    if (content.length > 5000) {
+      return c.json({ error: "Độ dài tin nhắn vượt quá giới hạn cho phép (tối đa 5000 ký tự)" }, 400);
     }
 
     const newMessage = await prisma.caseMessage.create({
@@ -671,9 +834,13 @@ casesRouter.put("/:id/settings", async (c) => {
   }
 
   const caseId = c.req.param("id");
-  const { team_name, school, course_context, group_no } = await c.req.json();
 
   try {
+    const body = await readJsonBody(c);
+    if (!body) {
+      return c.json({ error: "Dữ liệu JSON không hợp lệ" }, 400);
+    }
+
     const existingCase = await prisma.case.findUnique({
       where: { id: caseId },
       include: { members: true },
@@ -691,13 +858,44 @@ casesRouter.put("/:id/settings", async (c) => {
       return c.json({ error: "Không có quyền chỉnh sửa dự án này" }, 403);
     }
 
+    if (isFinalCaseStage(existingCase.user_facing_stage)) {
+      return c.json({ error: "Dự án đã ở trạng thái cuối, không thể chỉnh sửa cài đặt" }, 400);
+    }
+
+    // Validate lengths and types
+    if (body.team_name !== undefined) {
+      if (typeof body.team_name !== "string" || (body.team_name.trim().length > 0 && body.team_name.trim().length < 2) || body.team_name.trim().length > 100) {
+        return c.json({ error: "Tên nhóm phải từ 2 đến 100 ký tự" }, 400);
+      }
+    }
+    if (body.school !== undefined) {
+      if (typeof body.school !== "string" || (body.school.trim().length > 0 && body.school.trim().length < 2) || body.school.trim().length > 100) {
+        return c.json({ error: "Tên trường phải từ 2 đến 100 ký tự" }, 400);
+      }
+    }
+    if (body.course_context !== undefined) {
+      if (typeof body.course_context !== "string" || (body.course_context.trim().length > 0 && body.course_context.trim().length < 2) || body.course_context.trim().length > 100) {
+        return c.json({ error: "Thông tin môn học phải từ 2 đến 100 ký tự" }, 400);
+      }
+    }
+    if (body.group_no !== undefined) {
+      if (typeof body.group_no !== "string" || (body.group_no.trim().length > 0 && body.group_no.trim().length > 10)) {
+        return c.json({ error: "Số thứ tự nhóm không hợp lệ (tối đa 10 ký tự)" }, 400);
+      }
+    }
+
+    const team_name = body.team_name === undefined ? existingCase.team_name : asNonEmptyString(body.team_name, 2) || null;
+    const school = body.school === undefined ? existingCase.school : asNonEmptyString(body.school, 2) || null;
+    const course_context = body.course_context === undefined ? existingCase.course_context : asNonEmptyString(body.course_context, 2) || null;
+    const group_no = body.group_no === undefined ? existingCase.group_no : asNonEmptyString(body.group_no, 1) || null;
+
     const updatedCase = await prisma.case.update({
       where: { id: caseId },
       data: {
-        team_name: team_name !== undefined ? team_name : existingCase.team_name,
-        school: school !== undefined ? school : existingCase.school,
-        course_context: course_context !== undefined ? course_context : existingCase.course_context,
-        group_no: group_no !== undefined ? group_no : existingCase.group_no,
+        team_name,
+        school,
+        course_context,
+        group_no,
       },
     });
 
