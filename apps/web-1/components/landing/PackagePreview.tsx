@@ -54,7 +54,7 @@ export default function PackagePreview() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
           {packages.map((pkg) => {
             const featuresList = getFeaturesList(pkg.features);
-            const isRecommended = pkg.name.toLowerCase().includes("premium") || pkg.name.toLowerCase().includes("pro");
+            const isRecommended = pkg.name.toLowerCase().includes("gói 2") || pkg.name.toLowerCase().includes("goi 2");
 
             return (
               <Card
@@ -62,6 +62,7 @@ export default function PackagePreview() {
                 p="xl"
                 radius="lg"
                 withBorder
+                style={{ overflow: "visible" }}
                 className={`flex flex-col bg-surface-app transition-all relative ${
                   isRecommended
                     ? "border-brand ring-2 ring-brand/10 shadow-lg scale-[1.02]"
@@ -69,7 +70,7 @@ export default function PackagePreview() {
                 }`}
               >
                 {isRecommended && (
-                  <div className="absolute top-0 right-8 transform -translate-y-1/2 z-10">
+                  <div className="absolute top-0 left-8 transform -translate-y-1/2 z-10">
                     <span className="bg-brand text-white font-body text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
                       Phổ biến
                     </span>

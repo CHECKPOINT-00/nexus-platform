@@ -18,6 +18,7 @@ import {
 } from "@mantine/core";
 import { Lock, Mail, User, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { notifications } from "@mantine/notifications";
 
 // Custom Google Button with Google SVG Icon
 export function GoogleButton(props: any) {
@@ -38,6 +39,7 @@ export function GoogleButton(props: any) {
     />
   );
 }
+
 
 export default function AuthPanel() {
   const router = useRouter();
@@ -79,23 +81,12 @@ export default function AuthPanel() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setAuthError(null);
-    setIsLoading(true);
-    const packageId = searchParams.get("packageId");
-    const callbackUrl = packageId 
-      ? `/dashboard/intake?packageId=${packageId}`
-      : "/dashboard";
-
-    try {
-      await signIn.social({
-        provider: "google",
-        callbackURL: callbackUrl,
-      });
-    } catch (err) {
-      setIsLoading(false);
-      setAuthError("Đã xảy ra lỗi khi đăng nhập bằng Google.");
-    }
+  const handleGoogleSignIn = () => {
+    notifications.show({
+      title: "Tính năng đang phát triển",
+      message: "Đăng nhập bằng Google hiện đang được phát triển và sẽ sớm ra mắt.",
+      color: "blue",
+    });
   };
 
   // Read initial tab and package ID from URL search parameters
