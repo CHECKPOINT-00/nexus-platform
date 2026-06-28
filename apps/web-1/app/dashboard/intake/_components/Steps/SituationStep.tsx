@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { Textarea, Tooltip } from "@mantine/core";
 import { HelpCircle } from "lucide-react";
+import { notifications } from "@mantine/notifications";
 
 interface SituationStepProps {
   form: any;
@@ -10,6 +11,9 @@ interface SituationStepProps {
 }
 
 export default function SituationStep({ form, values }: SituationStepProps) {
+  const summaryNotifiedRef = useRef(false);
+  const situationNotifiedRef = useRef(false);
+
   return (
     <div className="space-y-5">
       <div className="space-y-1">
@@ -26,7 +30,8 @@ export default function SituationStep({ form, values }: SituationStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Tóm tắt dự án không được để trống";
               if (value.length < 20) return "Tóm tắt dự án tối thiểu phải 20 ký tự.";
-              if (value.length > 1000) return "Tóm tắt dự án không được vượt quá 1000 ký tự.";
+              const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+              if (wordCount > 2000) return "Tóm tắt dự án không được vượt quá 2000 từ.";
               return undefined;
             },
           }}
@@ -39,12 +44,29 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 placeholder="Hãy giới thiệu ngắn gọn ý tưởng dự án của bạn (ví dụ: Nền tảng kết nối gia sư với học sinh thông qua ứng dụng định vị và đánh giá chất lượng...)"
                 value={field.state.value || ""}
                 onBlur={field.handleBlur}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                  const val = e.target.value;
+                  const wordCount = val.trim() ? val.trim().split(/\s+/).length : 0;
+                  if (wordCount > 2000) {
+                    if (!summaryNotifiedRef.current) {
+                      notifications.show({
+                        title: "Vượt quá giới hạn từ",
+                        message: "Tóm tắt dự án không được vượt quá 2000 từ. Vui lòng rút gọn nội dung.",
+                        color: "red",
+                      });
+                      summaryNotifiedRef.current = true;
+                    }
+                  } else {
+                    summaryNotifiedRef.current = false;
+                  }
+                  field.handleChange(val);
+                }}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={1000}
+                maxLength={20000} // prevent browser crash
                 minRows={3}
                 autosize
                 radius="md"
+                classNames={{ input: "break-words break-all whitespace-normal" }}
               />
             );
           }}
@@ -54,8 +76,10 @@ export default function SituationStep({ form, values }: SituationStepProps) {
           name="current_situations"
           validators={{
             onChange: ({ value }: { value: string[] }) => {
-              if (value && value.join("\n").length > 1000) {
-                return "Bối cảnh thực tế không được vượt quá 1000 ký tự.";
+              const joined = value ? value.join(" ") : "";
+              const wordCount = joined.trim() ? joined.trim().split(/\s+/).length : 0;
+              if (wordCount > 2000) {
+                return "Bối cảnh thực tế không được vượt quá 2000 từ.";
               }
               return undefined;
             }
@@ -85,14 +109,30 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 value={rawSituationsValue}
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  const arr = e.target.value.split("\n").filter((line) => line.trim().length > 0);
+                  const val = e.target.value;
+                  const wordCount = val.trim() ? val.trim().split(/\s+/).length : 0;
+                  if (wordCount > 2000) {
+                    if (!situationNotifiedRef.current) {
+                      notifications.show({
+                        title: "Vượt quá giới hạn từ",
+                        message: "Bối cảnh thực tế không được vượt quá 2000 từ. Vui lòng rút gọn nội dung.",
+                        color: "red",
+                      });
+                      situationNotifiedRef.current = true;
+                    }
+                  } else {
+                    situationNotifiedRef.current = false;
+                  }
+                  // Fix array newline bug by not filtering out empty lines immediately
+                  const arr = val.split("\n");
                   field.handleChange(arr);
                 }}
                 error={hasError ? field.state.meta.errors[0] : undefined}
-                maxLength={1000}
+                maxLength={20000} // prevent browser crash
                 minRows={3}
                 autosize
                 radius="md"
+                classNames={{ input: "break-words break-all whitespace-normal" }}
               />
             );
           }}
