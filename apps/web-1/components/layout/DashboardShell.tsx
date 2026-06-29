@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
+import { useQueryClient } from "@tanstack/react-query";
 import ThemeToggler from "../ui/ThemeToggler";
 import Logo from "../ui/Logo";
 import {
@@ -22,11 +23,13 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: sessionData, isPending } = useSession();
+  const queryClient = useQueryClient();
 
   const handleSignOut = async () => {
     await signOut({
       fetchOptions: {
         onSuccess: () => {
+          queryClient.clear();
           router.push("/auth");
         },
       },
