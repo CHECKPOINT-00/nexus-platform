@@ -47,16 +47,11 @@ export default function AdminCaseDetailModal({
             <p className="text-xs">Đang tải hồ sơ phản biện...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-danger font-semibold text-xs">
-            {error}
-          </div>
+          <div className="text-center py-12 text-danger font-semibold text-xs">{error}</div>
         ) : !detailData ? null : (
           <div className="space-y-6">
-            {/* Section 1: General Info */}
             <div>
-              <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                Thông tin chung
-              </h4>
+              <h4 className="font-heading font-bold text-sm text-text-app mb-3">Thông tin chung</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                 <div className="space-y-1">
                   <span className="text-xs text-text-subtle font-medium">Tên nhóm / Đề tài</span>
@@ -88,8 +83,8 @@ export default function AdminCaseDetailModal({
                         detailData.case.internal_status === "triage_pending"
                           ? "gray"
                           : detailData.case.internal_status === "accepted_unassigned"
-                          ? "yellow"
-                          : "green"
+                            ? "yellow"
+                            : "green"
                       }
                       variant="light"
                       size="sm"
@@ -97,20 +92,17 @@ export default function AdminCaseDetailModal({
                       {detailData.case.internal_status === "triage_pending"
                         ? "Chờ Triage"
                         : detailData.case.internal_status === "accepted_unassigned"
-                        ? "Chờ Phân Công"
-                        : "Đã phân công"}
+                          ? "Chờ Phân Công"
+                          : "Đã phân công"}
                     </Badge>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Contact Info */}
             {detailData.intake_snapshot?.contact && (
               <div>
-                <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                  Người liên hệ chính (Đại diện nhóm)
-                </h4>
+                <h4 className="font-heading font-bold text-sm text-text-app mb-3">Người liên hệ chính (Đại diện nhóm)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Họ tên</span>
@@ -141,26 +133,23 @@ export default function AdminCaseDetailModal({
               </div>
             )}
 
-            {/* Section 3: Idea and Support Needs */}
             <div>
-              <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                Ý tưởng &amp; Nhu cầu hỗ trợ
-              </h4>
+              <h4 className="font-heading font-bold text-sm text-text-app mb-3">Yêu cầu hiện tại</h4>
               <div className="space-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
+                {detailData.intake_snapshot?.current_blocker && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-text-subtle font-medium">Điểm kẹt hiện tại</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                      {detailData.intake_snapshot.current_blocker}
+                    </p>
+                  </div>
+                )}
+
                 {detailData.intake_snapshot?.support_needs?.primary_need && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Nhu cầu hỗ trợ chính</span>
                     <p className="font-bold text-sm text-brand">
                       {detailData.intake_snapshot.support_needs.primary_need}
-                    </p>
-                  </div>
-                )}
-
-                {detailData.intake_snapshot?.case_summary && (
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Tóm tắt ý tưởng đề tài</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
-                      {detailData.intake_snapshot.case_summary}
                     </p>
                   </div>
                 )}
@@ -191,34 +180,36 @@ export default function AdminCaseDetailModal({
                     </p>
                   </div>
                 )}
+
+                {!detailData.intake_snapshot?.current_blocker && detailData.intake_snapshot?.case_summary && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-text-subtle font-medium">Tóm tắt ý tưởng đề tài (legacy)</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                      {detailData.intake_snapshot.case_summary}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Section 4: Documents */}
             {detailData.intake_snapshot?.documents && detailData.intake_snapshot.documents.length > 0 && (
               <div>
-                <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                  Tài liệu minh chứng hồ sơ
-                </h4>
+                <h4 className="font-heading font-bold text-sm text-text-app mb-3">Tài liệu minh chứng hồ sơ</h4>
                 <div className="bg-surface-app p-5 rounded-xl border border-border-app shadow-sm divide-y divide-border-app/40">
                   {detailData.intake_snapshot.documents.map((doc: any, idx: number) => (
                     <div key={idx} className="flex justify-between items-center py-3 first:pt-0 last:pb-0 gap-4">
                       <div className="space-y-0.5 min-w-0 flex-1">
-                        <p className="font-bold text-sm text-text-app truncate">
-                          {doc.document_type || "Tài liệu đính kèm"}
-                        </p>
-                        {doc.role_description && (
-                          <p className="text-xs text-text-muted">{doc.role_description}</p>
-                        )}
+                        <p className="font-bold text-sm text-text-app truncate">{doc.document_type || "Tài liệu đính kèm"}</p>
+                        {doc.role_description && <p className="text-xs text-text-muted">{doc.role_description}</p>}
                       </div>
-                      {doc.drive_url && (
+                      {(doc.drive_url || doc.file_url) && (
                         <a
-                          href={doc.drive_url}
+                          href={doc.drive_url || doc.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 font-semibold text-sm text-brand hover:underline shrink-0"
                         >
-                          <span>Mở Google Drive</span>
+                          <span>Mở tài liệu</span>
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       )}
@@ -229,12 +220,9 @@ export default function AdminCaseDetailModal({
             )}
           </div>
         )}
-        
+
         <div className="flex justify-between items-center pt-4 border-t border-border-app gap-3">
-          <Button
-            onClick={onClose}
-            variant="default"
-          >
+          <Button onClick={onClose} variant="default">
             Đóng
           </Button>
 
@@ -242,7 +230,11 @@ export default function AdminCaseDetailModal({
             {detailData?.case?.internal_status === "triage_pending" && (
               <>
                 <Button
-                  onClick={() => { if (detailData) { onRequestMoreInfo(detailData.case.id); } }}
+                  onClick={() => {
+                    if (detailData) {
+                      onRequestMoreInfo(detailData.case.id);
+                    }
+                  }}
                   variant="outline"
                   color="yellow"
                   className="font-semibold cursor-pointer"
@@ -250,7 +242,11 @@ export default function AdminCaseDetailModal({
                   Yêu cầu làm rõ
                 </Button>
                 <Button
-                  onClick={() => { if (detailData) { onReject(detailData.case.id); } }}
+                  onClick={() => {
+                    if (detailData) {
+                      onReject(detailData.case.id);
+                    }
+                  }}
                   variant="outline"
                   color="red"
                   className="font-semibold cursor-pointer"
@@ -258,7 +254,11 @@ export default function AdminCaseDetailModal({
                   Từ chối
                 </Button>
                 <Button
-                  onClick={() => { if (detailData) { onApprove(detailData.case.id); } }}
+                  onClick={() => {
+                    if (detailData) {
+                      onApprove(detailData.case.id);
+                    }
+                  }}
                   color="green"
                   className="font-semibold cursor-pointer"
                 >
@@ -269,7 +269,11 @@ export default function AdminCaseDetailModal({
 
             {detailData?.case && (detailData.case.internal_status === "accepted_unassigned" || detailData.case.internal_status === "assigned") && (
               <Button
-                onClick={() => { if (detailData) { onAssign(detailData.case.id); } }}
+                onClick={() => {
+                  if (detailData) {
+                    onAssign(detailData.case.id);
+                  }
+                }}
                 color="brand"
                 className="font-semibold cursor-pointer"
               >

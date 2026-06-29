@@ -14,6 +14,7 @@ export interface CreateCaseRequest {
     zalo: string;
     email: string;
   };
+  current_blocker?: string;
   current_situations?: string[];
   case_summary?: string;
   support_needs?: {

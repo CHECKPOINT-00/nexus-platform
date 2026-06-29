@@ -51,19 +51,21 @@ Hãy phân tích kỹ lưỡng, đưa ra từ 3 đến 5 findings chất lượn
 - Năng lực của nhóm: ${intakeData.team_capability || "Chưa cung cấp"}
 - Liên kết tài liệu Google Drive: ${intakeData.drive_url || "Chưa đính kèm"}`;
   } else {
+    const currentBlocker = typeof intakeData.current_blocker === "string" ? intakeData.current_blocker : "";
     const situations = Array.isArray(intakeData.current_situations) ? intakeData.current_situations.join(", ") : "";
-    const docsStr = Array.isArray(intakeData.documents) 
-      ? intakeData.documents.map((d: any) => `${d.document_type}: ${d.drive_url || d.file_url || ""} (${d.role_description})`).join("\n") 
+    const docsStr = Array.isArray(intakeData.documents)
+      ? intakeData.documents
+          .map((d: any) => `${d.document_type}: ${d.drive_url || d.file_url || ""} (${d.role_description})`)
+          .join("\n")
       : "";
     userPrompt = `Dữ liệu Checkpoint 1 của sinh viên:
-- Tóm tắt dự án: ${intakeData.case_summary}
+- Điểm kẹt hiện tại: ${currentBlocker || intakeData.case_summary || ""}
 - Tình huống hiện tại: ${situations}
 - Nhu cầu hỗ trợ chính: ${intakeData.support_needs?.primary_need || ""}
 - Kỳ vọng đầu ra: ${intakeData.expected_outputs || ""}
 - Tài liệu đính kèm:\n${docsStr}`;
   }
 
-  // Try Gemini first, fallback to OpenAI (V98)
   try {
     const modelName = process.env.GEMINI_MODEL_LLM || "gemini-1.5-flash";
     const response = await generateText({
@@ -78,7 +80,6 @@ Hãy phân tích kỹ lưỡng, đưa ra từ 3 đến 5 findings chất lượn
     console.error("Gemini failed, falling back to OpenAI/V98: ", error);
   }
 
-  // Fallback to OpenAI-compatible provider
   try {
     const modelName = process.env.OPENAI_MODEL_LLM || "gpt-4o-mini";
     const response = await generateText({
@@ -99,7 +100,6 @@ Hãy phân tích kỹ lưỡng, đưa ra từ 3 đến 5 findings chất lượn
 
 function parseJsonResponse(text: string): AiReportOutput | null {
   try {
-    // Basic cleaning of response text
     let cleanText = text.trim();
     if (cleanText.startsWith("```json")) {
       cleanText = cleanText.substring(7);

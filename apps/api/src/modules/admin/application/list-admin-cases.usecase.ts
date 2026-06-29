@@ -6,6 +6,10 @@ import {
 import { findManyCasesAdmin } from "../../cases/infrastructure/persistence/case.repository.js";
 import type { ListAdminCasesRequest } from "./admin.dto.js";
 
+const hasText = (value: unknown, minLength = 1) => {
+  return typeof value === "string" && value.trim().length >= minLength;
+};
+
 export async function listAdminCasesUseCase(filters: ListAdminCasesRequest) {
   const { stage, internal_status, limit } = filters;
 
@@ -26,11 +30,7 @@ export async function listAdminCasesUseCase(filters: ListAdminCasesRequest) {
   let take: number | undefined;
   if (limit) {
     const parsedLimit = Number.parseInt(limit, 10);
-    if (
-      !Number.isInteger(parsedLimit) ||
-      parsedLimit <= 0 ||
-      parsedLimit > 100
-    ) {
+    if (!Number.isInteger(parsedLimit) || parsedLimit <= 0 || parsedLimit > 100) {
       throw new AppError(400, "VALIDATION_ERROR", "limit không hợp lệ");
     }
     take = parsedLimit;
@@ -44,17 +44,20 @@ export async function listAdminCasesUseCase(filters: ListAdminCasesRequest) {
     if (intakeUnit && intakeUnit.content) {
       try {
         const content = JSON.parse(intakeUnit.content);
-        let score = 0;
-        if (content.contact?.full_name) score += 20;
-        if (content.contact?.email) score += 20;
-        if (content.case_summary) score += 20;
-        if (content.documents && content.documents.length > 0) score += 20;
-        if (
-          content.boundary_confirmations &&
-          content.boundary_confirmations.length > 0
-        )
-          score += 20;
-        completeness = score;
+        const hasLegacyContext =
+          hasText(content.case_summary, 20) ||
+          (Array.isArray(content.current_situations) &&
+            content.current_situations.some((entry: unknown) => hasText(entry, 1)));
+
+        const checks = [
+          hasText(content.contact?.full_name, 2) && hasText(content.contact?.email, 1),
+          hasText(content.support_needs?.primary_need, 5),
+          hasText(content.current_blocker, 10) || hasLegacyContext,
+          Array.isArray(content.documents) && content.documents.length > 0,
+          Array.isArray(content.boundary_confirmations) && content.boundary_confirmations.length > 0,
+        ];
+
+        completeness = checks.filter(Boolean).length * 20;
       } catch (_) {}
     }
 

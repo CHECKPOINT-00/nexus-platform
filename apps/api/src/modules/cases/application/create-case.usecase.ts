@@ -8,13 +8,32 @@ import {
 import { findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
 import type { CreateCaseRequest } from "./cases.dto.js";
 
+function normalizeCreateCaseBody(body: CreateCaseRequest): CreateCaseRequest {
+  const legacySituations = Array.isArray(body.current_situations)
+    ? body.current_situations.filter((item) => typeof item === "string" && item.trim().length > 0)
+    : [];
+
+  const derivedBlocker =
+    body.current_blocker?.trim() ||
+    body.case_summary?.trim() ||
+    legacySituations.join(" ").trim();
+
+  return {
+    ...body,
+    current_blocker: derivedBlocker || undefined,
+    current_situations: legacySituations,
+    case_summary: typeof body.case_summary === "string" ? body.case_summary : "",
+  };
+}
+
 export async function createCaseUseCase(userId: string, body: CreateCaseRequest) {
-  const validationErrors = validateCp1Intake(body);
+  const normalizedBody = normalizeCreateCaseBody(body);
+  const validationErrors = validateCp1Intake(normalizedBody);
   if (validationErrors.length > 0) {
     throw new AppError(400, "VALIDATION_ERROR", "Dữ liệu không hợp lệ", validationErrors);
   }
 
-  const { package_id, deadline, team_context } = body;
+  const { package_id, deadline, team_context } = normalizedBody;
 
   if (!asNonEmptyString(package_id)) {
     throw new AppError(400, "VALIDATION_ERROR", "Thiếu gói dịch vụ (package_id)");
@@ -25,10 +44,8 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
     throw new AppError(400, "VALIDATION_ERROR", "Deadline không hợp lệ");
   }
 
-  // Generate random unique case code: NX-XXXXXX
   let randomCode = `NX-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // Check duplication (retry up to 3 times)
   let isUnique = false;
   let retries = 0;
   while (!isUnique && retries < 3) {
@@ -50,8 +67,8 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
   }
 
   const team_name = team_context?.project_name || null;
-  const school = body.school || null;
-  const course_context = body.course_context || null;
+  const school = normalizedBody.school || null;
+  const course_context = normalizedBody.course_context || null;
   const group_no = team_context?.group_no || null;
 
   const servicePackage = await findPackageById(package_id);
@@ -67,6 +84,6 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
     packageId: package_id,
     deadline: parsedDeadline,
     isFree,
-    rawBody: body,
+    rawBody: normalizedBody,
   });
 }

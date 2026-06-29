@@ -9,72 +9,52 @@ export function validateCp1Intake(body: any): string[] {
     return errors;
   }
 
+  const hasText = (value: unknown, minLength = 1) => {
+    return typeof value === "string" && value.trim().length >= minLength;
+  };
+
+  const hasLegacyContext =
+    hasText(body.case_summary, 20) ||
+    (Array.isArray(body.current_situations) &&
+      body.current_situations.some((item: unknown) => hasText(item, 1)));
+
   // 1. Contact validation
   const contact = body.contact;
   if (!contact) {
     errors.push("Thiếu thông tin liên hệ");
   } else {
-    if (
-      !contact.full_name ||
-      typeof contact.full_name !== "string" ||
-      contact.full_name.trim().length < 2
-    ) {
+    if (!hasText(contact.full_name, 2)) {
       errors.push("Họ tên người liên hệ không hợp lệ (tối thiểu 2 ký tự)");
     }
-    if (
-      !contact.student_code ||
-      typeof contact.student_code !== "string" ||
-      contact.student_code.trim().length < 5
-    ) {
+    if (!hasText(contact.student_code, 5)) {
       errors.push("Mã số sinh viên không hợp lệ (tối thiểu 5 ký tự)");
     }
-    if (
-      !contact.team_role ||
-      typeof contact.team_role !== "string" ||
-      contact.team_role.trim().length < 2
-    ) {
+    if (!hasText(contact.team_role, 2)) {
       errors.push("Vai trò trong nhóm không hợp lệ");
     }
-    if (
-      !contact.zalo ||
-      typeof contact.zalo !== "string" ||
-      !/^\d{10}$/.test(contact.zalo.trim())
-    ) {
-      errors.push(
-        "Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)",
-      );
+    if (!contact.zalo || typeof contact.zalo !== "string" || !/^\d{10}$/.test(contact.zalo.trim())) {
+      errors.push("Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)");
     }
-    if (
-      !contact.email ||
-      typeof contact.email !== "string" ||
-      !contact.email.includes("@")
-    ) {
+    if (!contact.email || typeof contact.email !== "string" || !contact.email.includes("@")) {
       errors.push("Email liên hệ không hợp lệ");
     }
   }
 
-  // 2. Main content validation
-  const current_situations = body.current_situations;
-  const case_summary = body.case_summary;
+  // 2. Main request validation
+  const current_blocker = body.current_blocker;
   const support_needs = body.support_needs;
 
-  const hasSituation =
-    Array.isArray(current_situations) &&
-    current_situations.length > 0 &&
-    current_situations.some(
-      (s) => typeof s === "string" && s.trim().length > 0,
-    );
-  const hasSummary =
-    typeof case_summary === "string" && case_summary.trim().length >= 20;
+  const hasCurrentBlocker = hasText(current_blocker, 10);
   const hasPrimaryNeed =
     support_needs &&
     typeof support_needs.primary_need === "string" &&
     support_needs.primary_need.trim().length >= 5;
 
-  if (!hasSituation && !hasSummary && !hasPrimaryNeed) {
-    errors.push(
-      "Cần cung cấp ít nhất một trong các thông tin: Tình huống hiện tại, Tóm tắt dự án (tối thiểu 20 ký tự), hoặc Nhu cầu hỗ trợ chính",
-    );
+  if (!hasCurrentBlocker && !hasLegacyContext) {
+    errors.push("Cần mô tả ngắn điểm kẹt hiện tại của nhóm");
+  }
+  if (!hasPrimaryNeed) {
+    errors.push("Cần chọn nhu cầu hỗ trợ chính");
   }
 
   // 3. Documents validation
@@ -86,9 +66,7 @@ export function validateCp1Intake(body: any): string[] {
     if (
       !folderDoc.drive_url ||
       typeof folderDoc.drive_url !== "string" ||
-      !/^https?:\/\/(drive|docs)\.google\.com\/.*/.test(
-        folderDoc.drive_url.trim(),
-      )
+      !/^https?:\/\/(drive|docs)\.google\.com\/.*/.test(folderDoc.drive_url.trim())
     ) {
       errors.push(
         "Đường dẫn thư mục Google Drive không hợp lệ (phải bắt đầu bằng drive.google.com hoặc docs.google.com)",
@@ -105,10 +83,7 @@ export function validateCp1Intake(body: any): string[] {
 
   // 4. Boundary confirmations validation
   const boundary_confirmations = body.boundary_confirmations;
-  if (
-    !Array.isArray(boundary_confirmations) ||
-    boundary_confirmations.length < 3
-  ) {
+  if (!Array.isArray(boundary_confirmations) || boundary_confirmations.length < 3) {
     errors.push("Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới");
   }
 
