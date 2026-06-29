@@ -90,7 +90,7 @@ export default function AdminCaseDetailModal({
                       size="sm"
                     >
                       {detailData.case.internal_status === "triage_pending"
-                        ? "Chờ Triage"
+                        ? "Chờ Duyệt"
                         : detailData.case.internal_status === "accepted_unassigned"
                           ? "Chờ Phân Công"
                           : "Đã phân công"}

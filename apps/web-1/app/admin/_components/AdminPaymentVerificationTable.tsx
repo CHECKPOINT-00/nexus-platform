@@ -166,11 +166,11 @@ export default function AdminPaymentVerificationTable({
             ) : (
               paginatedPayments.map((payment) => (
                 <Table.Tr key={payment.id} className="hover:bg-surface-soft/30 transition-colors">
-                  <Table.Td className="font-heading font-bold text-xs">
-                    {payment.case?.case_code || "CASE"}
+                  <Table.Td className="font-heading font-bold text-xs" title={payment.case?.case_code || "CASE"}>
+                    {payment.case?.case_code && payment.case.case_code.length > 30 ? `${payment.case.case_code.slice(0, 30)}...` : (payment.case?.case_code || "CASE")}
                   </Table.Td>
-                  <Table.Td className="font-semibold text-text-muted">
-                    {payment.package?.name || "Gói dịch vụ"}
+                  <Table.Td className="font-semibold text-text-muted" title={payment.package?.name || "Gói dịch vụ"}>
+                    {payment.package?.name && payment.package.name.length > 30 ? `${payment.package.name.slice(0, 30)}...` : (payment.package?.name || "Gói dịch vụ")}
                   </Table.Td>
                   <Table.Td className="font-heading font-semibold text-brand text-xs">
                     {formatPrice(payment.amount)}

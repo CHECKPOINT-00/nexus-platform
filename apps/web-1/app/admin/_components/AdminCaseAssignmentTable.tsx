@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User } from "@/types";
-import { CheckCircle, Search } from "lucide-react";
-import { Button, Select, Badge, Table, Pagination, TextInput, Group } from "@mantine/core";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye } from "lucide-react";
+import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon } from "@mantine/core";
 
 // Import extracted modals
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
@@ -20,6 +20,8 @@ interface AdminCaseAssignmentTableProps {
   onAccept: (caseId: string) => Promise<void>;
   onReject: (caseId: string, reason: string) => Promise<void>;
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
+  isCrudMode?: boolean;
+  onDelete?: (caseId: string) => Promise<void>;
 }
 
 export default function AdminCaseAssignmentTable({
@@ -29,6 +31,8 @@ export default function AdminCaseAssignmentTable({
   onAccept,
   onReject,
   onRequestMoreInfo,
+  isCrudMode = false,
+  onDelete,
 }: AdminCaseAssignmentTableProps) {
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 5;
@@ -200,15 +204,19 @@ export default function AdminCaseAssignmentTable({
               paginatedCases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className="hover:bg-surface-soft/30 transition-colors">
-                    <Table.Td className="font-heading font-bold text-xs">
-                      {item.case_code}
+                    <Table.Td className="font-heading font-bold text-xs" title={item.case_code}>
+                      {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
                     <Table.Td>
-                      <div className="font-semibold text-text-app">{item.team_name || "Chưa đặt tên"}</div>
-                      <div className="text-[10px] text-text-muted">Chủ sở hữu: {item.owner_name}</div>
+                      <div className="font-semibold text-text-app" title={item.team_name || "Chưa đặt tên"}>
+                        {item.team_name && item.team_name.length > 30 ? `${item.team_name.slice(0, 30)}...` : (item.team_name || "Chưa đặt tên")}
+                      </div>
+                      <div className="text-[10px] text-text-muted" title={item.owner_name}>
+                        Chủ sở hữu: {item.owner_name && item.owner_name.length > 30 ? `${item.owner_name.slice(0, 30)}...` : item.owner_name}
+                      </div>
                     </Table.Td>
-                    <Table.Td className="text-text-muted">
-                      {item.package_name}
+                    <Table.Td className="text-text-muted" title={item.package_name}>
+                      {item.package_name && item.package_name.length > 30 ? `${item.package_name.slice(0, 30)}...` : item.package_name}
                     </Table.Td>
                     <Table.Td>
                       <Badge color={item.completeness >= 80 ? "green" : "yellow"} variant="light" size="sm">
@@ -228,22 +236,49 @@ export default function AdminCaseAssignmentTable({
                         size="sm"
                       >
                         {item.internal_status === "triage_pending"
-                          ? "Chờ Triage"
+                          ? "Chờ Duyệt"
                           : item.internal_status === "accepted_unassigned"
                           ? "Chờ Phân Công"
                           : "Đã phân công"}
                       </Badge>
                     </Table.Td>
                     <Table.Td className="text-center">
-                      <Button
-                        variant="subtle"
-                        size="xs"
-                        color="brand"
-                        onClick={() => setDetailCaseId(item.id)}
-                        className="font-semibold cursor-pointer mx-auto"
-                      >
-                        Xem chi tiết
-                      </Button>
+                      {isCrudMode ? (
+                        <Menu shadow="md" width={160} position="bottom-end">
+                          <Menu.Target>
+                            <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
+                              <MoreVertical className="w-4 h-4" />
+                            </ActionIcon>
+                          </Menu.Target>
+
+                          <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                            <Menu.Item
+                              leftSection={<Eye className="w-3.5 h-3.5 text-brand" />}
+                              onClick={() => setDetailCaseId(item.id)}
+                              className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                            >
+                              Xem chi tiết
+                            </Menu.Item>
+                            <Menu.Item
+                              leftSection={<Trash2 className="w-3.5 h-3.5 text-danger" />}
+                              onClick={() => onDelete && onDelete(item.id)}
+                              className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                            >
+                              Xoá hồ sơ
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
+                      ) : (
+                        <Button
+                          variant="subtle"
+                          size="xs"
+                          color="brand"
+                          onClick={() => setDetailCaseId(item.id)}
+                          className="font-semibold cursor-pointer mx-auto"
+                        >
+                          Xem chi tiết
+                        </Button>
+                      )}
                     </Table.Td>
                   </Table.Tr>
                 );

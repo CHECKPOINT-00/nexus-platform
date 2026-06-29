@@ -201,7 +201,7 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
 
   // Case/Checkpoint auditing statuses (Internal)
   triage_pending: {
-    label: "Chờ triage",
+    label: "Chờ duyệt",
     color: "default",
   },
   accepted_unassigned: {

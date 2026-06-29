@@ -30,13 +30,14 @@ export default function AdminHubPage() {
     acceptCase,
     rejectCase,
     requestMoreInfo,
+    deleteCase,
   } = useAdminCases();
 
   // Rejection modal control
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"payments" | "cases">("payments");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
-  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned">("all");
+  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
   const handleApprovePayment = async (paymentId: string) => {
     if (window.confirm("Xác nhận đã nhận đủ số tiền thanh toán cho giao dịch này?")) {
@@ -152,6 +153,25 @@ export default function AdminHubPage() {
     }
   };
 
+  const handleDeleteCase = async (caseId: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa hồ sơ đề tài này không? Hành động này không thể hoàn tác.")) {
+      try {
+        await deleteCase(caseId);
+        notifications.show({
+          title: "Xóa hồ sơ thành công",
+          message: "Đã xóa hồ sơ khỏi hệ thống.",
+          color: "green",
+        });
+      } catch (e) {
+        notifications.show({
+          title: "Lỗi",
+          message: "Gặp lỗi khi thực hiện xóa hồ sơ.",
+          color: "red",
+        });
+      }
+    }
+  };
+
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading;
 
   const pendingPaymentsCount = payments.filter((p) => p.status === "pending_verification").length;
@@ -165,6 +185,9 @@ export default function AdminHubPage() {
   }, [payments, paymentFilter]);
 
   const filteredCases = React.useMemo(() => {
+    if (caseFilter === "crud") {
+      return cases;
+    }
     const active = cases.filter(
       (c) =>
         c.internal_status === "triage_pending" ||
@@ -205,7 +228,7 @@ export default function AdminHubPage() {
               </UnstyledButton>
             </Tooltip>
 
-            <Tooltip label="Triage & Phân công" position="right" withArrow>
+            <Tooltip label="Duyệt & Phân công" position="right" withArrow>
               <UnstyledButton
                 onClick={() => setActiveSection("cases")}
                 className={classes.mainLink}
@@ -282,7 +305,7 @@ export default function AdminHubPage() {
                   className={classes.link}
                   data-active={caseFilter === "triage" || undefined}
                 >
-                  <span>Chờ Triage</span>
+                  <span>Chờ duyệt</span>
                 </UnstyledButton>
                 <UnstyledButton
                   onClick={() => setCaseFilter("unassigned")}
@@ -297,6 +320,13 @@ export default function AdminHubPage() {
                   data-active={caseFilter === "assigned" || undefined}
                 >
                   <span>Đang phản biện</span>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setCaseFilter("crud")}
+                  className={classes.link}
+                  data-active={caseFilter === "crud" || undefined}
+                >
+                  <span>Quản lý (CRUD)</span>
                 </UnstyledButton>
               </div>
             )}
@@ -351,6 +381,8 @@ export default function AdminHubPage() {
                   onAccept={handleAcceptCase}
                   onReject={handleRejectCase}
                   onRequestMoreInfo={handleRequestMoreInfo}
+                  isCrudMode={caseFilter === "crud"}
+                  onDelete={handleDeleteCase}
                 />
               </div>
             )}

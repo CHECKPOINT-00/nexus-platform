@@ -52,7 +52,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
     let desc = "Báo cáo phản biện chính thức sẽ hiển thị ở đây sau khi được Supporter kiểm duyệt và phê duyệt.";
 
     if (caseData.internal_status === "triage_pending") {
-      title = "Hồ sơ đang chờ duyệt (Triage)";
+      title = "Hồ sơ đang chờ duyệt";
       desc = "Ban quản trị đang tiến hành thẩm định tính hợp lệ của hồ sơ bài nộp trước khi phân công.";
     } else if (caseData.internal_status === "accepted_unassigned") {
       title = "Đang chờ phân công Supporter";
