@@ -3,6 +3,9 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
@@ -50,6 +53,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           {children}
         </MantineProvider>
       </NextThemesProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+      <TanStackDevtools plugins={[formDevtoolsPlugin()]} />
     </QueryClientProvider>
   );
 }
