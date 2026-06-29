@@ -13,7 +13,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
   return (
     <div className="space-y-5 font-body">
       <div className="space-y-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Thông tin Nhóm / Dự án</h3>
+        <h3 className="font-heading text-base font-bold text-text-app">Thông tin Nhóm / Đề tài</h3>
         <p className="font-body text-xs text-text-muted">
           Thông tin bối cảnh học tập và hoạt động của nhóm.
         </p>
@@ -23,7 +23,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
         <form.Field name="team_context.project_name">
           {(field: any) => (
             <TextInput
-              label="Tên dự án / Đề tài"
+              label="Tên đề tài"
               placeholder="Ví dụ: EduMap"
               value={field.state.value || ""}
               onBlur={field.handleBlur}

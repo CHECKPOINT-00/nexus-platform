@@ -110,7 +110,7 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
         <div>
           <h3 className="font-heading text-lg font-bold text-text-app">Thanh toán &amp; Xác minh</h3>
           <p className="font-body text-xs text-text-muted mt-0.5">
-            Thực hiện chuyển khoản và tải lên minh chứng để kích hoạt dự án.
+            Thực hiện chuyển khoản và tải lên minh chứng để kích hoạt hồ sơ.
           </p>
         </div>
       }

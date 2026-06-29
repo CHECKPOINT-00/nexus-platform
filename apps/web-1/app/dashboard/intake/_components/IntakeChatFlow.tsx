@@ -139,9 +139,9 @@ export default function IntakeChatFlow({
           <Bot className="w-5 h-5" />
         </div>
         <div className="space-y-1">
-          <h4 className="font-heading font-semibold text-brand text-sm">Nexus CP1 Triage Guide</h4>
+          <h4 className="font-heading font-semibold text-brand text-sm">Trợ lý tạo Hồ sơ Phản biện</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Xin chào! Mình sẽ hướng dẫn bạn hoàn thiện hồ sơ phản biện Checkpoint 1. Hãy thực hiện điền thông tin qua các bước dưới đây để Supporter chuyên môn có đủ thông tin hỗ trợ nhóm bạn tốt nhất.
+            Xin chào! Mình sẽ hướng dẫn bạn hoàn thiện hồ sơ phản biện. Hãy thực hiện điền thông tin qua các bước dưới đây để Supporter chuyên môn có đủ thông tin hỗ trợ nhóm bạn tốt nhất.
           </p>
         </div>
       </div>
@@ -265,7 +265,7 @@ export default function IntakeChatFlow({
               rightSection={<Send className="w-4 h-4" />}
               className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
             >
-              <span>{isSubmitting ? "Đang gửi hồ sơ..." : "Xác nhận & Gửi case"}</span>
+              <span>{isSubmitting ? "Đang gửi hồ sơ..." : "Xác nhận & Nộp hồ sơ"}</span>
             </Button>
           ) : (
             <Button

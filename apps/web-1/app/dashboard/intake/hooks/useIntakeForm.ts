@@ -136,6 +136,6 @@ export function useIntakeForm(initialPackageId?: string | null) {
     saveDraft,
     clearDraft,
     isSubmitting: submitMutation.isPending,
-    error: submitMutation.error ? (submitMutation.error as any).response?.data?.message || "Đã xảy ra lỗi khi tạo dự án." : null,
+    error: submitMutation.error ? (submitMutation.error as any).response?.data?.message || "Đã xảy ra lỗi khi tạo hồ sơ." : null,
   };
 }

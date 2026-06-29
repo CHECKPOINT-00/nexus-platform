@@ -23,7 +23,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
       <div className="space-y-1">
         <h3 className="font-heading text-base font-bold text-text-app">Nhu cầu hỗ trợ & Kỳ vọng</h3>
         <p className="font-body text-xs text-text-muted">
-          Làm rõ vấn đề nhóm đang gặp khó khăn và kết quả mong muốn.
+          Làm rõ vấn đề nhóm đang gặp khó khăn và kết quả mong muốn. Thông tin này giúp Supporter chuẩn bị phản biện đúng trọng tâm.
         </p>
       </div>
 
@@ -71,9 +71,9 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
               <Textarea
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Kỳ vọng đầu ra</span>
+                    <span>Kết quả mong đợi sau phản biện</span>
                     <Tooltip
-                      label="Chi tiết kết quả nhóm mong muốn đạt được (ví dụ: tìm ra lỗi lập luận đối thủ, nhận hướng sửa đổi để cải thiện bài nộp...)."
+                      label="Mô tả cụ thể kết quả bạn muốn Supporter cung cấp sau khi đọc hồ sơ (ví dụ: chỉ ra các điểm yếu lập luận, câu hỏi phản biện gợi mở và hướng sửa đổi chi tiết)."
                       multiline
                       w={220}
                       withArrow
@@ -84,7 +84,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
                     </Tooltip>
                   </div>
                 }
-                placeholder="Ví dụ: Nhận được báo cáo chi tiết chỉ ra các lỗi lập luận logic trong đối thủ cạnh tranh..."
+                placeholder="Ví dụ: Nhận được danh sách điểm yếu trong luận điểm đối thủ cạnh tranh, kèm câu hỏi phản biện gợi mở và hướng sửa đổi cụ thể..."
                 value={field.state.value || ""}
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}

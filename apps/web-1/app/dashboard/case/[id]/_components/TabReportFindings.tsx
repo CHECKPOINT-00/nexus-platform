@@ -56,7 +56,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
       desc = "Ban quản trị đang tiến hành thẩm định tính hợp lệ của hồ sơ bài nộp trước khi phân công.";
     } else if (caseData.internal_status === "accepted_unassigned") {
       title = "Đang chờ phân công Supporter";
-      desc = "Hệ thống đang chỉ định một Supporter chuyên môn hỗ trợ phản biện dự án của bạn.";
+      desc = "Hệ thống đang chỉ định một Supporter chuyên môn hỗ trợ phản biện hồ sơ của nhóm.";
     } else if (caseData.internal_status === "assigned" || caseData.internal_status === "supporter_working") {
       title = "Supporter đang tiến hành phản biện";
       desc = "Ý tưởng của bạn đang được phân tích và đánh giá logic bởi Supporter chuyên môn của Nexus.";
@@ -90,7 +90,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
           <CheckCircle className="w-6 h-6 text-success" />
         </div>
         <div className="space-y-1.5 max-w-sm">
-          <h4 className="font-heading font-bold text-sm text-text-app">Dự án hoàn hảo!</h4>
+          <h4 className="font-heading font-bold text-sm text-text-app">Hồ sơ hoàn thiện!</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
             Supporter không tìm thấy lỗi logic hay thiếu sót nghiêm trọng nào trong hồ sơ của bạn.
           </p>

@@ -13,14 +13,14 @@ const faqItems = [
   },
   {
     question: "Vai trò của Supporter trên hệ thống là gì?",
-    answer: "Supporter là các chuyên gia, giảng viên hoặc mentor có kinh nghiệm. Họ sẽ xem xét bản draft phản biện của AI, điều chỉnh, bổ sung ý kiến thực tế để xuất bản báo cáo chất lượng nhất cho dự án của bạn.",
+    answer: "Supporter là các chuyên gia, giảng viên hoặc mentor có kinh nghiệm. Họ sẽ xem xét bản draft phản biện của AI, điều chỉnh, bổ sung ý kiến thực tế để xuất bản báo cáo chất lượng nhất cho hồ sơ của bạn.",
   },
   {
     question: "Tôi có thể chỉnh sửa ý tưởng sau khi nhận phản biện không?",
     answer: "Có. Hệ thống hỗ trợ quy trình cập nhật phiên bản (v00, v01, v02...). Bạn có thể nộp bản chỉnh sửa dựa trên phản biện để chạy đánh giá vòng tiếp theo.",
   },
   {
-    question: "Nexus bảo mật thông tin dự án của tôi như thế nào?",
+    question: "Nexus bảo mật thông tin ý tưởng của tôi như thế nào?",
     answer: "Mọi thông tin ý tưởng và tài liệu Drive của bạn đều được bảo mật nghiêm ngặt. Chúng tôi chỉ sử dụng dữ liệu này cho mục đích phản biện và không chia sẻ cho bên thứ ba.",
   },
 ];

@@ -186,11 +186,11 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
           leftSection={<ArrowLeft className="w-4 h-4" />}
           className="text-text-muted hover:text-text-app text-xs font-semibold font-body h-9 px-3 cursor-pointer"
         >
-          <span>Quay lại Case</span>
+          <span>Quay lại Hồ sơ</span>
         </Button>
         <div>
           <h2 className="font-heading text-lg font-bold text-text-app">Biên tập Báo cáo Phản biện</h2>
-          <p className="text-xs text-text-muted">Mã case: {caseData?.case_code}</p>
+          <p className="text-xs text-text-muted">Mã hồ sơ: {caseData?.case_code}</p>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
           <div className="space-y-2 max-w-md">
             <h3 className="font-heading font-bold text-base text-text-app">Khởi tạo Báo cáo Phản biện</h3>
             <p className="text-xs text-text-muted leading-relaxed">
-              Dự án này chưa có báo cáo phản biện. Supporter chuyên môn có thể khởi tạo bản nháp phản biện AI dựa trên dữ liệu intake của học viên để tiết kiệm thời gian biên tập.
+              Hồ sơ này chưa có báo cáo phản biện. Supporter chuyên môn có thể khởi tạo bản nháp phản biện AI dựa trên dữ liệu đầu vào của học viên để tiết kiệm thời gian biên tập.
             </p>
           </div>
 
@@ -215,7 +215,7 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
             leftSection={isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             className="font-body font-semibold text-xs h-10 px-5 cursor-pointer disabled:opacity-50"
           >
-            <span>{isGenerating ? "Đang phân tích ý tưởng..." : "Khởi tạo bản nháp AI"}</span>
+            <span>{isGenerating ? "Đang phân tích hồ sơ và tạo bản nháp..." : "Khởi tạo bản nháp AI"}</span>
           </Button>
         </div>
       ) : (

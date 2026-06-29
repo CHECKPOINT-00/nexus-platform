@@ -58,7 +58,7 @@ export default function ApproveCaseModal({
         )}
 
         <p className="text-sm leading-relaxed">
-          Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện? Dự án sẽ được chuyển sang trạng thái <strong>Chờ Phân Công</strong>.
+          Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện? Hồ sơ sẽ được chuyển sang trạng thái <strong>Chờ Phân Công</strong>.
         </p>
         
         <div className="flex gap-3 pt-4 border-t border-border-app">

@@ -8,7 +8,7 @@ export default function DashboardEmptyState() {
         <FolderPlus className="w-8 h-8" />
       </div>
       
-      <h3 className="font-heading text-xl font-bold text-text-app mb-2">Chưa có dự án phản biện nào</h3>
+      <h3 className="font-heading text-xl font-bold text-text-app mb-2">Chưa có hồ sơ phản biện nào</h3>
       <p className="font-body text-text-muted text-sm max-w-md mb-8 leading-relaxed">
         Bắt đầu bằng cách gửi thông tin ý tưởng khởi nghiệp và liên kết tài liệu Drive của bạn để chạy phản biện chuẩn checkpoint đầu tiên.
       </p>
@@ -17,7 +17,7 @@ export default function DashboardEmptyState() {
         href="/dashboard/intake"
         className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
       >
-        <span>Tạo dự án mới</span>
+        <span>Tạo hồ sơ mới</span>
       </Link>
     </div>
   );

@@ -127,23 +127,23 @@ export interface StatusThemeDetails {
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
   // User Facing Stages
   submitted: {
-    label: "Đã nộp",
+    label: "Hồ sơ đã gửi — chờ xét duyệt",
     color: "primary",
   },
   need_more_information: {
-    label: "Cần bổ sung",
+    label: "Cần bổ sung tài liệu",
     color: "warning",
   },
   under_review: {
-    label: "Đang thẩm định",
+    label: "Đang phản biện",
     color: "primary",
   },
   report_ready: {
-    label: "Đã có báo cáo",
+    label: "Báo cáo phản biện sẵn sàng",
     color: "success",
   },
   waiting_for_revision: {
-    label: "Chờ bản sửa",
+    label: "Chờ bản sửa từ nhóm",
     color: "warning",
   },
   revision_submitted: {
@@ -205,7 +205,7 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     color: "default",
   },
   accepted_unassigned: {
-    label: "Chờ phân công",
+    label: "Chờ phân công Supporter",
     color: "default",
   },
   assigned: {
@@ -217,11 +217,11 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     color: "warning",
   },
   supporter_working: {
-    label: "Đang xử lý",
+    label: "Supporter đang xử lý",
     color: "primary",
   },
   report_ready_to_publish: {
-    label: "Báo cáo sẵn sàng",
+    label: "Báo cáo chờ gửi",
     color: "success",
   },
   done: {

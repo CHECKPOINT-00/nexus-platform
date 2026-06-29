@@ -25,7 +25,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
   };
 
   const paymentBadge = getBadgeProps(item.payment_status);
-  const internalStatusBadge = getBadgeProps(item.internal_status);
+  const userFacingStatusBadge = getBadgeProps(item.user_facing_stage);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("vi-VN", {
@@ -44,12 +44,12 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
               {item.case_code}
             </span>
             <h3 className="font-heading text-lg font-bold text-text-app group-hover:text-brand transition-colors">
-              {item.team_name || "Dự án chưa đặt tên"}
+              {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
             </h3>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Badge size="sm" variant="light" color={internalStatusBadge.color} className="font-body text-[10px]">
-              {internalStatusBadge.label}
+            <Badge size="sm" variant="light" color={userFacingStatusBadge.color} className="font-body text-[10px]">
+              {userFacingStatusBadge.label}
             </Badge>
             <Badge size="sm" variant="light" color={paymentBadge.color} className="font-body text-[10px]">
               {paymentBadge.label}
@@ -64,7 +64,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-text-subtle" />
-            <span>Nộp ngày: {formatDate(item.created_at)}</span>
+            <span>Ngày nộp hồ sơ: {formatDate(item.created_at)}</span>
           </div>
           {item.school && (
             <div className="flex items-center gap-2 col-span-2">

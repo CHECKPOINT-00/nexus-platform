@@ -19,7 +19,7 @@ const featuresData = [
   },
   {
     title: "Theo dõi phiên bản",
-    description: "Lưu trữ lịch sử nộp bài (v0, v1, v2...) giúp bạn dễ dàng theo dõi tiến độ sửa đổi dự án.",
+    description: "Lưu trữ lịch sử nộp bài (v0, v1, v2...) giúp bạn dễ dàng theo dõi tiến độ sửa đổi hồ sơ.",
     icon: History,
     color: "indigo",
   },
@@ -40,7 +40,7 @@ export default function FeaturesGrid() {
             Tính năng cốt lõi của Nexus
           </Title>
           <Text className="font-body text-text-muted">
-            Đồng hành cùng dự án của bạn từ lúc sơ khởi đến khi bảo vệ thành công trước hội đồng.
+            Đồng hành cùng ý tưởng của bạn từ lúc sơ khởi đến khi bảo vệ thành công trước hội đồng.
           </Text>
         </div>
 

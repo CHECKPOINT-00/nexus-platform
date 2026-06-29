@@ -143,7 +143,7 @@ export default function CasePaymentPage({ params }: PageProps) {
     return (
       <div className="max-w-4xl mx-auto p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
-          Không thể tải dữ liệu dự án. Vui lòng thử lại sau.
+          Không thể tải dữ liệu hồ sơ. Vui lòng thử lại sau.
         </div>
       </div>
     );
@@ -163,11 +163,11 @@ export default function CasePaymentPage({ params }: PageProps) {
           leftSection={<ArrowLeft className="w-4 h-4" />}
           className="text-text-muted hover:text-text-app text-xs font-semibold font-body h-9 px-3 cursor-pointer"
         >
-          <span>Quay lại dự án</span>
+          <span>Quay lại hồ sơ</span>
         </Button>
         <div>
           <h2 className="font-heading text-lg font-bold text-text-app">Thanh toán &amp; Xác minh giao dịch</h2>
-          <p className="text-xs text-text-muted">Mã case: {caseData.case_code}</p>
+          <p className="text-xs text-text-muted">Mã hồ sơ: {caseData.case_code}</p>
         </div>
       </div>
 
@@ -330,7 +330,7 @@ export default function CasePaymentPage({ params }: PageProps) {
             {isSuccess && (
               <div className="flex items-center gap-2.5 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-xs font-body animate-fade-in">
                 <CheckCircle2 className="w-4.5 h-4.5 shrink-0" />
-                <span>Gửi minh chứng thành công! Đang tự động chuyển hướng về trang dự án...</span>
+                <span>Gửi minh chứng thành công! Đang tự động chuyển hướng về trang hồ sơ...</span>
               </div>
             )}
 

@@ -25,7 +25,7 @@ export default function AdminCaseDetailModal({
   const { data: detailData, isLoading: isFetchingDetail, error: queryError } = useAdminCaseDetail(caseId);
 
   const error = queryError
-    ? (queryError as any)?.response?.data?.error || (queryError as any)?.message || "Không thể tải chi tiết dự án."
+    ? (queryError as any)?.response?.data?.error || (queryError as any)?.message || "Không thể tải chi tiết hồ sơ."
     : null;
 
   return (
@@ -34,7 +34,7 @@ export default function AdminCaseDetailModal({
       onClose={onClose}
       title={
         <span className="font-heading font-bold text-base text-text-app">
-          Chi tiết dự án: {detailData?.case?.case_code || (isFetchingDetail ? "Đang tải..." : "")}
+          Hồ sơ phản biện: {detailData?.case?.case_code || (isFetchingDetail ? "Đang tải..." : "")}
         </span>
       }
       size="lg"
@@ -44,7 +44,7 @@ export default function AdminCaseDetailModal({
         {isFetchingDetail ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3 text-text-muted">
             <Loader size="md" color="blue" />
-            <p className="text-xs">Đang tải thông tin chi tiết dự án...</p>
+            <p className="text-xs">Đang tải hồ sơ phản biện...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12 text-danger font-semibold text-xs">
@@ -59,7 +59,7 @@ export default function AdminCaseDetailModal({
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Tên nhóm / Dự án</span>
+                  <span className="text-xs text-text-subtle font-medium">Tên nhóm / Đề tài</span>
                   <p className="font-bold text-sm text-text-app">{detailData.case.team_name || "Chưa đặt tên"}</p>
                 </div>
                 <div className="space-y-1">
@@ -147,20 +147,20 @@ export default function AdminCaseDetailModal({
                 Ý tưởng &amp; Nhu cầu hỗ trợ
               </h4>
               <div className="space-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
+                {detailData.intake_snapshot?.support_needs?.primary_need && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-text-subtle font-medium">Nhu cầu hỗ trợ chính</span>
+                    <p className="font-bold text-sm text-brand">
+                      {detailData.intake_snapshot.support_needs.primary_need}
+                    </p>
+                  </div>
+                )}
+
                 {detailData.intake_snapshot?.case_summary && (
                   <div className="space-y-1">
                     <span className="text-xs text-text-subtle font-medium">Tóm tắt ý tưởng đề tài</span>
                     <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
                       {detailData.intake_snapshot.case_summary}
-                    </p>
-                  </div>
-                )}
-
-                {detailData.intake_snapshot?.support_needs?.primary_need && (
-                  <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Nhu cầu hỗ trợ chính</span>
-                    <p className="text-sm font-medium text-text-app">
-                      {detailData.intake_snapshot.support_needs.primary_need}
                     </p>
                   </div>
                 )}
@@ -198,7 +198,7 @@ export default function AdminCaseDetailModal({
             {detailData.intake_snapshot?.documents && detailData.intake_snapshot.documents.length > 0 && (
               <div>
                 <h4 className="font-heading font-bold text-sm text-text-app mb-3">
-                  Tài liệu đính kèm
+                  Tài liệu minh chứng hồ sơ
                 </h4>
                 <div className="bg-surface-app p-5 rounded-xl border border-border-app shadow-sm divide-y divide-border-app/40">
                   {detailData.intake_snapshot.documents.map((doc: any, idx: number) => (

@@ -47,14 +47,14 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
 
   const sections = [
     {
-      title: "Ý tưởng dự án",
+      title: "Ý tưởng đề tài",
       desc: "Mô tả giải pháp, cách hoạt động và giá trị cốt lõi mang lại.",
       content: idea,
       icon: FolderOpen,
       color: "border-brand",
     },
     {
-      title: "Vấn đề thị trường (Pain Point)",
+      title: "Vấn đề đang giải quyết",
       desc: "Nỗi đau của khách hàng mà giải pháp này đang giải quyết.",
       content: painPoint,
       icon: HelpCircle,
@@ -105,10 +105,10 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
           <div className="space-y-1">
             <h4 className="font-heading font-bold text-sm text-text-app flex items-center gap-2">
               <FolderOpen className="w-4.5 h-4.5 text-brand" />
-              <span>Thư mục tài liệu đính kèm</span>
+              <span>Tài liệu minh chứng hồ sơ</span>
             </h4>
             <p className="font-body text-xs text-text-muted">
-              Slide pitching, tài liệu thuyết minh dự án và các minh chứng kèm theo trên Google Drive.
+              Tài liệu mà Supporter sẽ đọc để chuẩn bị phản biện hồ sơ của nhóm.
             </p>
           </div>
           <a

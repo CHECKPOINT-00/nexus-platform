@@ -31,7 +31,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         course_context: courseContext,
         group_no: groupNo,
       });
-      setStatusMsg({ type: "success", text: "Đã cập nhật thông tin dự án thành công!" });
+      setStatusMsg({ type: "success", text: "Đã cập nhật thông tin hồ sơ thành công!" });
     } catch (err: any) {
       setStatusMsg({
         type: "error",
@@ -46,7 +46,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         <div>
           <div className="flex items-center gap-2 text-text-app">
             <Settings className="w-5 h-5 text-brand" />
-            <h3 className="font-heading font-bold text-base">Cấu hình thông tin dự án</h3>
+            <h3 className="font-heading font-bold text-base">Cấu hình thông tin hồ sơ</h3>
           </div>
           <p className="text-text-muted text-xs mt-1">
             Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
@@ -73,7 +73,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextInput
-              label="Tên nhóm / Tên dự án"
+              label="Tên nhóm / Tên đề tài"
               placeholder="Ví dụ: MedTech, Team Sáng Tạo..."
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}

@@ -27,7 +27,7 @@ export default function WorkspaceSidebar({
   const tabs = [
     {
       id: "idea" as const,
-      label: "Ý tưởng nộp",
+      label: "Nội dung hồ sơ",
       icon: FileSpreadsheet,
     },
     {
@@ -37,7 +37,7 @@ export default function WorkspaceSidebar({
     },
     {
       id: "discussion" as const,
-      label: "Trao đổi & Phản hồi",
+      label: "Thảo luận & Phối hợp",
       icon: MessageSquare,
       count: messageCount,
     },
@@ -97,14 +97,14 @@ export default function WorkspaceSidebar({
         <div className={classes.main}>
           <div className="mb-4">
             <Title order={6} className={classes.title}>
-              {activeTab === "idea" || activeTab === "report" ? "Phiên bản nộp" : "Chi tiết mục"}
+              {activeTab === "idea" || activeTab === "report" ? "Phiên bản hồ sơ" : "Chi tiết mục"}
             </Title>
             <Text size="xs" c="dimmed" className="font-body text-[11px]">
-              {activeTab === "idea" && "Chọn phiên bản để xem nội dung ý tưởng."}
+              {activeTab === "idea" && "Chọn phiên bản để xem nội dung hồ sơ đã nộp."}
               {activeTab === "report" && "Chọn phiên bản để xem báo cáo phản biện."}
-              {activeTab === "discussion" && "Kênh trao đổi với Supporter."}
+              {activeTab === "discussion" && "Kênh phối hợp chính giữa nhóm và Supporter."}
               {activeTab === "timeline" && "Toàn bộ lịch sử hoạt động."}
-              {activeTab === "settings" && "Cấu hình chung của dự án."}
+              {activeTab === "settings" && "Cấu hình chung của hồ sơ."}
             </Text>
           </div>
 
@@ -141,8 +141,8 @@ export default function WorkspaceSidebar({
             <div className="py-2">
               <Text size="xs" className="font-body italic text-text-subtle">
                 {activeTab === "discussion" && "Kênh chat hoạt động 24/7."}
-                {activeTab === "timeline" && "Dòng thời gian hoạt động của dự án."}
-                {activeTab === "settings" && "Chỉ áp dụng cho chủ dự án."}
+                {activeTab === "timeline" && "Toàn bộ lịch sử xử lý hồ sơ phản biện."}
+                {activeTab === "settings" && "Chỉ áp dụng cho người tạo hồ sơ."}
               </Text>
             </div>
           )}

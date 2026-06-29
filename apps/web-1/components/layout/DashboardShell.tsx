@@ -40,7 +40,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     // Customize label
     let label = part;
     if (part === "dashboard") label = "Dashboard";
-    else if (part === "case") label = "Dự án";
+    else if (part === "case") label = "Hồ sơ";
     else if (part === "intake") label = "Khởi tạo ý tưởng";
     else if (part === "supporter") label = "Supporter Review";
     else if (part === "admin") label = "Quản trị viên";
@@ -135,7 +135,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                       ? "Admin Panel"
                       : user.role === "supporter"
                       ? "Supporter Dashboard"
-                      : "Dự án của tôi"}
+                      : "Hồ sơ của tôi"}
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<LogOut className="w-4 h-4" />}

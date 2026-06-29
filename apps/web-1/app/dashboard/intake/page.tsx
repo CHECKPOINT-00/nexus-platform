@@ -66,7 +66,7 @@ function IntakePageContent() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="text-center space-y-2">
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">Cung cấp thông tin dự án</h1>
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">Cung cấp thông tin hồ sơ</h1>
         <p className="font-body text-sm text-text-muted max-w-lg mx-auto">
           Cấu trúc ý tưởng và thông tin minh chứng để bắt đầu chạy phản biện.
         </p>

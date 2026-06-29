@@ -109,7 +109,7 @@ export default function AdminPaymentVerificationTable({
       {/* Search and Filters */}
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput
-          placeholder="Tìm theo mã dự án, tên gói..."
+          placeholder="Tìm theo mã hồ sơ, tên gói..."
           leftSection={<Search className="w-4 h-4 text-text-muted" />}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
@@ -148,7 +148,7 @@ export default function AdminPaymentVerificationTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left">Mã dự án</Table.Th>
+              <Table.Th className="text-left">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Số tiền</Table.Th>
               <Table.Th className="text-left">Thời gian gửi</Table.Th>

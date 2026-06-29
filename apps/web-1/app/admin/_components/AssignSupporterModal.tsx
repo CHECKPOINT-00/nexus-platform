@@ -62,7 +62,7 @@ export default function AssignSupporterModal({
           </div>
         )}
 
-        <p className="text-[11px] text-text-muted">Chọn Supporter chuyên môn phụ trách đánh giá và hỗ trợ case này.</p>
+        <p className="text-[11px] text-text-muted">Chọn Supporter chuyên môn phụ trách đánh giá và hỗ trợ hồ sơ này.</p>
         
         <Select
           label="Supporter"

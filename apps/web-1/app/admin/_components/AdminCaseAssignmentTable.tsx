@@ -116,9 +116,9 @@ export default function AdminCaseAssignmentTable({
           <CheckCircle className="w-5 h-5 text-success" />
         </div>
         <div className="space-y-0.5">
-          <p className="font-heading font-semibold text-xs text-text-app">Không có Case nào cần xử lý</p>
+          <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
           <p className="font-body text-[11px] text-text-muted">
-            Tất cả các dự án đã được xử lý xong hoặc không tìm thấy case.
+            Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
           </p>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function AdminCaseAssignmentTable({
       {/* Search and Filters */}
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput
-          placeholder="Tìm theo mã dự án, tên nhóm, chủ sở hữu..."
+          placeholder="Tìm theo mã hồ sơ, tên nhóm, chủ sở hữu..."
           leftSection={<Search className="w-4 h-4 text-text-muted" />}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
@@ -167,8 +167,8 @@ export default function AdminCaseAssignmentTable({
             { value: "created_at_asc", label: "Cũ nhất" },
             { value: "completeness_desc", label: "Độ chi tiết (Giảm dần)" },
             { value: "completeness_asc", label: "Độ chi tiết (Tăng dần)" },
-            { value: "case_code_asc", label: "Mã dự án (A-Z)" },
-            { value: "case_code_desc", label: "Mã dự án (Z-A)" },
+            { value: "case_code_asc", label: "Mã hồ sơ (A-Z)" },
+            { value: "case_code_desc", label: "Mã hồ sơ (Z-A)" },
           ]}
           value={sortBy}
           onChange={(val) => setSortBy(val || "created_at_desc")}
@@ -181,7 +181,7 @@ export default function AdminCaseAssignmentTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left">Mã dự án</Table.Th>
+              <Table.Th className="text-left">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Hồ sơ</Table.Th>

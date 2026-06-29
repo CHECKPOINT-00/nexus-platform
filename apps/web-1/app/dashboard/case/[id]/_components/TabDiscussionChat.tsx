@@ -71,7 +71,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 text-text-muted">
             <MessageSquare className="w-8 h-8 text-text-subtle" />
-            <p className="font-body text-xs">Chưa có tin nhắn nào. Gửi phản hồi để bắt đầu trao đổi.</p>
+            <p className="font-body text-xs">Chưa có trao đổi nào. Đây là nơi nhóm và Supporter phối hợp trong suốt quá trình phản biện.</p>
           </div>
         ) : (
           messages.map((msg) => {
@@ -128,7 +128,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
           aria-label="Nhập câu hỏi hoặc nội dung phản hồi"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Nhập câu hỏi hoặc nội dung phản hồi..."
+          placeholder="Gửi câu hỏi, yêu cầu làm rõ, hoặc cập nhật thông tin cho Supporter..."
           className="flex-1"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {

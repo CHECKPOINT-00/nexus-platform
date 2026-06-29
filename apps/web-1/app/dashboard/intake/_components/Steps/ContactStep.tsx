@@ -103,7 +103,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                   <div className="flex items-center gap-1.5">
                     <span>Vai trò trong nhóm</span>
                     <Tooltip
-                      label="Nhập vai trò của bạn trong nhóm dự án (ví dụ: Trưởng nhóm, Coder, Pitcher, Designer...)."
+                      label="Nhập vai trò của bạn trong nhóm (ví dụ: Trưởng nhóm, Coder, Pitcher, Designer...)."
                       multiline
                       w={220}
                       withArrow

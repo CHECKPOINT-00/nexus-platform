@@ -34,7 +34,7 @@ export default function SupporterDashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">
-            Dự án phụ trách
+            Hồ sơ phụ trách
           </h1>
           <p className="font-body text-sm text-text-muted mt-1">
             Đánh giá, phản biện logic ý tưởng khởi nghiệp và hỗ trợ chuyên môn cho sinh viên.
@@ -97,7 +97,7 @@ export default function SupporterDashboard() {
       ) : error ? (
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>Không thể tải danh sách dự án. Vui lòng thử lại sau.</span>
+          <span>Không thể tải danh sách hồ sơ. Vui lòng thử lại sau.</span>
         </div>
       ) : displayedCases.length === 0 ? (
         <div className="py-12 border border-border-app rounded-2xl bg-surface-app text-center flex flex-col items-center justify-center gap-4">
@@ -111,15 +111,15 @@ export default function SupporterDashboard() {
           <div className="space-y-1.5 max-w-sm">
             <h4 className="font-heading font-bold text-sm text-text-app">
               {activeFilter === "pending" 
-                ? "Không có dự án cần phản biện" 
+                ? "Không có hồ sơ cần phản biện" 
                 : activeFilter === "completed"
-                ? "Chưa có dự án nào hoàn thành"
-                : "Không có dự án nào được gán"}
+                ? "Chưa có hồ sơ nào hoàn thành"
+                : "Không có hồ sơ nào được phân công"}
             </h4>
             <p className="font-body text-xs text-text-muted leading-relaxed">
               {activeFilter === "pending"
-                ? "Tất cả các dự án được giao đã được xuất báo cáo phản biện thành công hoặc chưa có dự án mới được phân công."
-                : "Các dự án sau khi bạn xuất báo cáo và phê duyệt chính thức sẽ hiển thị tại danh sách này."}
+                ? "Tất cả các hồ sơ được phân công đã được xuất báo cáo phản biện thành công hoặc chưa có hồ sơ mới được phân công."
+                : "Các hồ sơ sau khi bạn xuất báo cáo và phê duyệt chính thức sẽ hiển thị tại danh sách này."}
             </p>
           </div>
         </div>

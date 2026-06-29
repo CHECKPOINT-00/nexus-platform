@@ -68,7 +68,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     return (
       <div className="w-full p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
-          Không thể tải dữ liệu không gian làm việc của dự án. Vui lòng thử lại sau.
+          Không thể tải dữ liệu không gian làm việc của hồ sơ. Vui lòng thử lại sau.
         </div>
       </div>
     );
@@ -126,7 +126,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") && (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
           <div className="p-4 bg-brand-soft/20 border border-brand/10 rounded-lg font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
             <div className="space-y-1">
-              <h5 className="font-bold text-brand">📝 Dự án đã có báo cáo phản biện</h5>
+              <h5 className="font-bold text-brand">📝 Hồ sơ đã có báo cáo phản biện</h5>
               <p className="text-text-muted">Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới (Revision) để Supporter thẩm định vòng tiếp theo.</p>
             </div>
             <Button

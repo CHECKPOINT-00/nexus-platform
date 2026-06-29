@@ -31,8 +31,8 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
       case "case_created":
       case "case_created_event":
         return {
-          label: "Khởi tạo dự án",
-          desc: "Dự án phản biện được lập thành công trên hệ thống.",
+          label: "Nộp hồ sơ phản biện",
+          desc: "Hồ sơ phản biện đã được gửi và ghi nhận vào hệ thống Nexus.",
           icon: FolderPlus,
           colorClass: "bg-brand-soft text-brand border-brand/20",
         };
@@ -61,7 +61,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
         };
       case "report_draft_created":
         return {
-          label: "Khởi tạo phản biện",
+          label: "Tạo bản nháp phản biện AI",
           desc: "Bản thảo báo cáo phản biện AI được tạo lập tự động.",
           icon: FileEdit,
           colorClass: "bg-info-soft text-info border-info/20",
@@ -78,7 +78,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
       case "need_clarification":
         return {
           label: "Yêu cầu làm rõ",
-          desc: "Supporter gửi yêu cầu bổ sung/giải trình về thông tin dự án.",
+          desc: "Supporter yêu cầu nhóm bổ sung hoặc giải trình về nội dung hồ sơ.",
           icon: HelpCircle,
           colorClass: "bg-warning-soft text-warning border-warning/20",
         };
@@ -101,7 +101,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
     return (
       <div className="bg-surface-app border border-border-app rounded-lg p-8 text-center flex flex-col items-center justify-center gap-3 animate-fade-in">
         <Clock className="w-8 h-8 text-text-subtle animate-pulse" />
-        <p className="text-xs text-text-muted font-body">Chưa ghi nhận hoạt động nào của dự án.</p>
+        <p className="text-xs text-text-muted font-body">Chưa có hoạt động nào được ghi nhận cho hồ sơ này.</p>
       </div>
     );
   }

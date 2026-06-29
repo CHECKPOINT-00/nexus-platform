@@ -225,7 +225,7 @@ export default function AdminHubPage() {
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={6} className={classes.title}>
-                {activeSection === "payments" ? "Giao dịch" : "Hồ sơ dự án"}
+                {activeSection === "payments" ? "Giao dịch" : "Hồ sơ đề tài" }
               </Title>
               <Text size="xs" c="dimmed" className="font-body text-[11px]">
                 {activeSection === "payments"
@@ -341,7 +341,7 @@ export default function AdminHubPage() {
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
                   <h3 className="font-heading font-bold text-sm text-text-app">Phân công Supporter chuyên môn</h3>
-                  <p className="text-[10px] text-text-muted">Chỉ định Supporter phụ trách đánh giá và sửa đổi bản thảo phản biện cho Case mới.</p>
+                  <p className="text-[10px] text-text-muted">Chỉ định Supporter phụ trách đánh giá và sửa đổi bản thảo phản biện cho hồ sơ mới.</p>
                 </div>
                 <AdminCaseAssignmentTable
                   cases={filteredCases}

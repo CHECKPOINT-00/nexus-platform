@@ -42,7 +42,7 @@ export default function DocumentInputStep({
           Tài liệu đầu vào &amp; Minh chứng
         </h3>
         <p className="font-body text-xs text-text-muted">
-          Cung cấp liên kết thư mục làm việc Google Drive và các tài liệu đi kèm.
+          Đây là tài liệu mà Supporter sẽ đọc và dùng để phản biện hồ sơ của nhóm. Hãy đảm bảo thư mục đã được cấp quyền xem.
         </p>
       </div>
 
@@ -102,11 +102,11 @@ export default function DocumentInputStep({
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5">
                   <label className="text-xs font-semibold text-text-app">
-                    Liên kết thư mục Google Drive dự án{" "}
+                    Liên kết thư mục Google Drive hồ sơ{" "}
                     <span className="text-danger">*</span>
                   </label>
                   <Tooltip
-                    label="Vui lòng cấp quyền xem liên kết thư mục ('Bất kỳ ai có liên kết đều có thể xem') để AI có thể truy cập các tài liệu bên trong."
+                    label="Supporter và hệ thống AI sẽ đọc tài liệu trong thư mục này để chuẩn bị phản biện. Hãy đảm bảo đã cấp quyền 'Bất kỳ ai có liên kết'."
                     multiline
                     w={220}
                     withArrow
@@ -133,7 +133,7 @@ export default function DocumentInputStep({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
                   <label className="text-xs font-semibold text-text-app">
-                    Các tài liệu có trong thư mục{" "}
+                    Tài liệu minh chứng nhóm đã chuẩn bị{" "}
                     <span className="text-danger">*</span>
                   </label>
                   <Tooltip

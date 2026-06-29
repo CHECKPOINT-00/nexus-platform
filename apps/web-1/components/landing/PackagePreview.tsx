@@ -47,7 +47,7 @@ export default function PackagePreview() {
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <h2 className="font-heading text-3xl sm:text-4xl font-semibold text-text-app">Gói dịch vụ kiểm định & Phản biện</h2>
           <p className="font-body text-text-muted">
-            Chọn gói đồng hành phù hợp với mục tiêu dự án của bạn. Nhận báo cáo kiểm định chất lượng tức thì và hỗ trợ chuyên nghiệp từ đội ngũ supporter.
+            Chọn gói đồng hành phù hợp với mục tiêu đề tài của bạn. Nhận báo cáo kiểm định chất lượng tức thì và hỗ trợ chuyên nghiệp từ đội ngũ supporter.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default function PackagePreview() {
                   <h3 className="font-heading text-xl font-bold text-text-app">{pkg.name}</h3>
                   <div className="flex items-baseline gap-1">
                     <span className="font-heading text-3xl font-bold text-text-app">{formatPrice(pkg.price)}</span>
-                    <span className="font-body text-xs text-text-subtle">/ dự án</span>
+                    <span className="font-body text-xs text-text-subtle">/ hồ sơ</span>
                   </div>
                 </div>
 
@@ -102,7 +102,7 @@ export default function PackagePreview() {
                       : "bg-surface-app border border-border-strong text-text-muted hover:text-text-app hover:bg-surface-soft"
                   }`}
                 >
-                  Bắt đầu dự án
+                  Bắt đầu ngay
                 </Link>
               </Card>
             );

@@ -32,7 +32,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
       });
       notifications.show({
         title: "Nộp bản sửa thành công",
-        message: "Đã gửi bản sửa đổi thành công! Dự án của bạn sẽ quay lại hàng chờ đánh giá.",
+        message: "Đã gửi bản sửa đổi thành công! Hồ sơ của bạn sẽ quay lại hàng chờ phản biện.",
         color: "green",
       });
       handleClose();

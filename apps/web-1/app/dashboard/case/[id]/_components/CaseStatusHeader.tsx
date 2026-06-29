@@ -32,7 +32,7 @@ export default function CaseStatusHeader({
 
   useEffect(() => {
     if (isPaused) {
-      setTimeLeft("Tạm dừng (Cần phản hồi)");
+      setTimeLeft("Đang chờ nhóm bổ sung thông tin");
       setTimerColor("text-warning");
       return;
     }
@@ -120,13 +120,18 @@ export default function CaseStatusHeader({
     <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       {/* Case Basic Info */}
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-heading text-xl sm:text-2xl font-bold text-text-app">
-            {caseData.case_code}
-          </h2>
-          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold font-body ${badgeClass}`}>
-            {statusTheme.label}
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-text-subtle">
+            Hồ sơ phản biện
           </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-heading text-xl sm:text-2xl font-bold text-text-app">
+              {caseData.case_code}
+            </h2>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold font-body ${badgeClass}`}>
+              {statusTheme.label}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-4 text-xs font-body text-text-muted">

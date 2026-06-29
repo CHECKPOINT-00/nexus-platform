@@ -13,9 +13,9 @@ export default function SituationStep({ form, values }: SituationStepProps) {
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Tình huống hiện tại &amp; Tóm tắt dự án</h3>
+        <h3 className="font-heading text-base font-bold text-text-app">Ý tưởng &amp; Vấn đề đang giải quyết</h3>
         <p className="font-body text-xs text-text-muted">
-          Giải thích bối cảnh, lý do nhóm chọn đề tài này và tóm tắt ngắn gọn giải pháp.
+          Giải thích bối cảnh, lý do nhóm chọn đề tài này, vấn đề thực tế đang giải quyết và tóm tắt ngắn gọn giải pháp.
         </p>
       </div>
 
@@ -24,8 +24,8 @@ export default function SituationStep({ form, values }: SituationStepProps) {
           name="case_summary"
           validators={{
             onChange: ({ value }: { value: string }) => {
-              if (!value) return "Tóm tắt dự án không được để trống";
-              if (value.length < 20) return "Tóm tắt dự án tối thiểu phải 20 ký tự.";
+              if (!value) return "Mô tả ý tưởng không được để trống";
+              if (value.length < 20) return "Mô tả ý tưởng tối thiểu phải 20 ký tự.";
               return undefined;
             },
           }}
@@ -34,8 +34,8 @@ export default function SituationStep({ form, values }: SituationStepProps) {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
               <Textarea
-                label="Tóm tắt dự án"
-                placeholder="Hãy giới thiệu ngắn gọn ý tưởng dự án của bạn (ví dụ: Nền tảng kết nối gia sư với học sinh thông qua ứng dụng định vị và đánh giá chất lượng...)"
+                label="Mô tả ý tưởng &amp; vấn đề giải quyết"
+                placeholder="Ví dụ:&#10;Vấn đề: [Phụ huynh khó tìm gia sư uy tín dạy môn đặc thù].&#10;Giải pháp: [Ứng dụng kết nối gia sư có kiểm duyệt hồ sơ bằng AI].&#10;Giá trị: [Giúp phụ huynh an tâm tìm gia sư chất lượng trong 5 phút]."
                 value={field.state.value || ""}
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
@@ -55,9 +55,9 @@ export default function SituationStep({ form, values }: SituationStepProps) {
               <Textarea
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Bối cảnh thực tế</span>
+                    <span>Bối cảnh &amp; tình huống cụ thể</span>
                     <Tooltip
-                      label="Mô tả bối cảnh hoặc tình huống thực tế dẫn tới dự án của bạn (ví dụ: khó khăn của khách hàng, vấn đề của thị trường). Hãy nhập mỗi bối cảnh trên một dòng mới."
+                      label="Mô tả bối cảnh hoặc tình huống thực tế dẫn tới ý tưởng của bạn (ví dụ: khó khăn của khách hàng, vấn đề của thị trường). Hãy nhập mỗi bối cảnh trên một dòng mới."
                       multiline
                       w={220}
                       withArrow

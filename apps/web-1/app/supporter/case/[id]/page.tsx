@@ -64,7 +64,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
     return (
       <div className="w-full p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
-          Không thể tải dữ liệu không gian làm việc của dự án. Vui lòng thử lại sau.
+          Không thể tải hồ sơ phản biện. Vui lòng thử lại.
         </div>
       </div>
     );
@@ -100,7 +100,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         {/* 2. Unpaid Warnings (Read-Only Warning for Supporters) */}
         {caseData.payment_status !== "paid" && caseData.package?.price !== 0 && (
           <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
-            <span>⚠️ Học viên chưa hoàn tất thanh toán dự án này. Vui lòng lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
+            <span>⚠️ Nhóm sinh viên chưa hoàn tất thanh toán hồ sơ này. Lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
           </div>
         )}
 
