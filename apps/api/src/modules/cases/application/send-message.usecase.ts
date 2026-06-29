@@ -1,5 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { createCaseMessage } from "../infrastructure/persistence/case.repository.js";
+import { createCaseMessage, findCaseById } from "../infrastructure/persistence/case.repository.js";
+import { isFinalCaseStage } from "../domain/case.types.js";
 
 export async function sendMessageUseCase(
   userId: string,
@@ -19,6 +20,15 @@ export async function sendMessageUseCase(
       "VALIDATION_ERROR",
       "Độ dài tin nhắn vượt quá giới hạn cho phép (tối đa 5000 ký tự)",
     );
+  }
+
+  const caseItem = await findCaseById(caseId);
+  if (!caseItem) {
+    throw new AppError(404, "NOT_FOUND", "Không tìm thấy hồ sơ");
+  }
+
+  if (isFinalCaseStage(caseItem.user_facing_stage)) {
+    throw new AppError(409, "INVALID_CASE_STAGE", "Không thể gửi tin nhắn khi hồ sơ đã đóng hoặc hoàn tất");
   }
 
   return await createCaseMessage({

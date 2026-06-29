@@ -11,10 +11,6 @@ import { publishReportUseCase } from "../application/publish-report.usecase.js";
 import { supporterRequestMoreInfoUseCase } from "../application/supporter-request-more-info.usecase.js";
 import { closeCaseUseCase } from "../application/close-case.usecase.js";
 
-// ---------------------------------------------------------------------------
-// POST /api/supporter/cases/:caseId/reports/draft — Create draft report
-// ---------------------------------------------------------------------------
-
 export async function createDraftReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";
   const access = await requireCaseAccess(c, caseId, {
@@ -38,10 +34,6 @@ export async function createDraftReportHandler(c: Context) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/supporter/cases/:caseId/reports/draft — Get draft report
-// ---------------------------------------------------------------------------
-
 export async function getDraftReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";
   const access = await requireCaseAccess(c, caseId, {
@@ -62,10 +54,6 @@ export async function getDraftReportHandler(c: Context) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// PUT /api/supporter/reports/:reportId — Edit draft report content
-// ---------------------------------------------------------------------------
-
 export async function editDraftReportHandler(c: Context) {
   const reportId = c.req.param("reportId") || "";
   const access = await requireReportCaseAccess(c, reportId, {
@@ -79,7 +67,7 @@ export async function editDraftReportHandler(c: Context) {
   }
 
   try {
-    const body = await readJsonBody(c) as { contentMd?: string };
+    const body = (await readJsonBody(c)) as { contentMd?: string };
     const contentMd = body?.contentMd || "";
     const result = await editDraftReportUseCase(reportId, contentMd);
     return c.json(result);
@@ -87,10 +75,6 @@ export async function editDraftReportHandler(c: Context) {
     return handleError(c, error);
   }
 }
-
-// ---------------------------------------------------------------------------
-// POST /api/supporter/reports/:reportId/publish — Publish draft report
-// ---------------------------------------------------------------------------
 
 export async function publishReportHandler(c: Context) {
   const reportId = c.req.param("reportId") || "";
@@ -112,10 +96,6 @@ export async function publishReportHandler(c: Context) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/supporter/cases/:caseId/request-more-info
-// ---------------------------------------------------------------------------
-
 export async function supporterRequestMoreInfoHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";
   const access = await requireCaseAccess(c, caseId, {
@@ -129,7 +109,7 @@ export async function supporterRequestMoreInfoHandler(c: Context) {
   }
 
   try {
-    const body = await readJsonBody(c) as { query?: string };
+    const body = (await readJsonBody(c)) as { query?: string };
     const query = body?.query || "";
     const result = await supporterRequestMoreInfoUseCase(
       access.session.user.id,
@@ -141,10 +121,6 @@ export async function supporterRequestMoreInfoHandler(c: Context) {
     return handleError(c, error);
   }
 }
-
-// ---------------------------------------------------------------------------
-// POST /api/supporter/cases/:caseId/close — Close case
-// ---------------------------------------------------------------------------
 
 export async function closeCaseHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";

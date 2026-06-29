@@ -13,10 +13,6 @@ import { editReportUseCase } from "../application/edit-report.usecase.js";
 import { approveReportUseCase } from "../application/approve-report.usecase.js";
 import { getLatestReportUseCase } from "../application/get-latest-report.usecase.js";
 
-// ---------------------------------------------------------------------------
-// POST /api/reports/:caseId/draft — Generate AI draft report (Supporter/Admin)
-// ---------------------------------------------------------------------------
-
 export async function generateDraftReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";
   const access = await requireCaseAccess(c, caseId, {
@@ -41,10 +37,6 @@ export async function generateDraftReportHandler(c: Context) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/reports/:caseId/draft — Get draft report (Supporter/Admin)
-// ---------------------------------------------------------------------------
-
 export async function getDraftReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";
   const access = await requireCaseAccess(c, caseId, {
@@ -65,10 +57,6 @@ export async function getDraftReportHandler(c: Context) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// PUT /api/reports/:id — Edit draft report (Supporter/Admin)
-// ---------------------------------------------------------------------------
-
 export async function editReportHandler(c: Context) {
   const reportId = c.req.param("id") || "";
   const access = await requireReportCaseAccess(c, reportId, {
@@ -82,7 +70,7 @@ export async function editReportHandler(c: Context) {
   }
 
   try {
-    const body = await readJsonBody(c) as { contentMd?: string };
+    const body = (await readJsonBody(c)) as { contentMd?: string };
     const contentMd = body?.contentMd || "";
     const result = await editReportUseCase(
       reportId,
@@ -94,10 +82,6 @@ export async function editReportHandler(c: Context) {
     return handleError(c, error);
   }
 }
-
-// ---------------------------------------------------------------------------
-// POST /api/reports/:id/approve — Approve and send report to student
-// ---------------------------------------------------------------------------
 
 export async function approveReportHandler(c: Context) {
   const reportId = c.req.param("id") || "";
@@ -118,10 +102,6 @@ export async function approveReportHandler(c: Context) {
     return handleError(c, error);
   }
 }
-
-// ---------------------------------------------------------------------------
-// GET /api/reports/:caseId/latest — Get latest approved report
-// ---------------------------------------------------------------------------
 
 export async function getLatestReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";

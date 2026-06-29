@@ -1,16 +1,35 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { isFinalCaseStage } from "../domain/case.types.js";
 import {
-  findCaseByIdWithMembersAndCheckpoints,
-  submitCaseRevision,
+  findCaseByIdWithMembersAndCheckpoints as defaultFindCaseByIdWithMembersAndCheckpoints,
+  submitCaseRevision as defaultSubmitCaseRevision,
 } from "../infrastructure/persistence/case.repository.js";
 import type { SubmitRevisionRequest } from "./cases.dto.js";
+
+type SubmitRevisionDeps = {
+  findCaseByIdWithMembersAndCheckpoints?: typeof defaultFindCaseByIdWithMembersAndCheckpoints;
+  submitCaseRevision?: typeof defaultSubmitCaseRevision;
+};
+
+const defaultDeps = {
+  findCaseByIdWithMembersAndCheckpoints: defaultFindCaseByIdWithMembersAndCheckpoints,
+  submitCaseRevision: defaultSubmitCaseRevision,
+};
 
 export async function submitRevisionUseCase(
   userId: string,
   caseId: string,
   body: SubmitRevisionRequest,
+  deps: SubmitRevisionDeps = {},
 ) {
+  const {
+    findCaseByIdWithMembersAndCheckpoints,
+    submitCaseRevision,
+  } = {
+    ...defaultDeps,
+    ...deps,
+  };
+
   const caseDetails = await findCaseByIdWithMembersAndCheckpoints(caseId);
 
   if (!caseDetails) {

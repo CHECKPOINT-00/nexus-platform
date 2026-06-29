@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import {
+  approveReportHandler,
+  editReportHandler,
   generateDraftReportHandler,
   getDraftReportHandler,
-  editReportHandler,
-  approveReportHandler,
   getLatestReportHandler,
 } from "./reports.controller.js";
 

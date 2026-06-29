@@ -44,7 +44,9 @@ export async function createPaymentProof(data: {
 
     await tx.case.update({
       where: { id: caseId },
-      data: { payment_status: "pending_verification" },
+      data: {
+        payment_status: "pending_verification",
+      },
     });
 
     await tx.caseEvent.create({

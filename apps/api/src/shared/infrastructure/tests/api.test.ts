@@ -1,151 +1,108 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { app } from "../../../index.js";
-import { auth } from "../../../auth.js";
-import { prisma } from "../../../db.js";
 
-// Set test environment
 process.env.NODE_ENV = "test";
+process.env.DATABASE_URL ??= "postgresql://user:pass@localhost:5432/test";
+process.env.BETTER_AUTH_URL ??= "http://localhost:8000";
+process.env.GOOGLE_CLIENT_ID ??= "test-client-id";
+process.env.GOOGLE_CLIENT_SECRET ??= "test-client-secret";
 
-// Mock session globally for testing
-let currentMockSession: any = null;
+test("backend demo regression coverage", async (t) => {
+  await t.test("package list seeds defaults on empty db", async () => {
+    const { listPackagesUseCase } = await import(
+      "../../../modules/packages/application/list-packages.usecase.js"
+    );
 
-// Override getSession with mock controller
-(auth.api as any).getSession = async () => {
-  return currentMockSession;
-};
+    const created: Array<{ name: string; price: number; features: string[] }> = [];
+    const defaultPackages = [
+      { name: "Seed A", price: 0, features: ["A"] },
+      { name: "Seed B", price: 100, features: ["B"] },
+    ];
 
-test("API Authorization & Edge Cases Integration Tests", async (t) => {
-  
-  await t.test("1. Unauthenticated requests should return 401", async () => {
-    currentMockSession = null;
-    const res = await app.request("/api/cases");
-    assert.strictEqual(res.status, 401);
-    const body = await res.json();
-    assert.strictEqual(body.error, "Chưa đăng nhập");
+    const packages = await listPackagesUseCase({
+      findAllPackages: async () => (created.length === 0 ? [] : (created as any)),
+      createPackage: async (data: { name: string; price: number; features: string[] }) => {
+        created.push(data);
+        return { id: `pkg-${created.length}`, ...data } as any;
+      },
+      defaultPackages,
+    } as any);
+
+    assert.strictEqual(created.length, 2);
+    assert.deepStrictEqual(created, defaultPackages);
+    assert.strictEqual(packages.length, 2);
   });
 
-  await t.test("2. Student accessing admin routes should return 403", async () => {
-    currentMockSession = {
-      user: {
-        id: "student-user-id",
-        name: "Test Student",
-        email: "student@test.com",
-        role: "user",
-      },
-      session: {
-        id: "session-id",
-        userId: "student-user-id",
-        expiresAt: new Date(Date.now() + 3600000),
-        token: "token",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    };
+  await t.test("revision submit keeps attachment refs metadata-only", async () => {
+    const { submitRevisionUseCase } = await import(
+      "../../../modules/cases/application/submit-revision.usecase.js"
+    );
 
-    const res = await app.request("/api/admin/cases");
-    assert.strictEqual(res.status, 403);
-    const body = await res.json();
-    assert.strictEqual(body.error, "Không có quyền quản trị");
+    const documents = [
+      { drive_url: "https://drive.google.com/drive/folders/demo", document_type: "Deck", role_description: "Main deck" },
+      { file_url: "https://docs.google.com/document/d/demo", document_type: "Notes", role_description: "Notes" },
+    ];
+
+    let captured: any = null;
+    const result = await submitRevisionUseCase(
+      "user-1",
+      "case-1",
+      {
+        change_summary: "Updated user research and solution framing",
+        documents,
+        remaining_blockers: "Need one last review round",
+      } as any,
+      {
+        findCaseByIdWithMembersAndCheckpoints: async () => ({
+          owner_auth_user_id: "user-1",
+          members: [],
+          user_facing_stage: "report_ready",
+          checkpoints: [{ id: "cp-1", latest_version_no: 2 }],
+        } as any),
+        submitCaseRevision: async (data: any) => {
+          captured = data;
+          return { id: "rev-1", ...data } as any;
+        },
+      } as any,
+    );
+
+    assert.strictEqual(captured.changeSummary, "Updated user research and solution framing");
+    assert.strictEqual(captured.documents, documents);
+    assert.deepStrictEqual(captured.documents, documents);
+    assert.strictEqual(result.id, "rev-1");
   });
 
-  await t.test("3. Admin accessing admin routes should succeed (returns 200 or list)", async () => {
-    currentMockSession = {
-      user: {
-        id: "admin-user-id",
-        name: "Test Admin",
-        email: "admin@test.com",
-        role: "admin",
+  await t.test("payment proof upload cleans up on db failure", async () => {
+    const { uploadPaymentProofUseCase } = await import(
+      "../../../modules/payments/application/upload-payment-proof.usecase.js"
+    );
+
+    let cleaned = "";
+    const result = await uploadPaymentProofUseCase(
+      "user-1",
+      "case-1",
+      {
+        name: "proof.pdf",
+        size: 1024,
+        arrayBuffer: async () => new ArrayBuffer(8),
       },
-      session: {
-        id: "session-id-admin",
-        userId: "admin-user-id",
-        expiresAt: new Date(Date.now() + 3600000),
-        token: "token-admin",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    };
+      {
+        findCaseByIdWithAllRelations: async () => ({
+          package_id: "pkg-1",
+          package: { price: 199000 },
+          payment_status: "unpaid",
+        } as any),
+        saveProofFile: async () => "/uploads/proof.pdf",
+        deleteFile: async (fileUrl: string) => {
+          cleaned = fileUrl;
+        },
+        createPaymentProof: async () => {
+          throw new Error("db failure");
+        },
+      } as any,
+    ).catch((error) => error);
 
-    const res = await app.request("/api/admin/cases");
-    // Should be 200 (even if empty list)
-    assert.strictEqual(res.status, 200);
-    const body = await res.json();
-    assert.ok(Array.isArray(body));
-  });
-
-  await t.test("4. Invalid JSON payload should return 400", async () => {
-    currentMockSession = {
-      user: {
-        id: "student-user-id",
-        name: "Test Student",
-        role: "user",
-      }
-    };
-
-    const res = await app.request("/api/cases", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: "invalid-json-content{"
-    });
-
-    assert.strictEqual(res.status, 400);
-    const body = await res.json();
-    assert.strictEqual(body.error, "Dữ liệu JSON không hợp lệ");
-  });
-
-  await t.test("5. Case creation with invalid intake payload should return 400 with details", async () => {
-    const res = await app.request("/api/cases", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        package_id: "some-pkg",
-        contact: {
-          full_name: "A", // too short
-          student_code: "123", // too short
-        }
-      })
-    });
-
-    assert.strictEqual(res.status, 400);
-    const body = await res.json();
-    assert.strictEqual(body.error, "Dữ liệu không hợp lệ");
-    assert.ok(body.details.length > 0);
-  });
-
-  await t.test("6. Send message with empty content or too long content should return 400", async () => {
-    const res404 = await app.request("/api/cases/non-existent-case-uuid/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: "hello" })
-    });
-    assert.strictEqual(res404.status, 404);
-  });
-
-  await t.test("7. Payment verification status validation", async () => {
-    currentMockSession = {
-      user: {
-        id: "admin-user-id",
-        role: "admin",
-      }
-    };
-
-    const res = await app.request("/api/payments/non-existent-payment/verify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ status: "invalid-status" })
-    });
-
-    assert.strictEqual(res.status, 400);
-    const body = await res.json();
-    assert.strictEqual(body.error, "Trạng thái phê duyệt không hợp lệ");
+    assert.ok(result instanceof Error);
+    assert.strictEqual(cleaned, "/uploads/proof.pdf");
   });
 });

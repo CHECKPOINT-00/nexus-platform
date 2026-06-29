@@ -5,11 +5,36 @@ import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
+type UploadPaymentProofDeps = {
+  findCaseByIdWithAllRelations?: typeof findCaseByIdWithAllRelations;
+  saveProofFile?: typeof fileStorageService.saveProofFile;
+  deleteFile?: typeof fileStorageService.deleteFile;
+  createPaymentProof?: typeof createPaymentProof;
+};
+
+const defaultDeps = {
+  findCaseByIdWithAllRelations,
+  saveProofFile: fileStorageService.saveProofFile.bind(fileStorageService),
+  deleteFile: fileStorageService.deleteFile.bind(fileStorageService),
+  createPaymentProof,
+};
+
 export async function uploadPaymentProofUseCase(
   userId: string,
   caseId: string,
   file: UploadPaymentProofRequest["file"],
+  deps: UploadPaymentProofDeps = {},
 ) {
+  const {
+    findCaseByIdWithAllRelations,
+    saveProofFile,
+    deleteFile,
+    createPaymentProof,
+  } = {
+    ...defaultDeps,
+    ...deps,
+  };
+
   const caseObj = await findCaseByIdWithAllRelations(caseId);
 
   if (!caseObj) {
@@ -43,7 +68,7 @@ export async function uploadPaymentProofUseCase(
   }
 
   // Save proof file to disk via infrastructure service
-  const fileUrl = await fileStorageService.saveProofFile(file);
+  const fileUrl = await saveProofFile(file);
 
   try {
     const payment = await createPaymentProof({
@@ -59,8 +84,7 @@ export async function uploadPaymentProofUseCase(
       status: normalizePaymentStatus(payment.status),
     };
   } catch (dbError) {
-    // If database transaction fails, clean up the file
-    await fileStorageService.deleteFile(fileUrl);
+    await deleteFile(fileUrl);
     throw dbError;
   }
 }

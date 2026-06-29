@@ -1,7 +1,20 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { acceptCase, findCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
+import { acceptCase as defaultAcceptCase, findCaseById as defaultFindCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
+import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 
-export async function acceptCaseUseCase(adminId: string, caseId: string) {
+type AcceptCaseDeps = {
+  findCaseById?: typeof defaultFindCaseById;
+  acceptCase?: typeof defaultAcceptCase;
+};
+
+const defaultDeps = {
+  findCaseById: defaultFindCaseById,
+  acceptCase: defaultAcceptCase,
+};
+
+export async function acceptCaseUseCase(adminId: string, caseId: string, deps: AcceptCaseDeps = {}) {
+  const { findCaseById, acceptCase } = { ...defaultDeps, ...deps };
+  const timer = auditLogger.startTimer();
   if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
     throw new AppError(400, "VALIDATION_ERROR", "ID dự án không hợp lệ");
   }
@@ -15,8 +28,29 @@ export async function acceptCaseUseCase(adminId: string, caseId: string) {
     caseItem.user_facing_stage === "under_review" &&
     caseItem.internal_status === "accepted_unassigned"
   ) {
+    auditLogger.log({
+      operation: "admin.accept_case",
+      actor_id: adminId,
+      actor_role: "admin",
+      case_id: caseId,
+      action: "no_op",
+      old_state: { stage: caseItem.user_facing_stage, status: caseItem.internal_status },
+      new_state: { stage: caseItem.user_facing_stage, status: caseItem.internal_status },
+      duration_ms: timer(),
+    });
     return caseItem;
   }
 
-  return await acceptCase(caseId, adminId);
+  const result = await acceptCase(caseId, adminId);
+  auditLogger.log({
+    operation: "admin.accept_case",
+    actor_id: adminId,
+    actor_role: "admin",
+    case_id: caseId,
+    action: "accepted",
+    old_state: { stage: caseItem.user_facing_stage, status: caseItem.internal_status },
+    new_state: { stage: result.user_facing_stage, status: result.internal_status },
+    duration_ms: timer(),
+  });
+  return result;
 }

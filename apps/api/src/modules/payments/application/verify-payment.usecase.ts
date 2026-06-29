@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findPaymentById, verifyPayment } from "../infrastructure/persistence/payment.repository.js";
+import { findPaymentById as defaultFindPaymentById, verifyPayment as defaultVerifyPayment } from "../infrastructure/persistence/payment.repository.js";
 import {
   isFinalPaymentStatus,
   isValidPaymentDecision,
@@ -7,12 +7,25 @@ import {
 } from "../domain/payment.types.js";
 import type { VerifyPaymentRequest } from "./payments.dto.js";
 
+type VerifyPaymentDeps = {
+  findPaymentById?: typeof defaultFindPaymentById;
+  verifyPayment?: typeof defaultVerifyPayment;
+};
+
+const defaultDeps = {
+  findPaymentById: defaultFindPaymentById,
+  verifyPayment: defaultVerifyPayment,
+};
+
 export async function verifyPaymentUseCase(
   adminId: string,
   paymentId: string,
   status: VerifyPaymentRequest["status"],
   rejectionReason: string,
+  deps: VerifyPaymentDeps = {}
 ) {
+  const { findPaymentById, verifyPayment } = { ...defaultDeps, ...deps };
+
   if (!isValidPaymentDecision(status)) {
     throw new AppError(400, "INVALID_DECISION", "Trạng thái phê duyệt không hợp lệ");
   }

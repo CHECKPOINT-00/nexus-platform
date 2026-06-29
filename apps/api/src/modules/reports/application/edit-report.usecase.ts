@@ -1,11 +1,23 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findReportById, updateReportDraftContent } from "../infrastructure/persistence/report.repository.js";
+import { findReportById as defaultFindReportById, updateReportDraftContent as defaultUpdateReportDraftContent } from "../infrastructure/persistence/report.repository.js";
+
+type EditReportDeps = {
+  findReportById?: typeof defaultFindReportById;
+  updateReportDraftContent?: typeof defaultUpdateReportDraftContent;
+};
+
+const defaultDeps = {
+  findReportById: defaultFindReportById,
+  updateReportDraftContent: defaultUpdateReportDraftContent,
+};
 
 export async function editReportUseCase(
   reportId: string,
   caseId: string,
   contentMd: string,
+  deps: EditReportDeps = {}
 ) {
+  const { findReportById, updateReportDraftContent } = { ...defaultDeps, ...deps };
   const dbReport = await findReportById(reportId);
 
   if (!dbReport) {

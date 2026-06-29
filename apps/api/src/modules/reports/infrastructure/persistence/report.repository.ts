@@ -55,19 +55,19 @@ export async function upsertReportDraft(data: {
           created_by: userId,
         },
       });
-    } else {
-      return await tx.report.create({
-        data: {
-          case_id: caseId,
-          checkpoint_id: checkpointId,
-          lifecycle_unit_id: lifecycleUnitId,
-          report_type: "checkpoint_1_review",
-          content_md: contentMd,
-          status: "draft",
-          created_by: userId,
-        },
-      });
     }
+
+    return await tx.report.create({
+      data: {
+        case_id: caseId,
+        checkpoint_id: checkpointId,
+        lifecycle_unit_id: lifecycleUnitId,
+        report_type: "checkpoint_1_review",
+        content_md: contentMd,
+        status: "draft",
+        created_by: userId,
+      },
+    });
   });
 }
 
