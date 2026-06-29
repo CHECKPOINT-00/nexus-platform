@@ -22,7 +22,7 @@ export async function deleteCaseUseCase(
     throw new AppError(403, "FORBIDDEN", "Không có quyền xóa dự án này");
   }
 
-  if (existingCase.user_facing_stage !== "submitted") {
+  if (!isAdmin && existingCase.user_facing_stage !== "submitted") {
     throw new AppError(
       400,
       "INVALID_CASE_STAGE",
