@@ -10,21 +10,29 @@ interface SupportNeedsStepProps {
 }
 
 const PRIMARY_NEEDS = [
-  { key: "audit_checkpoint_1", label: "Phản biện & Đánh giá rủi ro Checkpoint 1" },
-  { key: "validate_customer_problem", label: "Kiểm chứng nỗi đau & Phân khúc khách hàng" },
-  { key: "verify_market_size", label: "Đánh giá quy mô thị trường & đối thủ cạnh tranh" },
-  { key: "optimize_business_model", label: "Tối ưu mô hình doanh thu & giải pháp thay thế" },
-  { key: "general_review", label: "Tổng duyệt toàn diện bản báo cáo Checkpoint" },
+  { key: "filter_select_idea", label: "Lọc & lựa chọn ý tưởng khởi nghiệp (khi có nhiều ý tưởng hoặc chưa chốt)" },
+  { key: "clarify_customer_pain", label: "Làm rõ khách hàng mục tiêu & nỗi đau (Problem & Customer)" },
+  { key: "critique_feasibility", label: "Phản biện tính khả thi & giải pháp (Solution & Feasibility)" },
+  { key: "audit_cp1_draft", label: "Tổng duyệt & rà soát lỗi báo cáo Checkpoint 1" },
+  { key: "improve_rejected_idea", label: "Cải thiện ý tưởng bị giảng viên từ chối / đánh giá yếu" },
 ];
 
 export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps) {
   return (
     <div className="space-y-5 font-body">
-      <div className="space-y-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Nhu cầu hỗ trợ & Kỳ vọng</h3>
-        <p className="font-body text-xs text-text-muted">
-          Làm rõ vấn đề nhóm đang gặp khó khăn và kết quả mong muốn. Thông tin này giúp Supporter chuẩn bị phản biện đúng trọng tâm.
-        </p>
+      <div className="flex items-center gap-1.5 pb-1">
+        <h3 className="font-heading text-base font-bold text-text-app">Nhu cầu hỗ trợ</h3>
+        <Tooltip
+          label="Chỉ cần chọn hướng hỗ trợ chính. Phần ghi chú thêm và kỳ vọng đầu ra là tùy chọn."
+          position="top"
+          multiline
+          w={240}
+          withArrow
+        >
+          <span className="flex items-center">
+            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+          </span>
+        </Tooltip>
       </div>
 
       <div className="space-y-4">
@@ -41,6 +49,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
               <Select
+                withAsterisk
                 label="Nhu cầu hỗ trợ chính"
                 placeholder="Chọn nhu cầu chính của nhóm bạn"
                 data={PRIMARY_NEEDS.map((item) => ({ value: item.key, label: item.label }))}
@@ -58,7 +67,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
           name="expected_outputs"
           validators={{
             onChange: ({ value }: { value: string }) => {
-              if (value && value.length < 5) {
+              if (value && value.trim().length > 0 && value.trim().length < 5) {
                 return "Vui lòng mô tả chi tiết kỳ vọng đầu ra (tối thiểu 5 ký tự).";
               }
               return undefined;
@@ -71,9 +80,9 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
               <Textarea
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Kết quả mong đợi sau phản biện</span>
+                    <span>Kết quả mong đợi sau phản biện (Tùy chọn)</span>
                     <Tooltip
-                      label="Mô tả cụ thể kết quả bạn muốn Supporter cung cấp sau khi đọc hồ sơ (ví dụ: chỉ ra các điểm yếu lập luận, câu hỏi phản biện gợi mở và hướng sửa đổi chi tiết)."
+                      label="Nếu muốn, hãy nói rõ supporter nên trả về dạng góp ý nào: chỉ điểm yếu logic, hỏi câu phản biện, hay gợi ý cách sửa."
                       multiline
                       w={220}
                       withArrow
@@ -84,7 +93,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
                     </Tooltip>
                   </div>
                 }
-                placeholder="Ví dụ: Nhận được danh sách điểm yếu trong luận điểm đối thủ cạnh tranh, kèm câu hỏi phản biện gợi mở và hướng sửa đổi cụ thể..."
+                placeholder="Ví dụ: Chỉ ra các điểm yếu chính trong logic khách hàng mục tiêu và đề xuất câu hỏi phản biện cụ thể..."
                 value={field.state.value || ""}
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}

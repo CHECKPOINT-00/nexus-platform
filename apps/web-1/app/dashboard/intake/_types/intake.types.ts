@@ -40,6 +40,7 @@ export interface IntakeDocument {
 
 export interface IntakeData {
   package_id: string;
+  current_blocker: string;
   current_situations: string[];
   case_summary: string;
   contact: IntakeContact;
@@ -50,7 +51,6 @@ export interface IntakeData {
   deadline?: string;
   urgency?: string;
   expected_outputs: string;
-  needs_followup_review: boolean;
   boundary_confirmations: string[];
   school?: string;
   course_context?: string;

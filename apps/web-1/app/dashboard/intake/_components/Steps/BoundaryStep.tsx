@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Checkbox } from "@mantine/core";
-import { AlertTriangle } from "lucide-react";
+import { Checkbox, Tooltip, Alert } from "@mantine/core";
+import { AlertTriangle, HelpCircle } from "lucide-react";
 
 interface BoundaryStepProps {
   form: any;
@@ -18,22 +18,28 @@ const BOUNDARY_RULES = [
 export default function BoundaryStep({ form, values }: BoundaryStepProps) {
   return (
     <div className="space-y-5 font-body">
-      <div className="space-y-1">
+      <div className="flex items-center gap-1.5 pb-1">
         <h3 className="font-heading text-base font-bold text-text-app">Cam kết ranh giới</h3>
-        <p className="font-body text-xs text-text-muted">
-          Đọc kỹ và tích chọn tất cả các cam kết dưới đây.
-        </p>
+        <Tooltip
+          label="Đọc kỹ và tích chọn tất cả các cam kết dưới đây."
+          position="top"
+          withArrow
+        >
+          <span className="flex items-center">
+            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+          </span>
+        </Tooltip>
       </div>
 
-      <div className="p-4 rounded-xl border border-danger/30 bg-danger-soft/20 text-danger flex gap-3 items-start animate-fade-in">
-        <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-danger" />
-        <div className="space-y-1">
-          <h4 className="font-heading font-bold text-xs text-danger tracking-wide">ĐIỀU KHOẢN QUAN TRỌNG</h4>
-          <p className="font-body text-[11px] text-danger/90 leading-relaxed">
-            Học viên bắt buộc phải đồng ý với các điều khoản ranh giới để đảm bảo tính minh bạch và quyền lợi chuyên môn. Nexus từ chối hỗ trợ các trường hợp sao chép tài liệu hoặc có kỳ vọng sai lệch về kết quả điểm số chính thức.
-          </p>
-        </div>
-      </div>
+      <Alert
+        variant="light"
+        color="red"
+        radius="md"
+        title="ĐIỀU KHOẢN QUAN TRỌNG"
+        icon={<AlertTriangle className="w-4 h-4" />}
+      >
+        Bạn cần xác nhận các cam kết bên dưới để gửi hồ sơ. Nexus từ chối hỗ trợ tài liệu sao chép hoặc yêu cầu cam kết điểm số/kết quả đánh giá chính thức.
+      </Alert>
 
       <form.Field
         name="boundary_confirmations"
@@ -71,7 +77,7 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
                         field.handleChange(next);
                       }}
                       label={rule.label}
-                      size="xs"
+                      size="sm"
                       radius="sm"
                       className="py-1"
                     />
@@ -79,7 +85,7 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
                 })}
               </div>
               {hasError && (
-                <p className="text-[10px] text-danger font-body font-semibold pl-1">
+                <p className="text-xs text-red-500 font-body pl-1 mt-1">
                   {field.state.meta.errors[0]}
                 </p>
               )}

@@ -5,9 +5,9 @@ import { useStore } from "@tanstack/react-form";
 import { usePackages } from "@/hooks/usePackages";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Button } from "@mantine/core";
+import { Button, Tooltip } from "@mantine/core";
 import { ServicePackage } from "@/types";
-import { ArrowLeft, ArrowRight, Bot, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, HelpCircle, Send } from "lucide-react";
 
 // Import step components
 import SituationStep from "./Steps/SituationStep";
@@ -19,12 +19,22 @@ import DeadlineStep from "./Steps/DeadlineStep";
 import BoundaryStep from "./Steps/BoundaryStep";
 import ReviewSubmitStep from "./Steps/ReviewSubmitStep";
 
+const hasTrimmedText = (value: unknown, minLength = 1) => {
+  return typeof value === "string" && value.trim().length >= minLength;
+};
+
+const hasLegacySituationText = (values: any) => {
+  if (hasTrimmedText(values.case_summary, 20)) return true;
+  if (!Array.isArray(values.current_situations)) return false;
+  return values.current_situations.some((item: unknown) => hasTrimmedText(item, 1));
+};
+
 export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
   switch (step) {
     case IntakeStep.PACKAGE:
       return !!values.package_id;
     case IntakeStep.SITUATION:
-      return !!values.case_summary && values.case_summary.length >= 20;
+      return hasTrimmedText(values.current_blocker, 10) || hasLegacySituationText(values);
     case IntakeStep.CONTACT:
       return (
         !!values.contact?.full_name &&
@@ -37,10 +47,22 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
         !!values.contact?.email &&
         values.contact.email.includes("@")
       );
-    case IntakeStep.PROJECT_CONTEXT:
-      return true; // Optional context step
+    case IntakeStep.PROJECT_CONTEXT: {
+      const isSchoolValid = !!values.school && values.school.trim().length > 0;
+      const isCourseValid = !!values.course_context && values.course_context.trim().length > 0;
+      const isProjectNameValid = !!values.team_context?.project_name && values.team_context.project_name.trim().length > 0;
+
+      let isGroupNoValid = true;
+      if (values.school === "Đại học FPT" && values.course_context === "EXE101") {
+        isGroupNoValid = !!values.team_context?.group_no && /^\d+$/.test(values.team_context.group_no.trim());
+      } else {
+        isGroupNoValid = !!values.team_context?.group_no && values.team_context.group_no.trim().length > 0;
+      }
+
+      return isSchoolValid && isCourseValid && isProjectNameValid && isGroupNoValid;
+    }
     case IntakeStep.SUPPORT_NEEDS:
-      return !!values.support_needs?.primary_need && (!values.expected_outputs || values.expected_outputs.length >= 5);
+      return !!values.support_needs?.primary_need && (!values.expected_outputs || values.expected_outputs.trim().length >= 5);
     case IntakeStep.DOCUMENTS:
       return (
         Array.isArray(values.documents) &&
@@ -51,18 +73,17 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
             d.drive_url.trim().length > 0 &&
             /^https?:\/\/(drive|docs)\.google\.com\/.*/.test(d.drive_url) &&
             !!d.document_type &&
-            d.document_type.trim().length > 0
+            d.document_type.trim().length > 0,
         )
       );
     case IntakeStep.DEADLINE: {
       const deadlineVal = values.deadline;
-      if (deadlineVal) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selectedDate = new Date(deadlineVal);
-        selectedDate.setHours(0, 0, 0, 0);
-        if (selectedDate <= today) return false;
-      }
+      if (!deadlineVal) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(deadlineVal);
+      selectedDate.setHours(0, 0, 0, 0);
+      if (selectedDate <= today) return false;
       return true;
     }
     case IntakeStep.BOUNDARY:
@@ -93,10 +114,8 @@ export default function IntakeChatFlow({
 }: IntakeChatFlowProps) {
   const { data: packages, isLoading: isLoadingPackages } = usePackages();
 
-  // Get current form values to check completion
   const values = useStore(form.store, (state: any) => state.values);
 
-  // Validate current step fields
   const isStepValid = () => checkStepValidity(currentStep, values);
 
   const handleNext = () => {
@@ -127,13 +146,12 @@ export default function IntakeChatFlow({
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(price);
   };
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">
-      {/* Bot Header Welcome */}
       <div className="flex gap-4 p-4 rounded-xl bg-brand-soft/20 border border-brand/10">
         <div className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shrink-0">
           <Bot className="w-5 h-5" />
@@ -141,22 +159,27 @@ export default function IntakeChatFlow({
         <div className="space-y-1">
           <h4 className="font-heading font-semibold text-brand text-sm">Trợ lý tạo Hồ sơ Phản biện</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Xin chào! Mình sẽ hướng dẫn bạn hoàn thiện hồ sơ phản biện. Hãy thực hiện điền thông tin qua các bước dưới đây để Supporter chuyên môn có đủ thông tin hỗ trợ nhóm bạn tốt nhất.
+            Xin chào! Mình sẽ hướng dẫn bạn hoàn thiện hồ sơ phản biện. Hãy điền thông tin qua từng bước để Supporter có đủ bối cảnh cần thiết.
           </p>
         </div>
       </div>
 
-      {/* Intake Steps Container */}
       <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
-        
-        {/* Step 0: Package Selection */}
         {currentStep === IntakeStep.PACKAGE && (
           <div className="space-y-6 font-body">
-            <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
               <h3 className="font-heading text-base font-bold text-text-app">Chọn gói dịch vụ phản biện</h3>
-              <p className="font-body text-xs text-text-muted">
-                Lựa chọn gói phản biện giúp hệ thống định hình SLA phản hồi và kết nối Supporter chuyên môn phù hợp.
-              </p>
+              <Tooltip
+                label="Lựa chọn gói phản biện giúp hệ thống định hình SLA phản hồi và kết nối Supporter chuyên môn phù hợp."
+                position="top"
+                multiline
+                w={260}
+                withArrow
+              >
+                <span className="flex items-center">
+                  <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+                </span>
+              </Tooltip>
             </div>
 
             {isLoadingPackages ? (
@@ -177,7 +200,7 @@ export default function IntakeChatFlow({
                     }`}
                   >
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-heading font-bold text-xs text-text-app">{pkg.name}</span>
+                      <span className="font-heading font-bold text-sm text-text-app">{pkg.name}</span>
                       <input
                         type="radio"
                         name="package_selection"
@@ -193,7 +216,7 @@ export default function IntakeChatFlow({
                     <span className="font-heading font-bold text-brand text-sm mb-2">
                       {formatPrice(pkg.price)}
                     </span>
-                    <ul className="text-[10px] text-text-muted space-y-1 pl-4 list-disc font-body">
+                    <ul className="text-xs text-text-muted space-y-1 pl-4 list-disc font-body">
                       {getFeaturesList(pkg.features).map((feat, idx) => (
                         <li key={idx}>{feat}</li>
                       ))}
@@ -205,47 +228,22 @@ export default function IntakeChatFlow({
           </div>
         )}
 
-        {/* Step 1: Situation & Summary */}
-        {currentStep === IntakeStep.SITUATION && (
-          <SituationStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.SITUATION && <SituationStep form={form} values={values} />}
 
-        {/* Step 2: Contact Info */}
-        {currentStep === IntakeStep.CONTACT && (
-          <ContactStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.CONTACT && <ContactStep form={form} values={values} />}
 
-        {/* Step 3: Project Context */}
-        {currentStep === IntakeStep.PROJECT_CONTEXT && (
-          <ProjectContextStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.PROJECT_CONTEXT && <ProjectContextStep form={form} values={values} />}
 
-        {/* Step 4: Support Needs */}
-        {currentStep === IntakeStep.SUPPORT_NEEDS && (
-          <SupportNeedsStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.SUPPORT_NEEDS && <SupportNeedsStep form={form} values={values} />}
 
-        {/* Step 5: Documents */}
-        {currentStep === IntakeStep.DOCUMENTS && (
-          <DocumentInputStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.DOCUMENTS && <DocumentInputStep form={form} values={values} />}
 
-        {/* Step 6: Deadline & Urgency */}
-        {currentStep === IntakeStep.DEADLINE && (
-          <DeadlineStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.DEADLINE && <DeadlineStep form={form} values={values} />}
 
-        {/* Step 7: Boundaries */}
-        {currentStep === IntakeStep.BOUNDARY && (
-          <BoundaryStep form={form} values={values} />
-        )}
+        {currentStep === IntakeStep.BOUNDARY && <BoundaryStep form={form} values={values} />}
 
-        {/* Step 8: Review & Submit */}
-        {currentStep === IntakeStep.REVIEW && (
-          <ReviewSubmitStep values={values} packages={packages} error={error} />
-        )}
+        {currentStep === IntakeStep.REVIEW && <ReviewSubmitStep values={values} packages={packages} error={error} />}
 
-        {/* Navigation Buttons */}
         <div className="flex justify-between items-center pt-6 border-t border-border-app">
           <Button
             onClick={handleBack}

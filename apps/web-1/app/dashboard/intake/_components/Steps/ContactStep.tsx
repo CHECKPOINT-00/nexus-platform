@@ -12,11 +12,17 @@ interface ContactStepProps {
 export default function ContactStep({ form, values }: ContactStepProps) {
   return (
     <div className="space-y-5 font-body">
-      <div className="space-y-1">
+      <div className="flex items-center gap-1.5 pb-1">
         <h3 className="font-heading text-base font-bold text-text-app">Thông tin người liên hệ</h3>
-        <p className="font-body text-xs text-text-muted">
-          Thông tin của bạn để Supporter tiện liên hệ hỗ trợ khi cần thiết.
-        </p>
+        <Tooltip
+          label="Thông tin của bạn để Supporter tiện liên hệ hỗ trợ khi cần thiết."
+          position="top"
+          withArrow
+        >
+          <span className="flex items-center">
+            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+          </span>
+        </Tooltip>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -34,6 +40,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
               <TextInput
+                withAsterisk
                 label="Họ và tên"
                 placeholder="Ví dụ: Nguyễn Văn A"
                 value={field.state.value || ""}
@@ -62,7 +69,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
               <TextInput
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Mã số sinh viên</span>
+                    <span>Mã số sinh viên <span className="text-red-500">*</span></span>
                     <Tooltip
                       label="Nhập mã số sinh viên của bạn (ví dụ: HE150123) để xác thực bối cảnh Campus."
                       multiline
@@ -101,7 +108,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
               <TextInput
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Vai trò trong nhóm</span>
+                    <span>Vai trò trong nhóm <span className="text-red-500">*</span></span>
                     <Tooltip
                       label="Nhập vai trò của bạn trong nhóm (ví dụ: Trưởng nhóm, Coder, Pitcher, Designer...)."
                       multiline
@@ -141,7 +148,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
               <TextInput
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Số điện thoại Zalo</span>
+                    <span>Số điện thoại Zalo <span className="text-red-500">*</span></span>
                     <Tooltip
                       label="Cung cấp chính xác SĐT Zalo gồm 10 chữ số để supporter liên hệ nhanh khi cần thiết."
                       multiline
@@ -180,6 +187,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             return (
               <div className="md:col-span-2">
                 <TextInput
+                  withAsterisk
                   type="email"
                   label="Email liên hệ"
                   placeholder="Ví dụ: anvhe150123@fpt.edu.vn"

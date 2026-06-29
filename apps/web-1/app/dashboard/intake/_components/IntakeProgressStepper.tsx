@@ -12,7 +12,7 @@ interface IntakeProgressStepperProps {
 
 const steps = [
   { step: IntakeStep.PACKAGE, label: "Gói dịch vụ" },
-  { step: IntakeStep.SITUATION, label: "Bối cảnh" },
+  { step: IntakeStep.SITUATION, label: "Vấn đề" },
   { step: IntakeStep.CONTACT, label: "Liên hệ" },
   { step: IntakeStep.PROJECT_CONTEXT, label: "Nhóm" },
   { step: IntakeStep.SUPPORT_NEEDS, label: "Hỗ trợ" },
@@ -29,7 +29,6 @@ export default function IntakeProgressStepper({
 }: IntakeProgressStepperProps) {
   return (
     <>
-      {/* Desktop Sidebar Navigation */}
       <div className="hidden lg:flex flex-col gap-2 w-full">
         {steps.map((s, idx) => {
           const isActive = s.step === currentStep;
@@ -63,12 +62,8 @@ export default function IntakeProgressStepper({
                 {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-heading font-bold leading-tight block">
-                  {s.label}
-                </span>
-                <span className={`text-[10px] leading-none mt-0.5 ${
-                  isActive ? "text-white/80" : "text-text-muted"
-                }`}>
+                <span className="text-xs font-heading font-bold leading-tight block">{s.label}</span>
+                <span className={`text-[10px] leading-none mt-0.5 ${isActive ? "text-white/80" : "text-text-muted"}`}>
                   {isActive ? "Đang thực hiện" : isCompleted ? "Đã hoàn thành" : isSelectable ? "Sẵn sàng" : "Chưa mở khóa"}
                 </span>
               </div>
@@ -77,7 +72,6 @@ export default function IntakeProgressStepper({
         })}
       </div>
 
-      {/* Mobile Horizontal Stepper */}
       <div className="lg:hidden w-full py-3 border-b border-border-app bg-surface-app px-4 mb-4">
         <div className="flex items-center justify-between gap-1 overflow-x-auto scrollbar-none py-1">
           {steps.map((s, idx) => {
@@ -110,9 +104,7 @@ export default function IntakeProgressStepper({
                 >
                   {s.label}
                 </span>
-                {idx < steps.length - 1 && (
-                  <span className="text-text-subtle/30 mx-1 text-[10px]">/</span>
-                )}
+                {idx < steps.length - 1 && <span className="text-text-subtle/30 mx-1 text-[10px]">/</span>}
               </button>
             );
           })}

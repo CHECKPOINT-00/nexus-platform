@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
-import { Textarea, Tooltip } from "@mantine/core";
-import { HelpCircle } from "lucide-react";
+import { Alert, Textarea, Tooltip } from "@mantine/core";
+import { HelpCircle, Info } from "lucide-react";
 
 interface SituationStepProps {
   form: any;
@@ -12,20 +11,37 @@ interface SituationStepProps {
 export default function SituationStep({ form, values }: SituationStepProps) {
   return (
     <div className="space-y-5">
-      <div className="space-y-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Ý tưởng &amp; Vấn đề đang giải quyết</h3>
-        <p className="font-body text-xs text-text-muted">
-          Giải thích bối cảnh, lý do nhóm chọn đề tài này, vấn đề thực tế đang giải quyết và tóm tắt ngắn gọn giải pháp.
-        </p>
+      <div className="flex items-center gap-1.5 pb-1">
+        <h3 className="font-heading text-base font-bold text-text-app">Nhóm đang kẹt ở đâu?</h3>
+        <Tooltip
+          label="Mô tả ngắn gọn nút thắt hiện tại để Supporter tập trung giải quyết."
+          position="top"
+          withArrow
+        >
+          <span className="flex items-center">
+            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+          </span>
+        </Tooltip>
       </div>
+
+      <Alert
+        variant="light"
+        color="blue"
+        radius="md"
+        title="Lưu ý quan trọng"
+        icon={<Info className="w-4 h-4" />}
+      >
+        Không cần viết lại proposal. Chỉ nói ngắn gọn nút thắt hiện tại: giảng viên chê gì, đội đang bí gì, hoặc cần Supporter phản biện phần nào ngay bây giờ.
+      </Alert>
 
       <div className="space-y-4">
         <form.Field
-          name="case_summary"
+          name="current_blocker"
           validators={{
             onChange: ({ value }: { value: string }) => {
-              if (!value) return "Mô tả ý tưởng không được để trống";
-              if (value.length < 20) return "Mô tả ý tưởng tối thiểu phải 20 ký tự.";
+              const text = typeof value === "string" ? value.trim() : "";
+              if (!text) return "Mô tả điểm kẹt hiện tại là bắt buộc.";
+              if (text.length < 10) return "Mô tả điểm kẹt hiện tại tối thiểu 10 ký tự.";
               return undefined;
             },
           }}
@@ -34,30 +50,11 @@ export default function SituationStep({ form, values }: SituationStepProps) {
             const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
             return (
               <Textarea
-                label="Mô tả ý tưởng &amp; vấn đề giải quyết"
-                placeholder="Ví dụ:&#10;Vấn đề: [Phụ huynh khó tìm gia sư uy tín dạy môn đặc thù].&#10;Giải pháp: [Ứng dụng kết nối gia sư có kiểm duyệt hồ sơ bằng AI].&#10;Giá trị: [Giúp phụ huynh an tâm tìm gia sư chất lượng trong 5 phút]."
-                value={field.state.value || ""}
-                onBlur={field.handleBlur}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
-                error={hasError ? field.state.meta.errors[0] : undefined}
-                minRows={3}
-                autosize
-                radius="md"
-              />
-            );
-          }}
-        </form.Field>
-
-        <form.Field name="current_situations">
-          {(field: any) => {
-            const rawSituationsValue = field.state.value?.join("\n") || "";
-            return (
-              <Textarea
                 label={
                   <div className="flex items-center gap-1.5">
-                    <span>Bối cảnh &amp; tình huống cụ thể</span>
+                    <span>Điểm kẹt hiện tại <span className="text-red-500">*</span></span>
                     <Tooltip
-                      label="Mô tả bối cảnh hoặc tình huống thực tế dẫn tới ý tưởng của bạn (ví dụ: khó khăn của khách hàng, vấn đề của thị trường). Hãy nhập mỗi bối cảnh trên một dòng mới."
+                      label="Ví dụ: nhóm bị chê phần customer pain chưa rõ, logic solution còn yếu, hoặc cần phản biện giúp trước deadline thứ 5."
                       multiline
                       w={220}
                       withArrow
@@ -68,14 +65,12 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                     </Tooltip>
                   </div>
                 }
-                placeholder="Ví dụ:&#10;Sinh viên sư phạm khó tìm lớp dạy thêm phù hợp.&#10;Phụ huynh lo lắng về chất lượng dạy của gia sư tự do."
-                value={rawSituationsValue}
+                placeholder="Ví dụ: Giảng viên nói phần customer segment còn mơ hồ, cần supporter phản biện giúp trước thứ 5."
+                value={field.state.value || ""}
                 onBlur={field.handleBlur}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  const arr = e.target.value.split("\n").filter((line) => line.trim().length > 0);
-                  field.handleChange(arr);
-                }}
-                minRows={3}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
+                error={hasError ? field.state.meta.errors[0] : undefined}
+                minRows={4}
                 autosize
                 radius="md"
               />
@@ -86,4 +81,3 @@ export default function SituationStep({ form, values }: SituationStepProps) {
     </div>
   );
 }
-
