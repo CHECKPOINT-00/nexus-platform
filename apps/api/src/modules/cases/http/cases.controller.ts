@@ -15,6 +15,7 @@ import { updateCaseStatusUseCase } from "../application/update-case-status.useca
 import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
+import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
 import type {
   CreateCaseRequest,
   SubmitRevisionRequest,
@@ -247,6 +248,30 @@ export async function updateCaseSettingsHandler(c: Context) {
       body,
     );
     return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/cases/:id — Delete a case (Before admin approval)
+// ---------------------------------------------------------------------------
+
+export async function deleteCaseHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const result = await deleteCaseUseCase(
+      session.user.id,
+      (session.user as any).role,
+      caseId,
+    );
+    return c.json({ success: true, message: "Đã xóa dự án thành công", data: result });
   } catch (error: any) {
     return handleError(c, error);
   }

@@ -37,6 +37,17 @@ export function useCaseDetails(id: string) {
     },
   });
 
+  const deleteCaseMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.delete(`/cases/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+    },
+  });
+
   return {
     caseData: caseQuery.data?.case || null,
     intakeSnapshot: caseQuery.data?.intake_snapshot || null,
@@ -52,5 +63,7 @@ export function useCaseDetails(id: string) {
     isUpdatingStage: updateStageMutation.isPending,
     updateSettings: updateSettingsMutation.mutateAsync,
     isUpdatingSettings: updateSettingsMutation.isPending,
+    deleteCase: deleteCaseMutation.mutateAsync,
+    isDeletingCase: deleteCaseMutation.isPending,
   };
 }

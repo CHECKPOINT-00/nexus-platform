@@ -193,7 +193,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
         unit_type: "intake",
         version_no: 1,
         content: JSON.stringify(rawBody),
-        file_url: rawBody.documents?.[0]?.drive_url || null,
+        file_url: rawBody.documents?.[0]?.drive_url || rawBody.documents?.[0]?.file_url || null,
       },
     });
 
@@ -229,6 +229,12 @@ export async function acceptCase(caseId: string, adminId: string) {
     });
 
     return updated;
+  });
+}
+
+export async function deleteCase(caseId: string) {
+  return await prisma.case.delete({
+    where: { id: caseId },
   });
 }
 
