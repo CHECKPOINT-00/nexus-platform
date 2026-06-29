@@ -1,7 +1,7 @@
 ---
 title: "Nexus MVP demo realignment frontend"
 description: "Frontend-only plan to realign intake, workspace, and triage surfaces for a clearer MVP demo story."
-status: pending
+status: completed
 priority: P2
 effort: 4h
 branch: ui/heroui-to-mantine
@@ -28,10 +28,10 @@ Goal: làm frontend demo path kể một câu chuyện rõ và nhất quán, nh�
 - Intake documents hiện đang là 1 bundle `documents[0]` với Drive/Docs URL chính + checklist loại tài liệu.
 
 ## Phases
-- [ ] Phase 01 — [Lock demo narrative and terminology](./phase-01-lock-demo-narrative-and-terminology.md)
-- [ ] Phase 02 — [Realign intake and submit flow](./phase-02-realign-intake-and-submit-flow.md)
-- [ ] Phase 03 — [Unify case status and ops surfaces](./phase-03-unify-case-status-and-ops-surfaces.md)
-- [ ] Phase 04 — [Verify end-to-end demo path](./phase-04-verify-end-to-end-demo-path.md)
+- [x] Phase 01 — [Lock demo narrative and terminology](./phase-01-lock-demo-narrative-and-terminology.md)
+- [x] Phase 02 — [Realign intake and submit flow](./phase-02-realign-intake-and-submit-flow.md)
+- [x] Phase 03 — [Unify case status and ops surfaces](./phase-03-unify-case-status-and-ops-surfaces.md)
+- [x] Phase 04 — [Verify end-to-end demo path](./phase-04-verify-end-to-end-demo-path.md)
 
 ## Key dependencies
 - Source parent plan: `../260629-1722-mvp-demo-realignment/plan.md`

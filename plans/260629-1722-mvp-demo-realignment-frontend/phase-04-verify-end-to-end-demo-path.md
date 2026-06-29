@@ -50,14 +50,14 @@
 9. Chỉ polish những chỗ làm hỏng clarity; không expand scope lớn.
 
 ## Todo list
-- [ ] Chuẩn bị hồ sơ demo mẫu synthetic-realistic
-- [ ] Chạy walkthrough student flow
-- [ ] Verify discussion/chat path
-- [ ] Verify timeline/event path
-- [ ] Chạy walkthrough admin flow
-- [ ] Chạy walkthrough supporter flow
-- [ ] Viết script trình bày cuối
-- [ ] Ghi lại regression/UX issues còn sót
+- [x] Chuẩn bị hồ sơ demo mẫu synthetic-realistic
+- [x] Chạy walkthrough student flow
+- [x] Verify discussion/chat path
+- [x] Verify timeline/event path
+- [x] Chạy walkthrough admin flow
+- [x] Chạy walkthrough supporter flow
+- [x] Viết script trình bày cuối
+- [x] Ghi lại regression/UX issues còn sót
 
 ## Success Criteria
 - Trong 30 giây đầu, audience hiểu Nexus giải quyết vấn đề gì và `Hồ sơ phản biện` là gì.
