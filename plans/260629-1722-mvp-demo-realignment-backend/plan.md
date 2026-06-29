@@ -61,3 +61,48 @@ Goal: làm backend demo path đủ rõ và đủ chặt để frontend có thể
 - Backend plan đủ cụ thể để API implementer không phải đoán route semantics.
 - Frontend có thể build trên contract rõ ràng mà không cần sửa schema lớn.
 - Demo path không bị mơ hồ ở status, assignment, messages, reports, attachments.
+
+## Validation Log
+
+### Session 1 — 2026-06-29
+**Trigger:** Initial plan creation validation.
+**Questions asked:** 4
+
+#### Questions & Answers
+
+1. **[Reports]** Where should report publish authority live?
+   - Options: Reports module (Recommended) | Supporter module | Split ownership
+   - **Answer:** Reports module (Recommended)
+   - **Rationale:** Need single source of truth for publish semantics; supporter path can stay thin.
+
+2. **[Attachments]** How should attachment/reference semantics be modeled?
+   - Options: Metadata only (Recommended) | New domain object | Defer semantics
+   - **Answer:** Metadata only (Recommended)
+   - **Rationale:** Keeps phase scope tight and matches current backend evidence.
+
+3. **[Packages]** Keep package seed-on-read behavior?
+   - Options: Yes, keep it (Recommended) | Move to explicit seed | Remove fallback
+   - **Answer:** Yes, keep it (Recommended)
+   - **Rationale:** Preserve current MVP bootstrap behavior and avoid scope creep.
+
+4. **[Idempotency]** For repeated admin/supporter commands, what default behavior should plan assume?
+   - Options: Idempotent no-op (Recommended) | 409 conflict | Overwrite latest
+   - **Answer:** Idempotent no-op (Recommended)
+   - **Rationale:** Stable demo behavior; repeated same-state actions should not fail noisily.
+
+#### Confirmed Decisions
+- Report publish authority: Reports module — single source of truth.
+- Attachment/reference semantics: Metadata only — no new domain object now.
+- Package seed-on-read: Keep it — preserve MVP bootstrap behavior.
+- Repeated commands: Idempotent no-op — return current state on same-state actions.
+
+#### Action Items
+- [ ] Update phase 03 to make reports the canonical publish owner.
+- [ ] Update phase 04 to keep attachment/reference work metadata-only.
+- [ ] Keep package fallback behavior explicit in phase 04.
+- [ ] Add idempotency/no-op policy to lifecycle phase 02.
+
+#### Impact on Phases
+- Phase 02: Add explicit no-op handling for repeated admin/supporter commands.
+- Phase 03: Center publish authority in reports module; supporter path becomes bridge.
+- Phase 04: Treat attachment/reference semantics as metadata only and preserve package seed-on-read behavior.

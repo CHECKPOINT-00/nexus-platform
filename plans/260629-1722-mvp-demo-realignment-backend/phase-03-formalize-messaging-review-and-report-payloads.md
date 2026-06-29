@@ -16,6 +16,8 @@
 - Frontend chat đã có GET/POST + polling; backend phải đảm bảo persistence semantics và side effects rõ.
 - Supporter review page đang dựa vào structured findings; payload shape không được mơ hồ.
 - `report.content_md` hiện đang đóng vai trò transport/store cho report payload; cần ghi rõ semantics này.
+- Reports module is canonical publish owner; supporter publish stays thin bridge.
+<!-- Updated: Validation Session 1 - Reports module canonical publish owner -->
 
 ## Requirements
 - Chốt contract list/send messages.

@@ -15,6 +15,8 @@
 - Demo path sẽ vỡ nếu stage transitions hoặc assignment rules không rõ.
 - Admin triage là chỗ chuyển nghĩa từ “student vừa nộp” sang “ops có thể xử lý”.
 - `assignSupporterUseCase` đã có guard cơ bản; phase này phải làm rõ expected behavior toàn tuyến.
+- Repeated same-state actions should stay idempotent no-op for demo stability.
+<!-- Updated: Validation Session 1 - Idempotent no-op policy confirmed -->
 
 ## Requirements
 - Có canonical transition rules cho `user_facing_stage` và `internal_status`.
