@@ -8,13 +8,14 @@ Trục tài liệu chính:
 
 ## Focus hiện tại
 
-Bộ canonical hiện tại đang chốt MVP cho flow `audit + review CP1`.
+Bộ canonical hiện tại đang chốt MVP cho flow `audit + review CP1`, trình bày như một workflow `student -> admin -> supporter` xoay quanh `Hồ sơ phản biện`.
 
 Giá trị chính cần giữ trong mọi tài liệu:
 - giúp team biết idea/tài liệu yếu ở đâu;
 - biết nên sửa gì trước;
 - nhận report rõ ràng;
-- gửi bản sửa để được review lại.
+- gửi bản sửa để được review lại;
+- theo dõi trao đổi và tiến độ xử lý trong cùng một case workspace.
 
 `Case management` chỉ là lớp vận hành hỗ trợ value flow đó.
 
@@ -25,6 +26,10 @@ Giá trị chính cần giữ trong mọi tài liệu:
   - core value flow vs ops flow
   - khách hàng mục tiêu
   - ràng buộc và giả định chính
+- [`project-overview-pdr.md`](./project-overview-pdr.md)
+  - canonical ngắn cho MVP demo realignment
+  - student -> admin -> supporter workflow
+  - những gì giữ / sửa / hoãn trước demo
 - [`prd/core-product-prd.md`](./prd/core-product-prd.md)
   - product scope canonical
   - MVP scope
@@ -52,21 +57,27 @@ Giá trị chính cần giữ trong mọi tài liệu:
 ## Thứ tự đọc khuyến nghị
 
 1. [`project-context.md`](./project-context.md)
-2. [`prd/core-product-prd.md`](./prd/core-product-prd.md)
-3. [`flows/cp1-audit-end-to-end-flow.md`](./flows/cp1-audit-end-to-end-flow.md)
-4. [`flows/cp1-mvp-screen-spec.md`](./flows/cp1-mvp-screen-spec.md)
-5. [`technical-notes/frontend-route-and-component-map.md`](./technical-notes/frontend-route-and-component-map.md)
-6. các flow liên quan trong [`flows/`](./flows/)
-7. các requirement liên quan trong [`requirements/`](./requirements/)
-8. các note liên quan trong [`technical-notes/`](./technical-notes/)
-9. `archive/` khi cần truy vết tài liệu cũ hoặc deferred scope
+2. [`project-overview-pdr.md`](./project-overview-pdr.md)
+3. [`prd/core-product-prd.md`](./prd/core-product-prd.md)
+4. [`system-architecture.md`](./system-architecture.md)
+5. [`flows/cp1-audit-end-to-end-flow.md`](./flows/cp1-audit-end-to-end-flow.md)
+6. [`flows/cp1-mvp-screen-spec.md`](./flows/cp1-mvp-screen-spec.md)
+7. [`technical-notes/frontend-route-and-component-map.md`](./technical-notes/frontend-route-and-component-map.md)
+8. các flow liên quan trong [`flows/`](./flows/)
+9. các requirement liên quan trong [`requirements/`](./requirements/)
+10. các note liên quan trong [`technical-notes/`](./technical-notes/)
+11. `archive/` khi cần truy vết tài liệu cũ hoặc deferred scope
 
 ## Tài liệu hỗ trợ
 
 - [`codebase-summary.md`](./codebase-summary.md)
   - tóm tắt nhanh về codebase
+  - verified implementation surfaces cho MVP hiện tại
 - [`code-standards.md`](./code-standards.md)
   - chuẩn code hỗ trợ
+  - guardrails khi cập nhật MVP demo realignment
+- [`system-architecture.md`](./system-architecture.md)
+  - architecture hiện trạng bám codebase
 - [`tech-doc-urls.txt`](./tech-doc-urls.txt)
   - nguồn docs ngoài ưu tiên khi cần viết về library/framework
 
