@@ -56,6 +56,7 @@ export function useCaseDetails(id: string) {
     documentBoardSections: caseQuery.data?.document_board_sections || null,
     roundHistory: caseQuery.data?.round_history || null,
     openRequestsForMoreInfo: caseQuery.data?.open_requests_for_more_info || null,
+    documentWorkspace: caseQuery.data?.document_workspace || null,
     isLoading: caseQuery.isLoading,
     error: caseQuery.error,
     refetch: caseQuery.refetch,

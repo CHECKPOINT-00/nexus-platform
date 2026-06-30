@@ -6,8 +6,7 @@ import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
 import WorkspaceSidebar from "./_components/WorkspaceSidebar";
-import TabIdeaContent from "./_components/TabIdeaContent";
-import TabReportFindings from "./_components/TabReportFindings";
+import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
@@ -31,11 +30,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     documentBoardSections,
     roundHistory,
     openRequestsForMoreInfo,
+    documentWorkspace,
     isLoading,
     error,
   } = useCaseDetails(id);
 
-  const [activeTab, setActiveTab] = useState<"idea" | "report" | "discussion" | "timeline" | "settings">("report");
+  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
   const [selectedVersion, setSelectedVersion] = useState<number>(0);
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
@@ -142,12 +142,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
         {/* 4. Tab Content */}
         <div className="flex-grow min-h-0">
-          {activeTab === "idea" && (
-            <TabIdeaContent caseData={caseData} selectedVersion={selectedVersion} />
-          )}
-
-          {activeTab === "report" && (
-            <TabReportFindings caseData={caseData} selectedVersion={selectedVersion} report={selectedRoundReport || latestReport} />
+          {activeTab === "documents" && (
+            <DocumentWorkspace workspace={documentWorkspace} selectedVersion={selectedVersion} />
           )}
 
           {activeTab === "discussion" && (

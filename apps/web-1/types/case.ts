@@ -119,6 +119,50 @@ export interface CaseEvent {
   payment?: Payment | null;
 }
 
+export interface DocumentWorkspace {
+  selected_checkpoint_id: string | null;
+  checkpoints: DocumentCheckpoint[];
+}
+
+export interface DocumentCheckpoint {
+  checkpoint_id: string;
+  checkpoint_code: string;
+  overview: DocumentCheckpointOverview;
+  version_units: DocumentUnit[];
+  assessment_units: DocumentUnit[];
+}
+
+export interface DocumentCheckpointOverview {
+  total_files: number;
+  version_count: number;
+  assessment_count: number;
+  selected_label: string;
+}
+
+export interface DocumentUnit {
+  unit_code: string;
+  version_no: number;
+  /** 0 for version units; > 0 for assessment units. */
+  assessment_no: number;
+  linked_version_no: number | null;
+  files: DocumentFile[];
+}
+
+export interface DocumentFile {
+  id: string;
+  seq: number;
+  is_primary: boolean;
+  source_kind: "drive" | "cloudinary" | "generated";
+  canonical_name: string | null;
+  original_name: string | null;
+  extension: string | null;
+  mime_type: string | null;
+  file_url: string | null;
+  download_url: string | null;
+  open_action: "open_url_new_tab" | "download" | null;
+  download_action: "open_url_new_tab" | "download" | null;
+}
+
 export interface StatusThemeDetails {
   label: string;
   color: "default" | "primary" | "secondary" | "success" | "warning" | "danger";

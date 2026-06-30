@@ -2,12 +2,12 @@
 
 import React from "react";
 import { Tooltip, UnstyledButton, Title, Text } from "@mantine/core";
-import { FileText, FileSpreadsheet, MessageSquare, History, Settings } from "lucide-react";
+import { FileText, MessageSquare, History, Settings } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
 interface WorkspaceSidebarProps {
-  activeTab: "idea" | "report" | "discussion" | "timeline" | "settings";
-  onTabChange: (tab: "idea" | "report" | "discussion" | "timeline" | "settings") => void;
+  activeTab: "documents" | "discussion" | "timeline" | "settings";
+  onTabChange: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
   messageCount?: number;
   hideSettings?: boolean;
   versions?: number[];
@@ -26,13 +26,8 @@ export default function WorkspaceSidebar({
 }: WorkspaceSidebarProps) {
   const tabs = [
     {
-      id: "idea" as const,
-      label: "Nội dung hồ sơ",
-      icon: FileSpreadsheet,
-    },
-    {
-      id: "report" as const,
-      label: "Báo cáo phản biện",
+      id: "documents" as const,
+      label: "Tài liệu",
       icon: FileText,
     },
     {
@@ -97,19 +92,18 @@ export default function WorkspaceSidebar({
         <div className={classes.main}>
           <div className="mb-4">
             <Title order={6} className={classes.title}>
-              {activeTab === "idea" || activeTab === "report" ? "Phiên bản hồ sơ" : "Chi tiết mục"}
+              {activeTab === "settings" ? "Chi tiết mục" : "Tài liệu hồ sơ"}
             </Title>
             <Text size="xs" c="dimmed" className="font-body text-[11px]">
-              {activeTab === "idea" && "Chọn phiên bản để xem nội dung hồ sơ đã nộp."}
-              {activeTab === "report" && "Chọn phiên bản để xem báo cáo phản biện."}
+              {activeTab === "documents" && "Quản lý tài liệu theo phiên bản và đánh giá."}
               {activeTab === "discussion" && "Kênh phối hợp chính giữa nhóm và Supporter."}
               {activeTab === "timeline" && "Toàn bộ lịch sử hoạt động."}
               {activeTab === "settings" && "Cấu hình chung của hồ sơ."}
             </Text>
           </div>
 
-          {/* Dynamic content for sub-links (Version switcher or tab description) */}
-          {(activeTab === "idea" || activeTab === "report") && versions.length > 0 ? (
+          {/* Dynamic content for sub-links (Version switcher for documents tab) */}
+          {activeTab === "documents" && versions.length > 0 ? (
             <div className="flex flex-col gap-1">
               {versions.map((ver) => {
                 const isSelected = selectedVersion === ver;

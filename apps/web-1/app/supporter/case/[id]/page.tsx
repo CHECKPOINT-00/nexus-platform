@@ -6,8 +6,7 @@ import { useSession } from "@/lib/auth-client";
 import { useCaseDetails } from "../../../dashboard/case/[id]/hooks/useCaseDetails";
 import CaseStatusHeader from "../../../dashboard/case/[id]/_components/CaseStatusHeader";
 import WorkspaceSidebar from "../../../dashboard/case/[id]/_components/WorkspaceSidebar";
-import TabIdeaContent from "../../../dashboard/case/[id]/_components/TabIdeaContent";
-import TabReportFindings from "../../../dashboard/case/[id]/_components/TabReportFindings";
+import DocumentWorkspace from "../../../dashboard/case/[id]/_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "../../../dashboard/case/[id]/_components/TabDiscussionChat";
 import ActivityTimeline from "../../../dashboard/case/[id]/_components/ActivityTimeline";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
@@ -36,8 +35,8 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   }, [session, isAuthPending, router]);
 
   // 2. Fetch Case Details
-  const { caseData, latestReport, isLoading, error } = useCaseDetails(id);
-  const [activeTab, setActiveTab] = useState<"idea" | "report" | "discussion" | "timeline" | "settings">("idea");
+  const { caseData, latestReport, documentWorkspace, isLoading, error } = useCaseDetails(id);
+  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
   const [selectedVersion, setSelectedVersion] = useState<number>(0);
 
   // Extract unique versions from lifecycle units
@@ -106,12 +105,8 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
 
         {/* 3. Tab Content */}
         <div className="flex-grow min-h-0">
-          {activeTab === "idea" && (
-            <TabIdeaContent caseData={caseData} selectedVersion={selectedVersion} />
-          )}
-
-          {activeTab === "report" && (
-            <TabReportFindings caseData={caseData} selectedVersion={selectedVersion} report={latestReport} />
+          {activeTab === "documents" && (
+            <DocumentWorkspace workspace={documentWorkspace} selectedVersion={selectedVersion} />
           )}
 
           {activeTab === "discussion" && (
