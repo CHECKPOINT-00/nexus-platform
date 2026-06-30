@@ -128,3 +128,52 @@
 - finalize Prisma additions
 - prepare migration and backfill rules
 - align on response contract before persistence code changes
+
+## Decision Log
+
+### unit_type canonical vocabulary (2026-07-01)
+
+**Decision:** Align code với spec — `version` / `assessment`.
+
+**Rationale:**
+- Spec (`NEXUS_DOCUMENT_SYSTEM_COMPLETE_SPEC.md`) đã chốt: `vNN` = version, `aNN-vNN` = assessment.
+- `intake`/`outbound`/`revision` là legacy labels, không rõ nghĩa.
+- `version` cover cả intake + revisions (đều là version submissions).
+- `assessment` rõ nghĩa hơn `outbound` (outbound = gì? report? feedback? revision?).
+- Spec là source of truth. Code nên align với spec.
+
+**Current state (before migration):**
+- Write: `case.repository.ts:195` tạo intake với `unit_type: "intake"`, `unit_code: "v00"`
+- Write: `case.repository.ts:407` tạo revision với `unit_type: "outbound"`, `unit_code: v0{nextVersion}`
+- Read: `assemble-document-workspace.ts:119` filter `intake` | `revision` → **bug C1: drop outbound units**
+- Read: `get-case-detail.usecase.ts:95-96` filter `intake` | `revision`
+- Backfill: `backfill-documents.ts:73` map `intake` → `inbound`, else → `outbound`
+
+**Target state (after migration):**
+- Intake: `unit_type: "version"`, `unit_code: "v00"`, `version_no: 1`
+- Revision: `unit_type: "version"`, `unit_code: v0{next}`, `version_no: next`
+- Report artifact (future): `unit_type: "assessment"`, `unit_code: aNN-vNN`
+- Filter: `unit_type === "version"` cho version units, `unit_type === "assessment"` cho assessment units
+
+**Migration steps:**
+1. Update `case.repository.ts:195` — intake → `unit_type: "version"`
+2. Update `case.repository.ts:407` — revision → `unit_type: "version"`
+3. Update `assemble-document-workspace.ts:119` — filter `unit_type === "version"`
+4. Update `get-case-detail.usecase.ts:95-96` — filter `unit_type === "version"`
+5. Update `backfill-documents.ts:73` — map direction từ `version`/`assessment`
+6. Update tests: `phase-01-boundaries.test.ts` — đổi `intake`/`outbound` → `version`
+7. Data migration: `UPDATE lifecycle_units SET unit_type = 'version' WHERE unit_type IN ('intake', 'outbound', 'revision')`
+8. Assessment units (future phase) → `unit_type: "assessment"`, `unit_code: aNN-vNN`
+
+**Todo:**
+- [x] Decision logged (2026-07-01)
+- [ ] Add migration task to phase-02
+- [ ] Update code (case.repository.ts, assemble-document-workspace.ts, get-case-detail.usecase.ts, backfill-documents.ts)
+- [ ] Update tests (phase-01-boundaries.test.ts)
+- [ ] Run `npm --workspace apps/api test` — expect pass
+- [ ] Document in code-review.md as resolved
+
+**Risk:**
+- Data migration cần chạy trước khi deploy code mới.
+- Nếu có production data, cần backup trước khi UPDATE.
+- Assessment units chưa implement → để phase sau.

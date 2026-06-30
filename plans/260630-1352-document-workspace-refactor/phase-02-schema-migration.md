@@ -101,3 +101,57 @@
 - draft migration script design
 - identify sample cases for validation
 - prepare compatibility tests before UI switch
+
+## Migration Task: unit_type canonical alignment (2026-07-01)
+
+**Context:** Code hiện tại dùng 3 vocabularies song song (`intake`/`outbound`/`revision`). Spec chốt `version`/`assessment`. Cần align code + data với spec.
+
+**Migration script:**
+
+```sql
+-- File: prisma/migrations/YYYYMMDD_HHMMSS_align_unit_type_to_spec/migration.sql
+
+-- Step 1: Update existing rows
+UPDATE "lifecycle_units"
+SET "unit_type" = 'version'
+WHERE "unit_type" IN ('intake', 'outbound', 'revision');
+
+-- Step 2: Verify no orphan rows
+SELECT COUNT(*) FROM "lifecycle_units"
+WHERE "unit_type" NOT IN ('version', 'assessment');
+-- Expected: 0
+
+-- Step 3: Add check constraint (optional, sau khi validation)
+-- ALTER TABLE "lifecycle_units"
+-- ADD CONSTRAINT "lifecycle_units_unit_type_check"
+-- CHECK ("unit_type" IN ('version', 'assessment'));
+```
+
+**Code changes:**
+1. `apps/api/src/modules/cases/infrastructure/persistence/case.repository.ts:195` — `unit_type: "intake"` → `unit_type: "version"`
+2. `apps/api/src/modules/cases/infrastructure/persistence/case.repository.ts:407` — `unit_type: "outbound"` → `unit_type: "version"`
+3. `apps/api/src/modules/documents/application/assemble-document-workspace.ts:119` — filter `unit_type === "version"`
+4. `apps/api/src/modules/cases/application/get-case-detail.usecase.ts:95-96` — filter `unit_type === "version"`
+5. `apps/api/src/scripts/backfill-documents.ts:73` — map direction từ `version`/`assessment`
+
+**Test changes:**
+- `apps/api/src/shared/infrastructure/tests/phase-01-boundaries.test.ts` — đổi `unit_type: "intake"` → `unit_type: "version"`, `unit_type: "outbound"` → `unit_type: "version"`
+
+**Rollout plan:**
+1. Chạy migration SQL trên dev/staging
+2. Deploy code mới
+3. Verify tests pass
+4. Chạy migration trên production (backup trước)
+5. Monitor logs 24h
+
+**Rollback plan:**
+- Nếu có lỗi, revert code về vocab cũ (`intake`/`outbound`/`revision`)
+- Data migration reversible: `UPDATE lifecycle_units SET unit_type = 'intake' WHERE unit_type = 'version' AND unit_code = 'v00'`
+- Assessment units chưa có → không cần rollback
+
+**Success criteria:**
+- [ ] Migration script chạy thành công trên dev
+- [ ] `npm --workspace apps/api test` pass
+- [ ] No orphan rows sau migration
+- [ ] Code review approved
+- [ ] Deployed to production

@@ -1,9 +1,9 @@
 ---
 title: "Document workspace refactor"
 description: "Refactor case workspace into checkpoint/unit/file document manager with compatible backend migration."
-status: pending
+status: in_progress
 priority: P2
-effort: 5 phases / 5-8d
+effort: 6 phases / 6-9d
 branch: ui/heroui-to-mantine
 tags: [documents, workspace, api, prisma, migration, cloudinary]
 created: 2026-06-30
@@ -12,46 +12,53 @@ created: 2026-06-30
 # Document workspace refactor
 
 ## Summary
-Refactor legacy `idea/report` workspace into document-first IA aligned with `Case -> Checkpoint -> Lifecycle Unit -> File`. Backend-first, compatibility-safe, no immediate implementation in this plan.
+Refactor legacy `idea/report` workspace into document-first IA aligned with `Case -> Checkpoint -> Lifecycle Unit -> File`. Core implementation now exists and passes current code-level verification, but migration/backfill proof, rollout validation, and final security closure still remain.
 
 ## Context
 - [Backend model research](./research/researcher-01-backend-model-report.md)
 - [UI IA research](./research/researcher-02-ui-ia-report.md)
 - [Scout report](./reports/scout-report.md)
+- [Security review report](./reports/security-review.md)
 - [Document spec](../../docs/case-documents/NEXUS_DOCUMENT_SYSTEM_COMPLETE_SPEC.md)
 
-## Must decide before coding
-- [ ] checkpoint selection rule for all read/write flows; never rely on `checkpoints[0]`
-- [ ] document identity and dedupe key for backfill/replay (`source_kind`, source handle, canonical name, seq, unit ownership)
-- [ ] `is_primary` derivation rules for multi-file units and duplicate legacy URLs
-- [ ] report mapping policy: `report` row only, document artifact only, or hybrid with invariant rules
-- [ ] `document_workspace` contract invariants: required fields, `null` vs `[]`, sort guarantees, empty-state semantics
-- [ ] mixed migrated + unmigrated case merge rules to avoid double counting and contradictory `latest_report` / `round_history`
-- [ ] Drive vs Cloudinary behavior matrix for open, download, visibility, signed/public URL, and broken-link UX
-- [ ] malformed legacy row policy: quarantine, audit log, fallback read behavior, and operator repair path
-- [ ] backfill idempotency strategy: rerun-safe upsert key, duplicate prevention, and audit checks
-- [ ] rollback gate if storage upload succeeds but normalized document write fails mid-flow
-- [ ] polling/perf guardrails for enlarged case-detail payloads and dynamic version reassignment after refresh
-- [ ] accessibility and deep-link policy for checkpoint/section/version/assessment navigation
+## Current reality
+- [x] checkpoint selection rule implemented in code; no longer relies on `checkpoints[0]`
+- [x] `document_workspace` contract shape exists in backend and web types, including `selected_checkpoint_id`
+- [x] URL validation on document writes exists for current create/revision flows
+- [x] write DTO path now constrains client-writable document fields for current scope
+- [x] case detail read path uses shared access check for current document workspace response
+- [ ] document identity and dedupe key for backfill/replay still needs real migration proof
+- [ ] `is_primary` derivation rules still need validation on migrated legacy rows
+- [ ] report mapping policy still needs validation on real data and mixed artifact cases
+- [ ] mixed migrated + unmigrated merge rules still need proof against real sample matrix
+- [ ] Drive vs Cloudinary behavior matrix still needs browser verification and final policy decisions
+- [ ] malformed legacy row quarantine/audit path still needs real execution proof
+- [ ] backfill idempotency / duplicate prevention still needs rerun validation
+- [ ] rollback gate for storage success + normalized write failure still needs rehearsal
+- [ ] polling/perf guardrails and refresh reassignment behavior still need validation
+- [ ] accessibility and deep-link policy still need browser verification
 
 ## Phase list
-1. [Phase 01 — Backend contract and domain model](./phase-01-backend-contract-and-model.md) — pending
-2. [Phase 02 — Schema migration and data backfill](./phase-02-schema-migration.md) — pending
-3. [Phase 03 — API assembly and compatibility projections](./phase-03-api-assembly-and-compatibility.md) — pending
-4. [Phase 04 — Workspace IA and UI refactor](./phase-04-workspace-ia-and-ui-refactor.md) — pending
-5. [Phase 05 — Validation, rollout, and cleanup](./phase-05-validation-rollout-and-cleanup.md) — pending
+1. [Phase 01 — Backend contract and domain model](./phase-01-backend-contract-and-model.md) — done in code, verified for current scope
+2. [Phase 02 — Schema migration and data backfill](./phase-02-schema-migration.md) — partial; schema/code exists, real backfill proof still open
+3. [Phase 03 — API assembly and compatibility projections](./phase-03-api-assembly-and-compatibility.md) — done for current scope, broader compatibility matrix still open
+4. [Phase 04 — Workspace IA and UI refactor](./phase-04-workspace-ia-and-ui-refactor.md) — mostly done, browser-level verification still open
+5. [Phase 05 — Validation, rollout, and cleanup](./phase-05-validation-rollout-and-cleanup.md) — partial; code-level checks passed, rollout/browser/matrix validation still open
+6. [Phase 06 — Security hardening](./phase-06-security-hardening.md) — partial; core controls implemented, verification/policy items still open
 
 ## Critical dependencies
-- Decide normalized file/document record model.
-- Decide report artifact mapping into `aNN-vNN`.
-- Keep legacy `intake_snapshot`, `round_history`, old tabs alive until migrated.
+- Prove normalized file/document migration on real data, including rerun/idempotency and quarantine handling.
+- Decide and verify final report artifact mapping into `aNN-vNN` on migrated rows.
+- Keep legacy `intake_snapshot`, `round_history`, old tabs alive until rollout validation clears removal.
 - Preserve shared workspace shell, chat, timeline, settings.
+- Close remaining security verification items: response allowlist, Cloudinary URL policy, download/SSRF policy.
 
 ## Expected outcomes
 - Document tree response by checkpoint, version unit, assessment unit, file.
 - Workspace reads as document manager, not parsed content viewer.
 - Cloudinary-backed files and Drive URLs coexist under one normalized model.
 - Legacy cases remain readable during transition.
+- Plan can be closed only after migration proof, browser validation, and remaining security decisions are verified.
 
 ## Major risks
 - Legacy lifecycle data inconsistent with canonical `vNN` / `aNN-vNN`.
