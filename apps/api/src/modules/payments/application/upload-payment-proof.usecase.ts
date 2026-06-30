@@ -5,6 +5,12 @@ import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
+type SavedProofFile = {
+  fileUrl: string;
+  publicId: string;
+  resourceType: string;
+};
+
 type UploadPaymentProofDeps = {
   findCaseByIdWithAllRelations?: typeof findCaseByIdWithAllRelations;
   saveProofFile?: typeof fileStorageService.saveProofFile;
@@ -67,15 +73,14 @@ export async function uploadPaymentProofUseCase(
     );
   }
 
-  // Save proof file to disk via infrastructure service
-  const fileUrl = await saveProofFile(file);
+  const proofFile = (await saveProofFile(file)) as SavedProofFile;
 
   try {
     const payment = await createPaymentProof({
       caseId,
       packageId,
       amount,
-      proofFileUrl: fileUrl,
+      proofFileUrl: proofFile.fileUrl,
       userId,
     });
 
@@ -84,7 +89,7 @@ export async function uploadPaymentProofUseCase(
       status: normalizePaymentStatus(payment.status),
     };
   } catch (dbError) {
-    await deleteFile(fileUrl);
+    await deleteFile(proofFile.publicId);
     throw dbError;
   }
 }

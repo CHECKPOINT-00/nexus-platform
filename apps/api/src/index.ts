@@ -2,7 +2,6 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { streamText } from 'hono/streaming'
-import { serveStatic } from '@hono/node-server/serve-static'
 import './env.js'
 import { auth } from './auth.js'
 import { casesRouter } from './modules/cases/http/cases.routes.js'
@@ -17,8 +16,6 @@ import { prisma } from './db.js'
 
 const app = new Hono()
 const port = Number(process.env.PORT ?? 8000)
-
-app.use('/uploads/*', serveStatic({ root: './' }))
 
 app.use(
   '/api/*',

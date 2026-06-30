@@ -92,9 +92,13 @@ test("backend demo regression coverage", async (t) => {
           package: { price: 199000 },
           payment_status: "unpaid",
         } as any),
-        saveProofFile: async () => "/uploads/proof.pdf",
-        deleteFile: async (fileUrl: string) => {
-          cleaned = fileUrl;
+        saveProofFile: async () => ({
+          fileUrl: "https://res.cloudinary.com/demo/image/upload/v1/proof.pdf",
+          publicId: "nexus-platform/payment-proofs/proof.pdf",
+          resourceType: "raw",
+        }),
+        deleteFile: async (publicId: string) => {
+          cleaned = publicId;
         },
         createPaymentProof: async () => {
           throw new Error("db failure");
@@ -103,6 +107,6 @@ test("backend demo regression coverage", async (t) => {
     ).catch((error) => error);
 
     assert.ok(result instanceof Error);
-    assert.strictEqual(cleaned, "/uploads/proof.pdf");
+    assert.strictEqual(cleaned, "nexus-platform/payment-proofs/proof.pdf");
   });
 });

@@ -1,17 +1,74 @@
-import fs from "fs";
-import path from "path";
+import path from "node:path";
+import crypto from "node:crypto";
+import { v2 as cloudinary } from "cloudinary";
 import { AppError } from "../../../shared/domain/app-error.js";
 import {
   ALLOWED_PROOF_EXTENSIONS,
   MAX_PROOF_FILE_SIZE_BYTES,
 } from "../domain/payment.types.js";
 
+type ProofFile = {
+  name: string;
+  size: number;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+};
+
+type SavedProofFile = {
+  fileUrl: string;
+  publicId: string;
+  resourceType: "raw";
+};
+
+const CLOUDINARY_FOLDER = "nexus-platform/payment-proofs";
+const CLOUDINARY_RESOURCE_TYPE = "raw";
+let cloudinaryConfigured = false;
+
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new AppError(500, "CLOUDINARY_CONFIG_ERROR", `${name} is required`);
+  }
+
+  return value;
+}
+
+function ensureCloudinaryConfig() {
+  if (cloudinaryConfigured) {
+    return;
+  }
+
+  cloudinary.config({
+    cloud_name: requiredEnv("CLOUDINARY_CLOUD_NAME"),
+    api_key: requiredEnv("CLOUDINARY_API_KEY"),
+    api_secret: requiredEnv("CLOUDINARY_API_SECRET"),
+    secure: true,
+  });
+
+  cloudinaryConfigured = true;
+}
+
+function uploadBuffer(buffer: Buffer, options: Record<string, unknown>): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(result);
+    });
+
+    stream.end(buffer);
+  });
+}
+
 export class FileStorageService {
   /**
-   * Validates and saves a file buffer to the local uploads directory.
-   * Returns the relative URL path of the saved file.
+   * Validates a file then uploads it to Cloudinary.
+   * Returns public URL + public ID for later rollback.
    */
-  async saveProofFile(file: { name: string; size: number; arrayBuffer: () => Promise<ArrayBuffer> }): Promise<string> {
+  async saveProofFile(file: ProofFile): Promise<SavedProofFile> {
     const ext = path.extname(file.name).toLowerCase();
     if (!(ALLOWED_PROOF_EXTENSIONS as readonly string[]).includes(ext)) {
       throw new AppError(
@@ -29,43 +86,57 @@ export class FileStorageService {
       );
     }
 
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const uniqueFileName = `${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}${ext}`;
-    const filePath = path.join(uploadsDir, uniqueFileName);
-    const fileUrl = `/uploads/${uniqueFileName}`;
+    ensureCloudinaryConfig();
 
     try {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      fs.writeFileSync(filePath, buffer);
-      return fileUrl;
+      const uniqueId = crypto.randomUUID();
+
+      const result = await uploadBuffer(buffer, {
+        folder: CLOUDINARY_FOLDER,
+        public_id: uniqueId,
+        resource_type: CLOUDINARY_RESOURCE_TYPE,
+        overwrite: false,
+      });
+
+      const fileUrl = result?.secure_url || result?.url;
+      const publicId = result?.public_id;
+
+      if (!fileUrl || !publicId) {
+        throw new Error("Cloudinary upload missing url or public_id");
+      }
+
+      return {
+        fileUrl,
+        publicId,
+        resourceType: CLOUDINARY_RESOURCE_TYPE,
+      };
     } catch (error: any) {
-      // Clean up file if it was partially written
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      } catch {}
-      throw new AppError(500, "FILE_WRITE_ERROR", `Lỗi khi lưu tệp minh chứng: ${error.message}`);
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      throw new AppError(500, "CLOUDINARY_UPLOAD_ERROR", `Lỗi khi tải minh chứng lên Cloudinary: ${error?.message ?? "Unknown error"}`);
     }
   }
 
   /**
-   * Delete a file from disk if it exists
+   * Delete uploaded Cloudinary asset by public ID.
    */
-  async deleteFile(fileUrl: string): Promise<void> {
+  async deleteFile(publicId: string): Promise<void> {
+    if (!publicId) {
+      return;
+    }
+
     try {
-      const fileName = path.basename(fileUrl);
-      const filePath = path.join(process.cwd(), "uploads", fileName);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      ensureCloudinaryConfig();
+      await cloudinary.uploader.destroy(publicId, {
+        resource_type: "auto",
+        invalidate: true,
+      });
     } catch (err) {
-      console.error("Failed to delete file:", fileUrl, err);
+      console.error("Failed to delete Cloudinary file:", publicId, err);
     }
   }
 }
