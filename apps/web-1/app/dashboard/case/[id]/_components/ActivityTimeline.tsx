@@ -11,7 +11,9 @@ import {
   FileCheck, 
   HelpCircle, 
   Circle,
-  Clock
+  Clock,
+  UserCheck,
+  MessageSquare
 } from "lucide-react";
 
 interface ActivityTimelineProps {
@@ -21,8 +23,11 @@ interface ActivityTimelineProps {
 export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
   const events = caseData.events || [];
 
+  // Filter out message_sent events to avoid cluttering the timeline with chat messages
+  const filteredEvents = events.filter(event => event.event_type !== "message_sent");
+
   // Sort events chronologically (oldest first)
-  const sortedEvents = [...events].sort(
+  const sortedEvents = [...filteredEvents].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
@@ -31,10 +36,59 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
       case "case_created":
       case "case_created_event":
         return {
-          label: "Nộp hồ sơ phản biện",
-          desc: "Hồ sơ phản biện đã được gửi và ghi nhận vào hệ thống Nexus.",
+          label: "Khởi tạo hồ sơ",
+          desc: "Hồ sơ phản biện đã được khởi tạo trên hệ thống.",
           icon: FolderPlus,
           colorClass: "bg-brand-soft text-brand border-brand/20",
+        };
+      case "case_submitted":
+        return {
+          label: "Hồ sơ đã nộp",
+          desc: "Hồ sơ phản biện đã được gửi lên hệ thống thành công và đang chờ xét duyệt.",
+          icon: Upload,
+          colorClass: "bg-brand-soft text-brand border-brand/20",
+        };
+      case "case_accepted":
+        return {
+          label: "Hồ sơ được duyệt",
+          desc: "Hồ sơ đã được quản trị viên duyệt và chấp nhận.",
+          icon: CheckCircle,
+          colorClass: "bg-success-soft text-success border-success/20",
+        };
+      case "case_rejected":
+        return {
+          label: "Hồ sơ bị từ chối",
+          desc: "Hồ sơ không được chấp nhận phê duyệt.",
+          icon: XCircle,
+          colorClass: "bg-danger-soft text-danger border-danger/20",
+        };
+      case "supporter_assigned":
+        return {
+          label: "Đã phân công người hỗ trợ",
+          desc: "Người hỗ trợ đã được phân công để đánh giá và phản biện hồ sơ.",
+          icon: UserCheck,
+          colorClass: "bg-info-soft text-info border-info/20",
+        };
+      case "more_info_requested":
+        return {
+          label: "Yêu cầu bổ sung thông tin",
+          desc: "Yêu cầu cập nhật hoặc làm rõ thêm thông tin hồ sơ.",
+          icon: HelpCircle,
+          colorClass: "bg-warning-soft text-warning border-warning/20",
+        };
+      case "revision_submitted":
+        return {
+          label: "Đã nộp bản sửa đổi",
+          desc: "Bản sửa đổi hồ sơ đã được nộp thành công.",
+          icon: Upload,
+          colorClass: "bg-info-soft text-info border-info/20",
+        };
+      case "message_sent":
+        return {
+          label: "Tin nhắn mới",
+          desc: "Tin nhắn trao đổi mới đã được gửi trong phần thảo luận.",
+          icon: MessageSquare,
+          colorClass: "bg-surface-soft text-text-muted border-border-app",
         };
       case "payment_submitted":
       case "payment_proof_uploaded":
