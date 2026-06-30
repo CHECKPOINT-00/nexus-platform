@@ -133,6 +133,7 @@ export function validateDocumentUrl(
   }
 
   if (sourceKind === "cloudinary") {
+    // Use unified Cloudinary service for validation
     if (parsed.hostname !== "res.cloudinary.com") {
       throw new Error("INVALID_CLOUDINARY_HOST");
     }
@@ -158,28 +159,16 @@ export function validateDocumentUrl(
  *   /:cloud_name/:asset_type/:delivery_type/:transformations/:version/:public_id
  *
  * This is a best-effort extraction; malformed URLs return `null`.
+ * 
+ * @deprecated Use `extractPublicId` from `../../../services/cloudinary.js` instead.
  */
 export function extractCloudinaryPublicId(
   url: string,
   cloudName: string,
 ): string | null {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname !== "res.cloudinary.com") return null;
-
-    const parts = parsed.pathname.split("/").filter(Boolean);
-    if (parts[0] !== cloudName) return null;
-
-    // Skip cloud_name, asset_type, delivery_type, and any transformation segments.
-    // Heuristic: locate the `vNNNN` version segment; everything after it is the public_id.
-    const versionIndex = parts.findIndex((part) => /^v\d+$/.test(part));
-    if (versionIndex === -1 || versionIndex === parts.length - 1) return null;
-
-    const publicIdWithExtension = parts.slice(versionIndex + 1).join("/");
-    return publicIdWithExtension || null;
-  } catch {
-    return null;
-  }
+  // Delegate to unified service
+  const { extractPublicId } = require('../../../services/cloudinary.js');
+  return extractPublicId(url);
 }
 
 /**

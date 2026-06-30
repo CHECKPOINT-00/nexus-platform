@@ -37,7 +37,11 @@ function normalizeIntakeSnapshot(rawContent: string | null) {
   }
 }
 
-function toCaseResponse(caseDetails: any) {
+/**
+ * Base response shape — safe for all roles (student, supporter, admin).
+ * VERIFY-001 fix: excludes internal_status and detailed payment_status.
+ */
+function toBaseResponse(caseDetails: any) {
   return {
     id: caseDetails.id,
     case_code: caseDetails.case_code,
@@ -50,8 +54,6 @@ function toCaseResponse(caseDetails: any) {
     package_id: caseDetails.package_id,
     assigned_supporter_auth_user_id: caseDetails.assigned_supporter_auth_user_id,
     user_facing_stage: caseDetails.user_facing_stage,
-    internal_status: caseDetails.internal_status,
-    payment_status: caseDetails.payment_status,
     deadline: caseDetails.deadline,
     created_at: caseDetails.created_at,
     updated_at: caseDetails.updated_at,
@@ -65,6 +67,18 @@ function toCaseResponse(caseDetails: any) {
     payments: caseDetails.payments,
     messages: caseDetails.messages,
     events: caseDetails.events,
+  };
+}
+
+/**
+ * Extend base response with internal fields for admin/supporter.
+ * VERIFY-001 fix: internal_status and payment_status only for admin/supporter.
+ */
+function extendWithInternalFields(baseResponse: any, caseDetails: any) {
+  return {
+    ...baseResponse,
+    internal_status: caseDetails.internal_status,
+    payment_status: caseDetails.payment_status,
   };
 }
 
@@ -114,8 +128,14 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     document_records: documentRecords || [],
   });
 
+  // VERIFY-001 fix: base shape for student, extend for admin/supporter
+  const baseCase = toBaseResponse(caseDetails);
+  const caseResponse = (userRole === 'admin' || userRole === 'supporter')
+    ? extendWithInternalFields(baseCase, caseDetails)
+    : baseCase;
+
   return {
-    case: toCaseResponse(caseDetails),
+    case: caseResponse,
     intake_snapshot,
     latest_report,
     latest_user_action,

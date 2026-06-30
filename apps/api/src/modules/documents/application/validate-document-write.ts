@@ -2,8 +2,7 @@ import { deriveSourceKindFromUrl } from "../domain/document-types.js";
 import { validateDocumentUrl } from "../application/document-dto.js";
 import type { DocumentWriteInput } from "../application/document-dto.js";
 import type { DocumentSourceKind } from "../domain/document-types.js";
-
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "";
+import { getCloudName } from "../../../services/cloudinary.js";
 
 export interface ValidatedDocumentWriteInput {
   original_name?: string;
@@ -43,7 +42,7 @@ export function validateDocumentWriteInputs(
     const sourceKind = deriveSourceKindFromUrl(url);
     try {
       validateDocumentUrl(url, sourceKind, {
-        cloudinaryCloudName: CLOUDINARY_CLOUD_NAME,
+        cloudinaryCloudName: getCloudName(),
       });
     } catch {
       return { ok: false, error: `URL tài liệu không hợp lệ: ${url}` };

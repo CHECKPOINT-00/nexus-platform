@@ -114,6 +114,8 @@ export function mimeTypeFromExtension(ext: string): string {
   };
   return map[ext.toLowerCase()] || "application/octet-stream";
 }
+import { isValidCloudinaryUrl } from '../../../services/cloudinary.js';
+
 export function deriveSourceKindFromUrl(url: string): DocumentSourceKind {
   try {
     const parsed = new URL(url);
@@ -123,7 +125,7 @@ export function deriveSourceKindFromUrl(url: string): DocumentSourceKind {
     ) {
       return "drive";
     }
-    if (parsed.hostname === "res.cloudinary.com") {
+    if (isValidCloudinaryUrl(url)) {
       return "cloudinary";
     }
   } catch {

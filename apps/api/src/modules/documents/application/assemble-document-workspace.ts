@@ -7,6 +7,7 @@ import type {
 } from '../domain/document-contract.js';
 import { deriveSourceBehaviorPolicy, deriveSourceKindFromUrl } from '../domain/document-types.js';
 import type { DocumentSourceKind } from '../domain/document-types.js';
+import { generateSignedUrl, extractPublicId } from '../../../services/cloudinary.js';
 
 type PrismaCaseWithRelations = {
   id: string;
@@ -171,18 +172,29 @@ function legacyFilesFromUnit(
 ): DocumentFile[] {
   const files: DocumentFile[] = [];
   if (unit.file_url) {
-    const policy = deriveSourceBehaviorPolicy(deriveSourceKindFromUrl(unit.file_url));
+    const sourceKind = deriveSourceKindFromUrl(unit.file_url);
+    const policy = deriveSourceBehaviorPolicy(sourceKind);
+
+    // VERIFY-002 fix: sign Cloudinary URLs with short-TTL
+    let fileUrl = unit.file_url;
+    if (sourceKind === 'cloudinary') {
+      const publicId = extractPublicId(fileUrl);
+      if (publicId) {
+        fileUrl = generateSignedUrl(publicId);
+      }
+    }
+
     files.push({
       id: 'legacy-' + unit.id,
       seq: 0,
       is_primary: true,
-      source_kind: deriveSourceKindFromUrl(unit.file_url),
+      source_kind: sourceKind,
       canonical_name: null,
       original_name: null,
       extension: null,
       mime_type: null,
-      file_url: unit.file_url,
-      download_url: unit.file_url,
+      file_url: fileUrl,
+      download_url: fileUrl,
       open_action: policy.open_action,
       download_action: policy.download_action,
     });
@@ -204,6 +216,26 @@ function toDocumentFile(record: {
 }): DocumentFile {
   const sourceKind = record.source_kind as DocumentSourceKind;
   const policy = deriveSourceBehaviorPolicy(sourceKind);
+
+  // VERIFY-002 fix: sign Cloudinary URLs with short-TTL
+  let fileUrl = record.file_url;
+  let downloadUrl = record.download_url;
+
+  if (sourceKind === 'cloudinary') {
+    if (fileUrl) {
+      const publicId = extractPublicId(fileUrl);
+      if (publicId) {
+        fileUrl = generateSignedUrl(publicId);
+      }
+    }
+    if (downloadUrl) {
+      const publicId = extractPublicId(downloadUrl);
+      if (publicId) {
+        downloadUrl = generateSignedUrl(publicId);
+      }
+    }
+  }
+
   return {
     id: record.id,
     seq: record.seq,
@@ -213,10 +245,10 @@ function toDocumentFile(record: {
     original_name: record.original_name,
     extension: record.extension,
     mime_type: record.mime_type,
-    file_url: record.file_url,
-    download_url: record.download_url,
-    open_action: record.file_url ? policy.open_action : null,
-    download_action: record.download_url ? policy.download_action : null,
+    file_url: fileUrl,
+    download_url: downloadUrl,
+    open_action: fileUrl ? policy.open_action : null,
+    download_action: downloadUrl ? policy.download_action : null,
   };
 }
 
