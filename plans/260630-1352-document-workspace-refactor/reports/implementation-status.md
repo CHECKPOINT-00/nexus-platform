@@ -72,11 +72,12 @@ Refactor now **implemented and type/test-verified** for current scope. Document 
 - Some cleanup remains if team wants to re-split UI components or remove extra legacy workspace shape.
 
 ### Phase 06 — Security hardening
-**Done for current implemented write path.**
+**Done.**
 - URL validation enforced on document writes.
 - Client-writable fields stay constrained through DTO shape + validation.
 - Reads remain case-scoped through shared access helper.
 - **H2 fix:** Client URLs that classify to `"generated"` now rejected (reserved for server artifacts). Only `drive` + `cloudinary` allowed from client writes.
+- **VERIFY-003 resolved:** No server proxy for downloads — all source kinds return direct URLs (Drive: `file_url`; Cloudinary: signed short-TTL `file_url`/`download_url`; Generated: `download_url`). Server never fetches user-supplied URLs, so no SSRF surface.
 
 ## Main gaps right now
 
@@ -85,8 +86,10 @@ Need browser-level verify on real case pages if team wants visual proof.
 
 ### 2) Security hardening incomplete
 - ~~H2: Client-supplied URLs classifying to `"generated"` not yet rejected~~ ✅ DONE
-- VERIFY-001/002/003 still open
-- Security regression tests not yet added
+- ~~VERIFY-001: Response information disclosure~~ ✅ DONE (Option C: base shape + role extensions)
+- ~~VERIFY-002: Cloudinary signed-URL policy~~ ✅ DONE (Approach 1: direct signed URLs, 2h TTL)
+- ~~VERIFY-003: Download mechanism SSRF mitigation~~ ✅ DONE (Answer: no proxy — all source kinds return direct URLs to client; Cloudinary uses signed short-TTL URLs; server never fetches user-supplied URLs)
+- Security regression tests: partially covered — `phase-01-boundaries.test.ts` tests `javascript:` scheme rejection (VULN-001) and H2 `generated` URL rejection; `data:` implicitly blocked by protocol allowlist. Missing: dedicated tests for mass-assignment rejection (VULN-002) and cross-case row drop (VULN-003).
 
 ### 3) Medium priority issues
 - M1: Backfill script hardcodes Windows path
