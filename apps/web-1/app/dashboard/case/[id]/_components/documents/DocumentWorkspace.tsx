@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Anchor, Badge, Card, Group, Stack, Tabs, Text, Title } from "@mantine/core";
-import { CheckCircle, ExternalLink, FileText, FolderOpen } from "lucide-react";
+import { Anchor, Badge, Card, Group, Stack, Table, Tabs, Text, Title } from "@mantine/core";
+import { CheckCircle, ExternalLink, FileText, FolderOpen, Lock } from "lucide-react";
 import type {
   DocumentCheckpoint,
   DocumentFile,
@@ -70,7 +70,6 @@ export default function DocumentWorkspace({ workspace, selectedVersion = 0 }: Do
         <Tabs
           value={activeSection}
           onChange={(val) => setActiveSection((val ?? "overview") as typeof activeSection)}
-          variant="outline"
         >
           <Tabs.List>
             <Tabs.Tab value="overview" leftSection={<FolderOpen className="w-4 h-4" />}>
@@ -103,49 +102,57 @@ export default function DocumentWorkspace({ workspace, selectedVersion = 0 }: Do
 
 function CheckpointOverview({ checkpoint }: { checkpoint: DocumentCheckpoint }) {
   const { overview, version_units, assessment_units } = checkpoint;
-  const totalFiles = version_units.reduce((sum, unit) => sum + unit.files.length, 0) +
-    assessment_units.reduce((sum, unit) => sum + unit.files.length, 0);
 
   return (
     <Stack gap="md">
-      <Group justify="space-between" align="flex-start">
-        <div>
-          <Title order={5}>{checkpoint.checkpoint_code}</Title>
-          <Text size="sm" c="dimmed">
-            {overview.selected_label}
-          </Text>
-        </div>
-        <Badge variant="light" color="brand" size="lg">
-          {totalFiles} tài liệu
-        </Badge>
-      </Group>
+      <div className="py-2">
+        <Text size="lg" className="font-heading">
+          {checkpoint.checkpoint_code}
+        </Text>
+        <Text c="dimmed">
+          {overview.selected_label}
+        </Text>
+      </div>
 
-      <Card withBorder padding="md" radius="sm">
-        <Stack gap="xs">
-          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+      <div className="grid grid-cols-3 border border-border-app bg-surface-app divide-x divide-border-app">
+        {/* Phiên bản */}
+        <div className="p-6 text-center space-y-1">
+          <Text c="dimmed" size="xs" tt="uppercase" className="tracking-wider">
             Phiên bản
           </Text>
-          <Text fw={700}>{overview.version_count}</Text>
-          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+          <Text style={{ fontSize: "28px", fontWeight: 300 }}>
+            {overview.version_count}
+          </Text>
+        </div>
+
+        {/* Đánh giá */}
+        <div className="p-6 text-center space-y-1">
+          <Text c="dimmed" size="xs" tt="uppercase" className="tracking-wider">
             Đánh giá
           </Text>
-          <Text fw={700}>{overview.assessment_count}</Text>
-          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+          <Text style={{ fontSize: "28px", fontWeight: 300 }}>
+            {overview.assessment_count}
+          </Text>
+        </div>
+
+        {/* Tổng tệp */}
+        <div className="p-6 text-center space-y-1">
+          <Text c="dimmed" size="xs" tt="uppercase" className="tracking-wider">
             Tổng tệp
           </Text>
-          <Text fw={700}>{overview.total_files}</Text>
-        </Stack>
-      </Card>
+          <Text style={{ fontSize: "28px", fontWeight: 300 }}>
+            {overview.total_files}
+          </Text>
+        </div>
+      </div>
 
       {version_units.length === 0 && assessment_units.length === 0 && (
-        <Card withBorder padding="lg" radius="sm">
-          <Stack gap="xs" align="center" py="md">
-            <FolderOpen className="w-10 h-10 text-text-muted" />
-            <Text size="sm" c="dimmed" ta="center">
-              Chưa có tài liệu nào trong checkpoint này.
-            </Text>
-          </Stack>
-        </Card>
+        <div className="border border-border-app bg-surface-app p-8 text-center flex flex-col items-center justify-center gap-3">
+          <FolderOpen className="w-10 h-10 text-text-muted" />
+          <Text c="dimmed" ta="center">
+            Chưa có tài liệu nào trong checkpoint này.
+          </Text>
+        </div>
       )}
     </Stack>
   );
@@ -162,81 +169,179 @@ function UnitSection({
   units: DocumentUnit[];
   selectedVersion?: number;
 }) {
+  const isAssessment = title === "Đánh giá";
+
+  const rows = useMemo(() => {
+    return units.flatMap((unit) =>
+      unit.files.map((file) => {
+        const isSelected = typeof selectedVersion === "number" && selectedVersion === unit.version_no;
+        const url = file.file_url || file.download_url;
+        const hasAction = !!(file.open_action && url);
+
+        const getFileDisplayName = () => {
+          const name = file.original_name || file.canonical_name || "";
+          const fileUrl = url || "";
+
+          // Check if it's a URL link (Google Drive / no extension / starts with http)
+          const isUrl = file.source_kind === "drive" || name.startsWith("http") || (!file.extension && fileUrl);
+
+          if (isUrl) {
+            return fileUrl;
+          }
+
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(name) && fileUrl) {
+            return fileUrl;
+          }
+
+          // Append extension if name doesn't have it
+          let finalName = name;
+          if (finalName && file.extension) {
+            const ext = file.extension.startsWith(".") ? file.extension : `.${file.extension}`;
+            if (!finalName.endsWith(ext)) {
+              finalName = `${finalName}${ext}`;
+            }
+          }
+
+          return finalName || fileUrl || "Tài liệu không tên";
+        };
+
+        const displayName = getFileDisplayName();
+        const isLink = file.source_kind === "drive" || displayName.startsWith("http");
+
+        const getFormatLabel = () => {
+          if (isLink) {
+            return "LINK";
+          }
+          if (file.extension) {
+            return file.extension.replace(/^\./, "").toUpperCase();
+          }
+          if (file.mime_type) {
+            const parts = file.mime_type.split("/");
+            if (parts.length > 1) {
+              const sub = parts[1].toUpperCase();
+              if (sub === "OCTET-STREAM") return "FILE";
+              return sub;
+            }
+          }
+          return "FILE";
+        };
+
+        const formatLabel = getFormatLabel();
+
+        let sourceLabel = "Tải lên";
+        let sourceColor = "gray";
+        if (file.source_kind === "drive") {
+          sourceLabel = "Google Drive";
+          sourceColor = "blue";
+        } else if (file.source_kind === "generated") {
+          sourceLabel = "Hệ thống";
+          sourceColor = "teal";
+        }
+
+        return {
+          key: `${unit.unit_code}-${file.id}`,
+          unit,
+          file,
+          isSelected,
+          displayName,
+          url,
+          hasAction,
+          sourceLabel,
+          sourceColor,
+          formatLabel,
+        };
+      })
+    );
+  }, [units, selectedVersion]);
+
   return (
     <Stack gap="sm">
-      <Group gap="xs">
-        {icon}
-        <Title order={6}>{title}</Title>
-      </Group>
-      {units.length === 0 ? (
+      {rows.length === 0 ? (
         <Text size="sm" c="dimmed">
           Chưa có mục nào.
         </Text>
       ) : (
-        units.map((unit) => (
-          <UnitCard key={unit.unit_code} unit={unit} selectedVersion={selectedVersion} />
-        ))
+        <div className="border border-border-app bg-surface-app overflow-hidden">
+          <Table.ScrollContainer minWidth={600}>
+            <Table highlightOnHover verticalSpacing="md" horizontalSpacing="md">
+              <Table.Thead className="bg-surface-soft">
+                <Table.Tr>
+                  <Table.Th style={{ width: isAssessment ? "130px" : "110px" }}>
+                    {isAssessment ? "Đợt đánh giá" : "Phiên bản"}
+                  </Table.Th>
+                  {isAssessment ? (
+                    <Table.Th style={{ width: "150px" }}>Liên kết bản nộp</Table.Th>
+                  ) : (
+                    <Table.Th style={{ width: "120px" }}>Vai trò</Table.Th>
+                  )}
+                  <Table.Th>Tài liệu / Đường dẫn</Table.Th>
+                  <Table.Th style={{ width: "140px" }}>Nguồn</Table.Th>
+                  <Table.Th style={{ width: "110px" }}>Định dạng</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {rows.map((row) => (
+                  <Table.Tr
+                    key={row.key}
+                    style={row.isSelected ? { backgroundColor: "var(--color-brand-subtle)" } : undefined}
+                  >
+                    <Table.Td>
+                      <Text c={row.isSelected ? "brand" : undefined}>
+                        {isAssessment ? `Đợt ${row.unit.assessment_no}` : `v${String(row.unit.version_no).padStart(2, "0")}`}
+                        {!isAssessment && row.isSelected && " (Đang chọn)"}
+                      </Text>
+                    </Table.Td>
+                    {isAssessment ? (
+                      <Table.Td>
+                        {row.unit.linked_version_no ? (
+                          <Text>v{String(row.unit.linked_version_no).padStart(2, "0")}</Text>
+                        ) : (
+                          <Text c="dimmed">—</Text>
+                        )}
+                      </Table.Td>
+                    ) : (
+                      <Table.Td>
+                        <Text>
+                          {row.file.is_primary ? "Chính" : "Đính kèm"}
+                        </Text>
+                      </Table.Td>
+                    )}
+                    <Table.Td>
+                      {row.hasAction ? (
+                        <Anchor
+                          href={row.url ?? undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          underline="always"
+                          color="brand"
+                          className="hover:text-brand-hover transition-colors break-all whitespace-normal block"
+                          style={{ maxWidth: "450px" }}
+                        >
+                          {row.displayName}
+                        </Anchor>
+                      ) : (
+                        <Group gap="xs" wrap="nowrap">
+                          <Lock className="w-3.5 h-3.5 text-text-muted" />
+                          <Text c="dimmed" className="break-all whitespace-normal block" style={{ maxWidth: "450px" }}>
+                            {row.displayName}
+                          </Text>
+                        </Group>
+                      )}
+                    </Table.Td>
+                    <Table.Td>
+                      <Text>{row.sourceLabel}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text style={{ fontFamily: "monospace" }}>{row.formatLabel}</Text>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </div>
       )}
     </Stack>
-  );
-}
-
-function UnitCard({ unit, selectedVersion }: { unit: DocumentUnit; selectedVersion?: number }) {
-  const isSelected = typeof selectedVersion === "number" && selectedVersion === unit.version_no;
-
-  return (
-    <Card withBorder padding="md" radius="sm" data-selected={isSelected || undefined}>
-      <Group justify="space-between" align="flex-start">
-        <div>
-          <Text fw={700}>{unit.unit_code}</Text>
-          <Text size="xs" c="dimmed">
-            v{String(unit.version_no).padStart(2, "0")} • {unit.files.length} tệp
-          </Text>
-        </div>
-        {isSelected && <Badge color="brand">Đang chọn</Badge>}
-      </Group>
-
-      <Stack gap="xs" mt="sm">
-        {unit.files.map((file) => (
-          <FileRow key={file.id} file={file} />
-        ))}
-      </Stack>
-    </Card>
-  );
-}
-
-function FileRow({ file }: { file: DocumentFile }) {
-  const url = file.file_url || file.download_url;
-  const hasAction = file.open_action && url;
-
-  return (
-    <Group justify="space-between" align="center" wrap="nowrap">
-      <div>
-        <Text size="sm" fw={500}>
-          {file.original_name || file.canonical_name || file.id}
-        </Text>
-        <Text size="xs" c="dimmed">
-          {file.source_kind} • {file.mime_type || "unknown"}
-        </Text>
-      </div>
-      {hasAction ? (
-        <Anchor
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Badge variant="light" color="brand" style={{ cursor: "pointer" }}>
-            <Group gap={4}>
-              <ExternalLink className="w-3 h-3" />
-              {file.open_action === "download" ? "Tải xuống" : "Mở"}
-            </Group>
-          </Badge>
-        </Anchor>
-      ) : (
-        <Badge variant="light" color="gray">
-          Khóa
-        </Badge>
-      )}
-    </Group>
   );
 }
