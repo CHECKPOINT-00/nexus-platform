@@ -1,4 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
+import { assembleDocumentWorkspace } from "../../documents/application/assemble-document-workspace.js";
+import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
 import {
   findCaseByIdWithAllRelations,
   findFirstIntakeUnit,
@@ -10,6 +12,7 @@ import {
   findLatestApprovedReport,
   findApprovedReports,
 } from "../../reports/infrastructure/persistence/report.repository.js";
+import { prisma } from "../../../db.js";
 
 function normalizeIntakeSnapshot(rawContent: string | null) {
   if (!rawContent) return null;
@@ -34,6 +37,37 @@ function normalizeIntakeSnapshot(rawContent: string | null) {
   }
 }
 
+function toCaseResponse(caseDetails: any) {
+  return {
+    id: caseDetails.id,
+    case_code: caseDetails.case_code,
+    group_no: caseDetails.group_no,
+    owner_auth_user_id: caseDetails.owner_auth_user_id,
+    team_name: caseDetails.team_name,
+    school: caseDetails.school,
+    course_context: caseDetails.course_context,
+    current_checkpoint: caseDetails.current_checkpoint,
+    package_id: caseDetails.package_id,
+    assigned_supporter_auth_user_id: caseDetails.assigned_supporter_auth_user_id,
+    user_facing_stage: caseDetails.user_facing_stage,
+    internal_status: caseDetails.internal_status,
+    payment_status: caseDetails.payment_status,
+    deadline: caseDetails.deadline,
+    created_at: caseDetails.created_at,
+    updated_at: caseDetails.updated_at,
+    owner: caseDetails.owner,
+    assigned_supporter: caseDetails.assigned_supporter,
+    package: caseDetails.package,
+    members: caseDetails.members,
+    checkpoints: caseDetails.checkpoints,
+    lifecycle_units: caseDetails.lifecycle_units,
+    reports: caseDetails.reports,
+    payments: caseDetails.payments,
+    messages: caseDetails.messages,
+    events: caseDetails.events,
+  };
+}
+
 export async function getCaseDetailUseCase(userId: string, userRole: string, caseId: string) {
   const caseDetails = await findCaseByIdWithAllRelations(caseId);
 
@@ -41,14 +75,8 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some((m: any) => m.auth_user_id === userId);
-  const isSupporter = caseDetails.assigned_supporter_auth_user_id === userId;
-  const isAdmin = userRole === "admin";
-
-  if (!isOwner && !isMember && !isSupporter && !isAdmin) {
-    throw new AppError(403, "FORBIDDEN", "Không có quyền truy cập dự án này");
-  }
+  // Authz delegated to controller via requireCaseAccess.
+  // This usecase assumes caller has already verified access.
 
   const intakeUnit = await findFirstIntakeUnit(caseId);
   const intake_snapshot = normalizeIntakeSnapshot(intakeUnit?.content || null);
@@ -59,8 +87,8 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   const lifecycleUnits = await findLifecycleUnits(caseId);
   const reports = await findApprovedReports(caseId);
 
-  const team_submissions = lifecycleUnits.filter((u: any) => u.unit_type === "intake");
-  const team_revisions = lifecycleUnits.filter((u: any) => u.unit_type === "revision");
+  const team_submissions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code === "v00");
+  const team_revisions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code !== "v00");
   const nexus_reports = reports;
 
   const round_history = lifecycleUnits
@@ -77,8 +105,17 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
 
   const open_requests_for_more_info = await findOpenRequestsForMoreInfo(caseId);
 
+  const documentRecords = await findDocumentRecordsByCaseId(caseId);
+  const document_workspace = assembleDocumentWorkspace({
+    id: caseDetails.id,
+    current_checkpoint: caseDetails.current_checkpoint,
+    checkpoints: caseDetails.checkpoints || [],
+    lifecycle_units: lifecycleUnits || [],
+    document_records: documentRecords || [],
+  });
+
   return {
-    case: caseDetails,
+    case: toCaseResponse(caseDetails),
     intake_snapshot,
     latest_report,
     latest_user_action,
@@ -89,5 +126,44 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     },
     round_history,
     open_requests_for_more_info,
+    document_workspace,
   };
+}
+
+/**
+ * Lightweight usecase for document workspace only.
+ * M3 fix: only loads checkpoints + lifecycle_units + document_records.
+ * Skips owner, members, events, payments, reports, etc.
+ */
+export async function getCaseDocumentWorkspaceUseCase(caseId: string) {
+  // Load only what's needed for document workspace assembly
+  const [caseBasic, checkpoints, lifecycleUnits, documentRecords] = await Promise.all([
+    prisma.case.findUnique({
+      where: { id: caseId },
+      select: { id: true, current_checkpoint: true },
+    }),
+    prisma.checkpoint.findMany({
+      where: { case_id: caseId },
+      orderBy: { latest_version_no: "desc" },
+    }),
+    prisma.lifecycleUnit.findMany({
+      where: { case_id: caseId },
+      orderBy: { created_at: "asc" },
+    }),
+    findDocumentRecordsByCaseId(caseId),
+  ]);
+
+  if (!caseBasic) {
+    throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
+  }
+
+  const document_workspace = assembleDocumentWorkspace({
+    id: caseBasic.id,
+    current_checkpoint: caseBasic.current_checkpoint,
+    checkpoints: checkpoints || [],
+    lifecycle_units: lifecycleUnits || [],
+    document_records: documentRecords || [],
+  });
+
+  return { document_workspace };
 }

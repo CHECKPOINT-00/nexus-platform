@@ -1,6 +1,7 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { asNonEmptyString } from "../../../shared/infrastructure/http-helpers.js";
 import { validateCp1Intake } from "../http/cases.schema.js";
+import { validateDocumentWriteInputs } from "../../documents/application/validate-document-write.js";
 import {
   createCaseWithCheckpointAndIntake,
   findCaseByCode,
@@ -31,6 +32,11 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
   const validationErrors = validateCp1Intake(normalizedBody);
   if (validationErrors.length > 0) {
     throw new AppError(400, "VALIDATION_ERROR", "Dữ liệu không hợp lệ", validationErrors);
+  }
+
+  const documentValidation = validateDocumentWriteInputs(normalizedBody.documents || []);
+  if (!documentValidation.ok) {
+    throw new AppError(400, "VALIDATION_ERROR", documentValidation.error);
   }
 
   const { package_id, deadline, team_context } = normalizedBody;

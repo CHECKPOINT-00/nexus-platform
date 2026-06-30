@@ -1,4 +1,6 @@
 import { prisma } from "../../../../db.js";
+import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
+
 
 export async function findManyCasesByRole(userId: string, role: string) {
   if (role === "admin") {
@@ -46,7 +48,7 @@ export async function findManyCasesAdmin(where: any, take?: number) {
       assigned_supporter: true,
       package: true,
       lifecycle_units: {
-        where: { unit_type: "intake" },
+        where: { unit_type: "version" },
         take: 1,
       },
     },
@@ -185,17 +187,30 @@ export async function createCaseWithCheckpointAndIntake(data: {
       },
     });
 
-    await tx.lifecycleUnit.create({
+    const intakeUnit = await tx.lifecycleUnit.create({
       data: {
         case_id: newCase.id,
         checkpoint_id: checkpoint.id,
         unit_code: "v00",
-        unit_type: "intake",
+        unit_type: "version",
         version_no: 1,
         content: JSON.stringify(rawBody),
         file_url: rawBody.documents?.[0]?.drive_url || rawBody.documents?.[0]?.file_url || null,
       },
     });
+
+    const intakeDocs = Array.isArray(rawBody.documents) ? rawBody.documents : [];
+    await createDocumentRecordsForUnit(
+      newCase.id,
+      checkpoint.id,
+      intakeUnit.id,
+      intakeUnit.unit_code,
+      intakeDocs,
+      userId,
+      "intake_document",
+      "inbound",
+      tx,
+    );
 
     await tx.caseEvent.create({
       data: {
@@ -314,7 +329,7 @@ export async function findFirstIntakeUnit(caseId: string) {
   return await prisma.lifecycleUnit.findFirst({
     where: {
       case_id: caseId,
-      unit_type: "intake",
+      unit_type: "version",
       unit_code: "v00",
     },
   });
@@ -389,7 +404,7 @@ export async function submitCaseRevision(data: {
         case_id: caseId,
         checkpoint_id: checkpointId,
         unit_code: `v0${nextVersion}`,
-        unit_type: "revision",
+        unit_type: "version",
         version_no: nextVersion,
         content: JSON.stringify({
           change_summary: changeSummary,
@@ -399,6 +414,18 @@ export async function submitCaseRevision(data: {
         file_url: documents[0]?.drive_url || documents[0]?.file_url || null,
       },
     });
+
+    await createDocumentRecordsForUnit(
+      caseId,
+      checkpointId,
+      revisionUnit.id,
+      revisionUnit.unit_code,
+      documents,
+      userId,
+      "revision_document",
+      "outbound",
+      tx,
+    );
 
     await tx.case.update({
       where: { id: caseId },

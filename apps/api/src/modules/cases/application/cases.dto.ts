@@ -1,3 +1,5 @@
+import type { DocumentWriteInput } from "../../documents/application/document-dto.js";
+
 export interface CreateCaseRequest {
   package_id: string;
   school?: string;
@@ -20,19 +22,15 @@ export interface CreateCaseRequest {
   support_needs?: {
     primary_need: string;
   };
-  documents?: Array<{
-    drive_url: string;
-    document_type: string;
-  }>;
+  /** Backward-compatible documents array; fields are validated and canonicalized by the server. */
+  documents?: Array<DocumentWriteInput>;
   boundary_confirmations?: string[];
 }
 
 export interface SubmitRevisionRequest {
   change_summary: string;
-  documents: Array<{
-    drive_url: string;
-    file_url?: string;
-  }>;
+  /** Each document must provide at least one of `file_url` or `drive_url`. */
+  documents: Array<DocumentWriteInput>;
   remaining_blockers?: string;
 }
 

@@ -8,7 +8,7 @@ import { requireCaseAccess } from "../../../shared/infrastructure/authorization.
 import { listCasesUseCase } from "../application/list-cases.usecase.js";
 import { createCaseUseCase } from "../application/create-case.usecase.js";
 import { listSupportersUseCase } from "../application/list-supporters.usecase.js";
-import { getCaseDetailUseCase } from "../application/get-case-detail.usecase.js";
+import { getCaseDetailUseCase, getCaseDocumentWorkspaceUseCase } from "../application/get-case-detail.usecase.js";
 import { submitRevisionUseCase } from "../application/submit-revision.usecase.js";
 import { assignSupporterUseCase } from "../application/assign-supporter.usecase.js";
 import { updateCaseStatusUseCase } from "../application/update-case-status.usecase.js";
@@ -82,17 +82,16 @@ export async function listSupportersHandler(c: Context) {
 // ---------------------------------------------------------------------------
 
 export async function getCaseDetailHandler(c: Context) {
-  const session = await getSession(c);
-  if (!session) {
-    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
-  }
-
   const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
 
   try {
     const result = await getCaseDetailUseCase(
-      session.user.id,
-      (session.user as any).role,
+      access.session.user.id,
+      (access.session.user as any).role,
       caseId,
     );
     return c.json(result);
@@ -100,6 +99,27 @@ export async function getCaseDetailHandler(c: Context) {
     return handleError(c, error);
   }
 }
+// ---------------------------------------------------------------------------
+// GET /api/cases/:id/documents — Document workspace only
+// ---------------------------------------------------------------------------
+
+export async function getCaseDocumentsHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    // M3 fix: use lightweight usecase that only loads document workspace data
+    const result = await getCaseDocumentWorkspaceUseCase(caseId);
+    return c.json({ document_workspace: result.document_workspace });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+
 
 // ---------------------------------------------------------------------------
 // POST /api/cases/:id/revisions — Student submits a revision

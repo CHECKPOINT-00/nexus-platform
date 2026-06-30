@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert";
+import { pathToFileURL } from "node:url";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??= "postgresql://user:pass@localhost:5432/test";
@@ -67,8 +68,26 @@ test("backend demo regression coverage", async (t) => {
     );
 
     assert.strictEqual(captured.changeSummary, "Updated user research and solution framing");
-    assert.strictEqual(captured.documents, documents);
-    assert.deepStrictEqual(captured.documents, documents);
+    assert.deepStrictEqual(captured.documents, [
+      {
+        original_name: undefined,
+        file_url: "https://drive.google.com/drive/folders/demo",
+        drive_url: "https://drive.google.com/drive/folders/demo",
+        doc_type: undefined,
+        document_type: "Deck",
+        extension: undefined,
+        mime_type: undefined,
+      },
+      {
+        original_name: undefined,
+        file_url: "https://docs.google.com/document/d/demo",
+        drive_url: undefined,
+        doc_type: undefined,
+        document_type: "Notes",
+        extension: undefined,
+        mime_type: undefined,
+      },
+    ]);
     assert.strictEqual(result.id, "rev-1");
   });
 
@@ -108,5 +127,46 @@ test("backend demo regression coverage", async (t) => {
 
     assert.ok(result instanceof Error);
     assert.strictEqual(cleaned, "nexus-platform/payment-proofs/proof.pdf");
+  });
+
+  await t.test("backfill script helpers produce deterministic ids and quarantine empty urls", async () => {
+    const moduleUrl = pathToFileURL(
+      "E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/documents/infrastructure/persistence/document.repository.ts",
+    ).href;
+    const {
+      buildDocumentRecordInput,
+      buildDocumentRecordId,
+      buildReportArtifactDocumentRecordId,
+    } = await import(moduleUrl);
+
+    const input = buildDocumentRecordInput(
+      "case-2",
+      "cp-2",
+      "unit-2",
+      "v02",
+      { file_url: "https://docs.google.com/document/d/demo", original_name: "notes.docx" },
+      1,
+      "system",
+      "revision_document",
+      "revision",
+    );
+
+    assert.ok(input);
+    assert.strictEqual(buildDocumentRecordId(input), buildDocumentRecordId({ ...input }));
+    assert.strictEqual(buildReportArtifactDocumentRecordId("report-99"), "report-artifact-report-99");
+    assert.strictEqual(
+      buildDocumentRecordInput(
+        "case-2",
+        "cp-2",
+        "unit-2",
+        "v02",
+        { file_url: "" },
+        0,
+        "system",
+        "revision_document",
+        "revision",
+      ),
+      null,
+    );
   });
 });

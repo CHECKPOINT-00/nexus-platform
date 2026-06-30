@@ -37,7 +37,7 @@ export async function getAdminCaseDetailUseCase(caseId: string) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
   }
 
-  const intakeUnit = item.lifecycle_units.find((u: any) => u.unit_type === "intake" && u.unit_code === "v00");
+  const intakeUnit = item.lifecycle_units.find((u: any) => u.unit_type === "version" && u.unit_code === "v00");
   const intake_snapshot = normalizeIntakeSnapshot(intakeUnit?.content || null);
 
   return { case: item, intake_snapshot };

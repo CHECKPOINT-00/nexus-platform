@@ -1,5 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { isFinalCaseStage } from "../domain/case.types.js";
+import { validateDocumentWriteInputs } from "../../documents/application/validate-document-write.js";
 import {
   findCaseByIdWithMembersAndCheckpoints as defaultFindCaseByIdWithMembersAndCheckpoints,
   submitCaseRevision as defaultSubmitCaseRevision,
@@ -15,6 +16,41 @@ const defaultDeps = {
   findCaseByIdWithMembersAndCheckpoints: defaultFindCaseByIdWithMembersAndCheckpoints,
   submitCaseRevision: defaultSubmitCaseRevision,
 };
+
+function selectCheckpoint(
+  caseRecord: any,
+): { id: string; latest_version_no: number } | null {
+  if (!caseRecord?.checkpoints?.length) return null;
+  const checkpoints = caseRecord.checkpoints as Array<{
+    id: string;
+    checkpoint_code: string;
+    latest_version_no: number;
+    latest_assessment_no?: number;
+  }>;
+  if (caseRecord.current_checkpoint) {
+    const matched = checkpoints.find(
+      (cp) => cp.checkpoint_code === caseRecord.current_checkpoint,
+    );
+    if (matched) return matched;
+  }
+
+  let selected = checkpoints[0] ?? null;
+  for (const checkpoint of checkpoints) {
+    if (!selected || checkpoint.latest_version_no > selected.latest_version_no) {
+      selected = checkpoint;
+      continue;
+    }
+
+    if (
+      checkpoint.latest_version_no === selected.latest_version_no &&
+      (checkpoint.latest_assessment_no ?? 0) > (selected.latest_assessment_no ?? 0)
+    ) {
+      selected = checkpoint;
+    }
+  }
+
+  return selected;
+}
 
 export async function submitRevisionUseCase(
   userId: string,
@@ -73,26 +109,12 @@ export async function submitRevisionUseCase(
     );
   }
 
-  if (!Array.isArray(documents) || documents.length === 0) {
-    throw new AppError(
-      400,
-      "VALIDATION_ERROR",
-      "Phải đính kèm ít nhất một tài liệu sửa đổi",
-    );
+  const documentValidation = validateDocumentWriteInputs(documents || []);
+  if (!documentValidation.ok) {
+    throw new AppError(400, "VALIDATION_ERROR", documentValidation.error);
   }
 
-  for (const doc of documents) {
-    const driveUrl = doc?.drive_url || doc?.file_url;
-    if (typeof driveUrl !== "string" || !driveUrl.trim()) {
-      throw new AppError(
-        400,
-        "VALIDATION_ERROR",
-        "Tài liệu sửa đổi đính kèm phải có đường dẫn hợp lệ",
-      );
-    }
-  }
-
-  const checkpoint = caseDetails.checkpoints[0];
+  const checkpoint = selectCheckpoint(caseDetails);
   if (!checkpoint) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy thông tin checkpoint");
   }
@@ -105,7 +127,7 @@ export async function submitRevisionUseCase(
     nextVersion,
     userId,
     changeSummary: change_summary,
-    documents,
+    documents: documentValidation.inputs,
     remainingBlockers: remaining_blockers,
   });
 }

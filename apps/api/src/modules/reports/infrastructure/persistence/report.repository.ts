@@ -1,4 +1,5 @@
 import { prisma } from "../../../../db.js";
+import { upsertReportArtifactDocumentRecord } from "../../../documents/infrastructure/persistence/document.repository.js";
 
 export async function findDraftReportByCaseId(caseId: string) {
   return await prisma.report.findFirst({
@@ -96,6 +97,22 @@ export async function publishReport(reportId: string, caseId: string, userId: st
         internal_status: "report_ready_to_publish",
       },
     });
+
+    const linkedUnit = updatedReport.lifecycle_unit_id
+      ? await tx.lifecycleUnit.findUnique({
+          where: { id: updatedReport.lifecycle_unit_id },
+        })
+      : null;
+
+    await upsertReportArtifactDocumentRecord(
+      caseId,
+      updatedReport.checkpoint_id,
+      updatedReport.lifecycle_unit_id,
+      linkedUnit?.unit_code || null,
+      updatedReport.id,
+      userId,
+      tx,
+    );
 
     return updatedReport;
   });
