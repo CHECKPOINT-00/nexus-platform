@@ -41,6 +41,11 @@ Create root `.env` from `.env.example`, then set:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `NEXT_PUBLIC_API_URL`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+
+Cloudinary used for payment proof uploads only. App stores public `secure_url` in payment record.
 
 ## Run
 

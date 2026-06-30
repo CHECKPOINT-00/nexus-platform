@@ -67,6 +67,11 @@ Set root `.env`:
 - `BETTER_AUTH_URL`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+
+Payment proof uploads use Cloudinary public URLs; local `/uploads/*` serving removed.
 
 ## Run
 
