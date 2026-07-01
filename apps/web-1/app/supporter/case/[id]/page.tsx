@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use, useEffect } from "react";
+import React, { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useCaseDetails } from "../../../dashboard/case/[id]/hooks/useCaseDetails";
@@ -9,8 +9,9 @@ import WorkspaceSidebar from "../../../dashboard/case/[id]/_components/Workspace
 import DocumentWorkspace from "../../../dashboard/case/[id]/_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "../../../dashboard/case/[id]/_components/TabDiscussionChat";
 import ActivityTimeline from "../../../dashboard/case/[id]/_components/ActivityTimeline";
-import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import SupporterOutputUploadModal from "./_components/SupporterOutputUploadModal";
+import { Button } from "@mantine/core";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -19,41 +20,22 @@ interface PageProps {
 export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  
-  // 1. Auth Guard
+
   const { data: session, isPending: isAuthPending } = useSession();
-  
-  useEffect(() => {
+  const { caseData, documentWorkspace, isLoading, error } = useCaseDetails(id);
+  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
+  const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
+
+  React.useEffect(() => {
     if (!isAuthPending && !session) {
       router.push("/auth");
     } else if (!isAuthPending && session) {
       const userRole = (session.user as any).role;
       if (userRole !== "supporter" && userRole !== "admin") {
-        router.push("/dashboard"); // Redirect students back
+        router.push("/dashboard");
       }
     }
   }, [session, isAuthPending, router]);
-
-  // 2. Fetch Case Details
-  const { caseData, latestReport, documentWorkspace, isLoading, error } = useCaseDetails(id);
-  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
-  const [selectedVersion, setSelectedVersion] = useState<number>(0);
-
-  // Extract unique versions from lifecycle units
-  const versions = React.useMemo(() => {
-    if (!caseData?.lifecycle_units) return [0];
-    const uniqueVers = Array.from(
-      new Set(caseData.lifecycle_units.map((unit: any) => unit.version_no))
-    ).sort((a: any, b: any) => b - a); // Sort descending
-    return uniqueVers.length > 0 ? (uniqueVers as number[]) : [0];
-  }, [caseData?.lifecycle_units]);
-
-  // Set default selected version to the latest one
-  useEffect(() => {
-    if (versions.length > 0 && selectedVersion === 0) {
-      setSelectedVersion(versions[0]);
-    }
-  }, [versions, selectedVersion]);
 
   if (isAuthPending || isLoading) {
     return <LoadingScreen message="Đang tải không gian làm việc của Supporter..." />;
@@ -71,7 +53,6 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
-      {/* Sidebar - Docked Left, full height */}
       <WorkspaceSidebar
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -81,43 +62,45 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         }}
         messageCount={caseData.messages?.length}
         hideSettings
-        versions={versions}
-        selectedVersion={selectedVersion}
-        onVersionChange={setSelectedVersion}
       />
 
-      {/* Main Content Area - Scrollable */}
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        {/* 1. Case Status Header */}
-        <CaseStatusHeader
-          caseData={caseData}
-          versions={versions}
-          selectedVersion={selectedVersion}
-          onVersionChange={setSelectedVersion}
-        />
+        <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
 
-        {/* 2. Unpaid Warnings (Read-Only Warning for Supporters) */}
         {caseData.payment_status !== "paid" && caseData.package?.price !== 0 && (
           <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
             <span>⚠️ Nhóm sinh viên chưa hoàn tất thanh toán hồ sơ này. Lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
           </div>
         )}
 
-        {/* 3. Tab Content */}
         <div className="flex-grow min-h-0">
           {activeTab === "documents" && (
-            <DocumentWorkspace workspace={documentWorkspace} selectedVersion={selectedVersion} />
+            <>
+              <div className="mb-4 flex justify-end">
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="font-semibold cursor-pointer h-8.5 text-xs"
+                  onClick={() => setIsOutputUploadOpen(true)}
+                >
+                  Tải output hỗ trợ
+                </Button>
+              </div>
+              <DocumentWorkspace workspace={documentWorkspace} />
+            </>
           )}
 
-          {activeTab === "discussion" && (
-            <TabDiscussionChat caseId={caseData.id} />
-          )}
+          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
 
-          {activeTab === "timeline" && (
-            <ActivityTimeline caseData={caseData} />
-          )}
+          {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
         </div>
       </div>
+
+      <SupporterOutputUploadModal
+        isOpen={isOutputUploadOpen}
+        onClose={() => setIsOutputUploadOpen(false)}
+        caseId={id}
+      />
     </div>
   );
 }

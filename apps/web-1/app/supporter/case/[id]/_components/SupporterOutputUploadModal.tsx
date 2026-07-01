@@ -5,25 +5,24 @@ import { Modal, Button, Textarea, Select } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
 import {
-  useCaseRevisionUpload,
+  useSupporterOutputUpload,
   useDocumentTypeOptions,
 } from "../hooks/useCaseDocumentUploads";
 
-interface RevisionSubmitModalProps {
+interface SupporterOutputUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   caseId: string;
 }
 
-export default function RevisionSubmitModal({ isOpen, onClose, caseId }: RevisionSubmitModalProps) {
-  const [changeSummary, setChangeSummary] = useState("");
-  const [remainingBlockers, setRemainingBlockers] = useState("");
+export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: SupporterOutputUploadModalProps) {
   const [documentTypeCode, setDocumentTypeCode] = useState("");
+  const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: typeOptionsData } = useDocumentTypeOptions("revision", "version");
-  const { submitRevisionUpload, isSubmitting } = useCaseRevisionUpload(caseId);
+  const { data: typeOptionsData } = useDocumentTypeOptions("supporter_output", "version");
+  const { submitSupporterOutputUpload, isSubmitting } = useSupporterOutputUpload(caseId);
 
   const typeOptions = useMemo(
     () =>
@@ -37,20 +36,19 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
   const handleSubmit = async () => {
     setError(null);
     try {
-      await submitRevisionUpload({
-        change_summary: changeSummary,
-        remaining_blockers: remainingBlockers || undefined,
+      await submitSupporterOutputUpload({
         document_type_code: documentTypeCode,
+        note: note || undefined,
         files,
       });
       notifications.show({
-        title: "Nộp bản sửa thành công",
-        message: "Đã gửi bản sửa đổi thành công. Hồ sơ sẽ quay lại hàng chờ phản biện.",
+        title: "Tải output thành công",
+        message: "Đã tải tài liệu output hỗ trợ thành công.",
         color: "green",
       });
       handleClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi gửi bản sửa đổi.");
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tải output.");
     }
   };
 
@@ -64,24 +62,20 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
   };
 
   const handleClose = () => {
-    setChangeSummary("");
-    setRemainingBlockers("");
     setDocumentTypeCode("");
+    setNote("");
     setFiles([]);
     setError(null);
     onClose();
   };
 
-  const isFormValid =
-    changeSummary.trim().length >= 10 &&
-    documentTypeCode.trim().length > 0 &&
-    files.length > 0;
+  const isFormValid = documentTypeCode.trim().length > 0 && files.length > 0;
 
   return (
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title={<span className="font-heading font-bold text-sm text-text-app">Nộp bản sửa đổi</span>}
+      title={<span className="font-heading font-bold text-sm text-text-app">Tải output hỗ trợ</span>}
       size="lg"
       radius="md"
       centered
@@ -94,29 +88,17 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
           </div>
         )}
 
-        <Textarea
-          label="Tóm tắt thay đổi (Tối thiểu 10 ký tự)"
-          placeholder="Ví dụ: Nhóm đã cập nhật problem framing, bổ sung dẫn chứng và chỉnh lại solution flow..."
-          value={changeSummary}
-          onChange={(e) => setChangeSummary(e.target.value)}
-          required
-          minRows={3}
-          autosize
-          variant="default"
-          radius="md"
-        />
-
         <Select
           label="Loại tài liệu"
-          placeholder="Chọn loại tài liệu bản sửa"
+          placeholder="Chọn loại tài liệu"
           data={typeOptions}
           value={documentTypeCode}
           onChange={(value) => setDocumentTypeCode(value || "")}
-          searchable
-          nothingFoundMessage="Không có lựa chọn"
+          required
+          radius="md"
         />
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label className="text-xs font-semibold text-text-app block">Tệp đính kèm</label>
           <label className="border-2 border-dashed border-border-strong hover:border-brand/40 bg-surface-soft/40 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3">
             <input
@@ -131,7 +113,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             </div>
             <div className="space-y-1">
               <p className="font-body text-xs font-semibold text-text-app">
-                Chọn một hoặc nhiều tệp bản sửa
+                Chọn một hoặc nhiều tệp output
               </p>
               <p className="font-body text-[10px] text-text-muted">
                 Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp.
@@ -171,10 +153,10 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
         </div>
 
         <Textarea
-          label="Khó khăn còn lại cần giải đáp thêm (Tùy chọn)"
-          placeholder="Nếu còn điểm vướng mắc, hãy ghi tại đây để supporter giải đáp kỹ hơn ở round tới..."
-          value={remainingBlockers}
-          onChange={(e) => setRemainingBlockers(e.target.value)}
+          label="Ghi chú (Tùy chọn)"
+          placeholder="Mô tả ngắn về output này..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
           minRows={2}
           autosize
           variant="default"
@@ -192,7 +174,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             leftSection={<Send className="w-3.5 h-3.5" />}
             className="flex-1 font-semibold cursor-pointer"
           >
-            <span>{isSubmitting ? "Đang gửi..." : "Gửi bản sửa"}</span>
+            <span>{isSubmitting ? "Đang tải..." : "Tải output"}</span>
           </Button>
         </div>
       </div>

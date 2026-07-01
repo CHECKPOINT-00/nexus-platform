@@ -1,29 +1,38 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Modal, Button, Textarea, Select } from "@mantine/core";
+import { Modal, Button, Textarea, Select, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
 import {
-  useCaseRevisionUpload,
+  useExternalFeedbackUpload,
   useDocumentTypeOptions,
 } from "../hooks/useCaseDocumentUploads";
 
-interface RevisionSubmitModalProps {
+interface ExternalFeedbackUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   caseId: string;
+  latestVersionNo: number;
 }
 
-export default function RevisionSubmitModal({ isOpen, onClose, caseId }: RevisionSubmitModalProps) {
-  const [changeSummary, setChangeSummary] = useState("");
-  const [remainingBlockers, setRemainingBlockers] = useState("");
+export default function ExternalFeedbackUploadModal({
+  isOpen,
+  onClose,
+  caseId,
+  latestVersionNo,
+}: ExternalFeedbackUploadModalProps) {
   const [documentTypeCode, setDocumentTypeCode] = useState("");
+  const [source, setSource] = useState<"lecturer" | "mentor" | "other" | "">("");
+  const [sourceOtherText, setSourceOtherText] = useState("");
+  const [timing, setTiming] = useState<"pre_support" | "post_support" | "">("");
+  const [selectedVersionNo, setSelectedVersionNo] = useState<string>(String(latestVersionNo));
+  const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: typeOptionsData } = useDocumentTypeOptions("revision", "version");
-  const { submitRevisionUpload, isSubmitting } = useCaseRevisionUpload(caseId);
+  const { data: typeOptionsData } = useDocumentTypeOptions("external_feedback", "assessment");
+  const { submitExternalFeedbackUpload, isSubmitting } = useExternalFeedbackUpload(caseId);
 
   const typeOptions = useMemo(
     () =>
@@ -34,23 +43,58 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
     [typeOptionsData],
   );
 
+  const sourceOptions = [
+    { value: "lecturer", label: "Giảng viên" },
+    { value: "mentor", label: "Mentor" },
+    { value: "other", label: "Nguồn khác" },
+  ];
+
+  const timingOptions = [
+    { value: "pre_support", label: "Trước hỗ trợ" },
+    { value: "post_support", label: "Sau hỗ trợ" },
+  ];
+
+  const versionOptions = useMemo(() => {
+    const options = [];
+    for (let i = 1; i <= latestVersionNo; i++) {
+      options.push({ value: String(i), label: `Phiên bản ${i}` });
+    }
+    return options;
+  }, [latestVersionNo]);
+
   const handleSubmit = async () => {
     setError(null);
+    if (!source) {
+      setError("Vui lòng chọn nguồn đánh giá");
+      return;
+    }
+    if (source === "other" && !sourceOtherText.trim()) {
+      setError("Vui lòng nhập nguồn khác");
+      return;
+    }
+    if (!timing) {
+      setError("Vui lòng chọn thời điểm đánh giá");
+      return;
+    }
+
     try {
-      await submitRevisionUpload({
-        change_summary: changeSummary,
-        remaining_blockers: remainingBlockers || undefined,
+      await submitExternalFeedbackUpload({
         document_type_code: documentTypeCode,
+        source: source as "lecturer" | "mentor" | "other",
+        source_other_text: source === "other" ? sourceOtherText : undefined,
+        timing: timing as "pre_support" | "post_support",
+        selected_version_no: Number(selectedVersionNo),
+        note: note || undefined,
         files,
       });
       notifications.show({
-        title: "Nộp bản sửa thành công",
-        message: "Đã gửi bản sửa đổi thành công. Hồ sơ sẽ quay lại hàng chờ phản biện.",
+        title: "Tải đánh giá thành công",
+        message: "Đã tải đánh giá bên ngoài thành công.",
         color: "green",
       });
       handleClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi gửi bản sửa đổi.");
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tải đánh giá.");
     }
   };
 
@@ -64,24 +108,30 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
   };
 
   const handleClose = () => {
-    setChangeSummary("");
-    setRemainingBlockers("");
     setDocumentTypeCode("");
+    setSource("");
+    setSourceOtherText("");
+    setTiming("");
+    setSelectedVersionNo(String(latestVersionNo));
+    setNote("");
     setFiles([]);
     setError(null);
     onClose();
   };
 
   const isFormValid =
-    changeSummary.trim().length >= 10 &&
     documentTypeCode.trim().length > 0 &&
-    files.length > 0;
+    source &&
+    timing &&
+    selectedVersionNo &&
+    files.length > 0 &&
+    (source !== "other" || sourceOtherText.trim().length > 0);
 
   return (
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title={<span className="font-heading font-bold text-sm text-text-app">Nộp bản sửa đổi</span>}
+      title={<span className="font-heading font-bold text-sm text-text-app">Tải đánh giá bên ngoài</span>}
       size="lg"
       radius="md"
       centered
@@ -94,29 +144,58 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
           </div>
         )}
 
-        <Textarea
-          label="Tóm tắt thay đổi (Tối thiểu 10 ký tự)"
-          placeholder="Ví dụ: Nhóm đã cập nhật problem framing, bổ sung dẫn chứng và chỉnh lại solution flow..."
-          value={changeSummary}
-          onChange={(e) => setChangeSummary(e.target.value)}
+        <Select
+          label="Loại tài liệu"
+          placeholder="Chọn loại tài liệu"
+          data={typeOptions}
+          value={documentTypeCode}
+          onChange={(value) => setDocumentTypeCode(value || "")}
           required
-          minRows={3}
-          autosize
-          variant="default"
           radius="md"
         />
 
         <Select
-          label="Loại tài liệu"
-          placeholder="Chọn loại tài liệu bản sửa"
-          data={typeOptions}
-          value={documentTypeCode}
-          onChange={(value) => setDocumentTypeCode(value || "")}
-          searchable
-          nothingFoundMessage="Không có lựa chọn"
+          label="Nguồn đánh giá"
+          placeholder="Chọn nguồn"
+          data={sourceOptions}
+          value={source}
+          onChange={(value) => setSource((value as any) || "")}
+          required
+          radius="md"
         />
 
-        <div className="space-y-3">
+        {source === "other" && (
+          <TextInput
+            label="Nguồn khác"
+            placeholder="Nhập nguồn đánh giá"
+            value={sourceOtherText}
+            onChange={(e) => setSourceOtherText(e.target.value)}
+            required
+            radius="md"
+          />
+        )}
+
+        <Select
+          label="Thời điểm đánh giá"
+          placeholder="Chọn thời điểm"
+          data={timingOptions}
+          value={timing}
+          onChange={(value) => setTiming((value as any) || "")}
+          required
+          radius="md"
+        />
+
+        <Select
+          label="Phiên bản áp dụng"
+          placeholder="Chọn phiên bản"
+          data={versionOptions}
+          value={selectedVersionNo}
+          onChange={(value) => setSelectedVersionNo(value || String(latestVersionNo))}
+          required
+          radius="md"
+        />
+
+        <div className="space-y-2">
           <label className="text-xs font-semibold text-text-app block">Tệp đính kèm</label>
           <label className="border-2 border-dashed border-border-strong hover:border-brand/40 bg-surface-soft/40 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3">
             <input
@@ -131,7 +210,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             </div>
             <div className="space-y-1">
               <p className="font-body text-xs font-semibold text-text-app">
-                Chọn một hoặc nhiều tệp bản sửa
+                Chọn một hoặc nhiều tệp đánh giá
               </p>
               <p className="font-body text-[10px] text-text-muted">
                 Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp.
@@ -171,10 +250,10 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
         </div>
 
         <Textarea
-          label="Khó khăn còn lại cần giải đáp thêm (Tùy chọn)"
-          placeholder="Nếu còn điểm vướng mắc, hãy ghi tại đây để supporter giải đáp kỹ hơn ở round tới..."
-          value={remainingBlockers}
-          onChange={(e) => setRemainingBlockers(e.target.value)}
+          label="Ghi chú (Tùy chọn)"
+          placeholder="Mô tả ngắn về đánh giá này..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
           minRows={2}
           autosize
           variant="default"
@@ -192,7 +271,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             leftSection={<Send className="w-3.5 h-3.5" />}
             className="flex-1 font-semibold cursor-pointer"
           >
-            <span>{isSubmitting ? "Đang gửi..." : "Gửi bản sửa"}</span>
+            <span>{isSubmitting ? "Đang tải..." : "Tải đánh giá"}</span>
           </Button>
         </div>
       </div>
