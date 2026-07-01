@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { Anchor, Badge, Card, Group, Stack, Table, Tabs, Text } from "@mantine/core";
 import { CheckCircle, FileText, FolderOpen, Lock } from "lucide-react";
-import type { DocumentCheckpoint, DocumentFile, DocumentUnit, DocumentWorkspace as DocumentWorkspaceType, ExternalFeedbackUnit } from "@/types/case";
+import type { DocumentCheckpoint, DocumentFile, DocumentUnit, DocumentWorkspace as DocumentWorkspaceType, ExternalFeedbackMetadata, ExternalFeedbackUnit } from "@/types/case";
 
 interface DocumentWorkspaceProps {
   workspace: DocumentWorkspaceType | null;
@@ -221,12 +221,18 @@ function buildExternalFeedbackRows(units: ExternalFeedbackUnit[]): DocumentRow[]
       ...buildCommonRow(unit, file),
       versionLabel: `Đợt ${unit.assessment_no}`,
       contextLabel: unit.metadata
-        ? `${getSourceLabel(unit.metadata.source)} • v${String(unit.metadata.selected_version_no).padStart(2, "0")}`
+        ? `${getFeedbackSourceLabel(unit.metadata)} • v${String(unit.metadata.selected_version_no).padStart(2, "0")}`
         : unit.linked_version_no
           ? `v${String(unit.linked_version_no).padStart(2, "0")}`
           : "—",
     })),
   );
+}
+
+function getFeedbackSourceLabel(metadata: ExternalFeedbackMetadata): string {
+  if (metadata.source === "lecturer") return "Giảng viên";
+  if (metadata.source === "mentor") return "Người hướng dẫn";
+  return metadata.source_other_text || "Khác";
 }
 
 function buildCommonRow(unit: DocumentUnit | ExternalFeedbackUnit, file: DocumentFile): DocumentRow {

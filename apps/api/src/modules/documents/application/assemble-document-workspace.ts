@@ -278,17 +278,17 @@ function buildSupportFlowDocuments(
   const supportDocTypes = ['intake_document', 'revision_document', 'revision_attachment', 'supporter_output', 'supporter_attachment', 'evidence', 'generic'];
 
   return versionUnits
-    .map((unit) => {
+    .map((unit): DocumentUnit | null => {
       const unitRecords = records.filter((r) => r.lifecycle_unit_id === unit.id);
       const supportRecords = unitRecords.filter((r) => supportDocTypes.includes(r.doc_type));
-
-      if (supportRecords.length === 0 && unitRecords.length === 0) {
-        return null;
-      }
 
       const files = supportRecords.length > 0
         ? supportRecords.map(toDocumentFile)
         : legacyFilesFromUnit(unit);
+
+      if (files.length === 0) {
+        return null;
+      }
 
       return {
         unit_code: unit.unit_code,

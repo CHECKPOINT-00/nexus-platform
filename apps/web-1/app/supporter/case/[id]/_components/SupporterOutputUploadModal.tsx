@@ -7,7 +7,7 @@ import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
 import {
   useSupporterOutputUpload,
   useDocumentTypeOptions,
-} from "../hooks/useCaseDocumentUploads";
+} from "../../../../dashboard/case/[id]/hooks/useCaseDocumentUploads";
 
 interface SupporterOutputUploadModalProps {
   isOpen: boolean;
