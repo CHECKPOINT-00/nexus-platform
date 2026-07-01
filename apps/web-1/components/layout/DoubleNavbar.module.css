@@ -84,3 +84,36 @@
   color: var(--mantine-color-blue-light-color);
   font-weight: 600;
 }
+
+.singleWidth {
+  width: 80px;
+  background-color: var(--color-brand);
+  border-right: none;
+}
+
+.singleWidth .aside {
+  flex: 0 0 80px;
+  border-right: none;
+  background-color: var(--color-brand);
+}
+
+.singleWidth .mainLink {
+  width: 52px;
+  height: 52px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.singleWidth .mainLink:hover {
+  background-color: var(--color-brand-hover);
+  color: #ffffff;
+}
+
+.singleWidth .mainLink[data-active] {
+  background-color: #ffffff;
+  color: var(--color-brand);
+}
+
+
+
+
+
