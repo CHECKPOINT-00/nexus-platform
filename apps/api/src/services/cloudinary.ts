@@ -135,7 +135,11 @@ export function validateCloudinaryUrl(url: string): void {
   }
 }
 
-export function generateSignedUrl(publicId: string, ttlSeconds: number = DEFAULT_SIGNED_URL_TTL): string {
+export function generateSignedUrl(
+  publicId: string,
+  ttlSeconds: number = DEFAULT_SIGNED_URL_TTL,
+  originalFilename?: string | null,
+): string {
   if (!publicId) {
     throw new AppError(400, 'INVALID_PUBLIC_ID', 'publicId is required');
   }
@@ -144,12 +148,19 @@ export function generateSignedUrl(publicId: string, ttlSeconds: number = DEFAULT
 
   const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
 
-  return cloudinary.url(publicId, {
-    signature: true,
+  const options: Record<string, any> = {
+    sign_url: true,
     expires_at: expiresAt,
     resource_type: 'raw',
     secure: true,
-  });
+  };
+
+  if (originalFilename) {
+    const encodedFilename = encodeURIComponent(originalFilename);
+    options.flags = `attachment:${encodedFilename}`;
+  }
+
+  return cloudinary.url(publicId, options);
 }
 
 export function extractPublicId(url: string): string | null {
