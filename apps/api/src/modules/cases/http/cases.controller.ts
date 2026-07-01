@@ -21,6 +21,7 @@ import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
+import { recallRevisionUseCase } from "../application/recall-revision.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
 import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
 import type {
@@ -227,6 +228,26 @@ export async function submitRevisionUploadHandler(c: Context) {
     return c.json(result, 201);
   } catch (error: any) {
     await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/revisions/recall — Student recalls submitted revision
+// ---------------------------------------------------------------------------
+
+export async function recallRevisionHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const result = await recallRevisionUseCase(session.user.id, caseId);
+    return c.json(result, 200);
+  } catch (error: any) {
     return handleError(c, error);
   }
 }
