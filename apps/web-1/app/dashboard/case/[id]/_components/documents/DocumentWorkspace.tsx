@@ -210,7 +210,7 @@ function buildSupportFlowRows(units: DocumentUnit[]): DocumentRow[] {
     unit.files.map((file) => ({
       ...buildCommonRow(unit, file),
       versionLabel: `v${String(unit.version_no).padStart(2, "0")}`,
-      contextLabel: file.is_primary ? "Chính" : "Đính kèm",
+      contextLabel: file.doc_type_label ?? (file.is_primary ? "Chính" : "Đính kèm"),
     })),
   );
 }

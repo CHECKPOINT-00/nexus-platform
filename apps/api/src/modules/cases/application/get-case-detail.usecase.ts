@@ -119,14 +119,17 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
 
   const open_requests_for_more_info = await findOpenRequestsForMoreInfo(caseId);
 
-  const documentRecords = await findDocumentRecordsByCaseId(caseId);
+  const [documentRecords, docTypes] = await Promise.all([
+    findDocumentRecordsByCaseId(caseId),
+    prisma.documentType.findMany({ where: { is_active: true } }),
+  ]);
   const document_workspace = assembleDocumentWorkspace({
     id: caseDetails.id,
     current_checkpoint: caseDetails.current_checkpoint,
     checkpoints: caseDetails.checkpoints || [],
     lifecycle_units: lifecycleUnits || [],
     document_records: documentRecords || [],
-  });
+  }, docTypes);
 
   // VERIFY-001 fix: base shape for student, extend for admin/supporter
   const baseCase = toBaseResponse(caseDetails);
@@ -157,7 +160,7 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
  */
 export async function getCaseDocumentWorkspaceUseCase(caseId: string) {
   // Load only what's needed for document workspace assembly
-  const [caseBasic, checkpoints, lifecycleUnits, documentRecords] = await Promise.all([
+  const [caseBasic, checkpoints, lifecycleUnits, documentRecords, docTypes] = await Promise.all([
     prisma.case.findUnique({
       where: { id: caseId },
       select: { id: true, current_checkpoint: true },
@@ -171,6 +174,9 @@ export async function getCaseDocumentWorkspaceUseCase(caseId: string) {
       orderBy: { created_at: "asc" },
     }),
     findDocumentRecordsByCaseId(caseId),
+    prisma.documentType.findMany({
+      where: { is_active: true },
+    }),
   ]);
 
   if (!caseBasic) {
@@ -183,7 +189,7 @@ export async function getCaseDocumentWorkspaceUseCase(caseId: string) {
     checkpoints: checkpoints || [],
     lifecycle_units: lifecycleUnits || [],
     document_records: documentRecords || [],
-  });
+  }, docTypes);
 
   return { document_workspace };
 }

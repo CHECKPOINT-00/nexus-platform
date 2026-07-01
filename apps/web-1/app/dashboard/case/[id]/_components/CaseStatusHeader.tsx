@@ -4,8 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Case } from "@/types";
 import { statusThemeMap } from "@/types";
 import VersionSelector from "./VersionSelector";
-import { Clock, Users, Calendar, AlertCircle, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 
 interface CaseStatusHeaderProps {
@@ -23,7 +22,6 @@ export default function CaseStatusHeader({
 }: CaseStatusHeaderProps) {
   const { data: session } = useSession();
   const user = session?.user ? (session.user as typeof session.user & { role?: string }) : undefined;
-  const isSupporterOrAdmin = user?.role === "supporter" || user?.role === "admin";
 
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [timerColor, setTimerColor] = useState<string>("text-text-muted");
@@ -78,9 +76,7 @@ export default function CaseStatusHeader({
       }
     };
 
-    updateTimer();
     const interval = setInterval(updateTimer, 1000);
-
     return () => clearInterval(interval);
   }, [caseData.deadline, isPaused]);
 
@@ -99,8 +95,8 @@ export default function CaseStatusHeader({
         return "Checkpoint 3";
       default:
         return stage;
-    }
-  };
+      }
+    };
 
   const statusTheme = statusThemeMap[caseData.user_facing_stage] || {
     label: caseData.user_facing_stage,
@@ -164,18 +160,6 @@ export default function CaseStatusHeader({
           <span className={timerColor}>{timeLeft}</span>
           {isPaused && (
             <div className="w-2 h-2 rounded-full bg-warning animate-ping ml-1" />
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          {isSupporterOrAdmin && (
-            <Link
-              href={`/supporter/case/${caseData.id}/review`}
-              className="inline-flex items-center justify-center gap-1.5 font-body text-xs font-semibold bg-brand hover:bg-brand-hover text-white px-3.5 py-2 h-8.5 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Biên tập phản biện</span>
-            </Link>
           )}
         </div>
       </div>

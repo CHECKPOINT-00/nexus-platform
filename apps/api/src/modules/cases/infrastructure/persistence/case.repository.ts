@@ -503,6 +503,14 @@ export async function createSupporterOutput(data: {
       tx,
     );
 
+    await tx.case.update({
+      where: { id: caseId },
+      data: {
+        user_facing_stage: "report_ready",
+        internal_status: "report_ready_to_publish",
+      },
+    });
+
     await tx.caseEvent.create({
       data: {
         case_id: caseId,

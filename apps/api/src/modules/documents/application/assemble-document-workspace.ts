@@ -52,6 +52,7 @@ type PrismaCaseWithRelations = {
 
 export function assembleDocumentWorkspace(
   caseRecord: PrismaCaseWithRelations,
+  docTypes?: Array<{ code: string; label: string }>,
 ): DocumentWorkspace {
   const checkpoints = caseRecord.checkpoints || [];
   const selectedCheckpoint = selectCheckpoint(caseRecord, checkpoints);
@@ -60,10 +61,10 @@ export function assembleDocumentWorkspace(
     const units = caseRecord.lifecycle_units.filter((u) => u.checkpoint_id === cp.id);
     const records = caseRecord.document_records.filter((r) => r.checkpoint_id === cp.id);
 
-    const versionUnits = buildVersionUnits(units, records);
-    const assessmentUnits = buildAssessmentUnits(records);
-    const supportFlowDocuments = buildSupportFlowDocuments(units, records);
-    const externalFeedbackDocuments = buildExternalFeedbackDocuments(units, records);
+    const versionUnits = buildVersionUnits(units, records, docTypes);
+    const assessmentUnits = buildAssessmentUnits(records, docTypes);
+    const supportFlowDocuments = buildSupportFlowDocuments(units, records, docTypes);
+    const externalFeedbackDocuments = buildExternalFeedbackDocuments(units, records, docTypes);
 
     const totalFiles = versionUnits.reduce((sum, unit) => sum + unit.files.length, 0) +
     assessmentUnits.reduce((sum, unit) => sum + unit.files.length, 0);
@@ -124,13 +125,20 @@ function selectCheckpoint(
 function buildVersionUnits(
   units: PrismaCaseWithRelations['lifecycle_units'],
   records: PrismaCaseWithRelations['document_records'],
+  docTypes?: Array<{ code: string; label: string }>,
 ): DocumentUnit[] {
   const versionUnits = units.filter((u) => u.unit_type === 'version');
 
   return versionUnits
     .map((unit) => {
       const unitRecords = records.filter((r) => r.lifecycle_unit_id === unit.id);
-      const files = unitRecords.length > 0 ? unitRecords.map(toDocumentFile) : legacyFilesFromUnit(unit);
+      const studentDocTypes = ['intake_document', 'revision_document'];
+      const hasStudentDocInRecords = unitRecords.some((r) => studentDocTypes.includes(r.doc_type));
+
+      const files = [
+        ...unitRecords.map((r) => toDocumentFile(r, docTypes)),
+        ...(!hasStudentDocInRecords ? legacyFilesFromUnit(unit) : []),
+      ];
 
       return {
         unit_code: unit.unit_code,
@@ -145,6 +153,7 @@ function buildVersionUnits(
 
 function buildAssessmentUnits(
   records: PrismaCaseWithRelations['document_records'],
+  docTypes?: Array<{ code: string; label: string }>,
 ): DocumentUnit[] {
   const assessmentRecords = records.filter((r) => r.doc_type === 'assessment_report');
 
@@ -163,7 +172,7 @@ function buildAssessmentUnits(
         version_no: 0,
         assessment_no: parseAssessmentNo(unitCode),
         linked_version_no: parseLinkedVersionNo(unitCode),
-        files: group.map(toDocumentFile),
+        files: group.map((r) => toDocumentFile(r, docTypes)),
       };
     })
     .sort((a, b) => {
@@ -196,6 +205,8 @@ function legacyFilesFromUnit(
       id: 'legacy-' + unit.id,
       seq: 0,
       is_primary: true,
+      doc_type: 'intake_document',
+      doc_type_label: 'Tài liệu chính',
       source_kind: sourceKind,
       canonical_name: null,
       original_name: null,
@@ -210,18 +221,22 @@ function legacyFilesFromUnit(
   return files;
 }
 
-function toDocumentFile(record: {
-  id: string;
-  seq: number;
-  is_primary: boolean;
-  source_kind: string;
-  canonical_name: string | null;
-  original_name: string | null;
-  extension: string | null;
-  mime_type: string | null;
-  file_url: string | null;
-  download_url: string | null;
-}): DocumentFile {
+function toDocumentFile(
+  record: {
+    id: string;
+    seq: number;
+    is_primary: boolean;
+    doc_type: string;
+    source_kind: string;
+    canonical_name: string | null;
+    original_name: string | null;
+    extension: string | null;
+    mime_type: string | null;
+    file_url: string | null;
+    download_url: string | null;
+  },
+  docTypes?: Array<{ code: string; label: string }>,
+): DocumentFile {
   const sourceKind = record.source_kind as DocumentSourceKind;
   const policy = deriveSourceBehaviorPolicy(sourceKind);
 
@@ -244,10 +259,27 @@ function toDocumentFile(record: {
     }
   }
 
+  const DEFAULT_DOC_TYPE_LABELS: Record<string, string> = {
+    intake_document: "Tài liệu chính",
+    revision_document: "Bản sửa đổi",
+    revision_attachment: "Tài liệu bổ sung bản sửa",
+    supporter_output: "Output hỗ trợ",
+    supporter_attachment: "Tài liệu đính kèm hỗ trợ",
+    assessment_report: "Báo cáo đánh giá",
+    external_feedback: "Đánh giá bên ngoài",
+    external_evidence: "Minh chứng bên ngoài",
+  };
+
+  const docTypeLabel = docTypes?.find((dt) => dt.code === record.doc_type)?.label 
+    || DEFAULT_DOC_TYPE_LABELS[record.doc_type] 
+    || "Tài liệu";
+
   return {
     id: record.id,
     seq: record.seq,
     is_primary: record.is_primary,
+    doc_type: record.doc_type,
+    doc_type_label: docTypeLabel,
     source_kind: sourceKind,
     canonical_name: record.canonical_name,
     original_name: record.original_name,
@@ -273,6 +305,7 @@ function parseLinkedVersionNo(unitCode: string): number | null {
 function buildSupportFlowDocuments(
   units: PrismaCaseWithRelations['lifecycle_units'],
   records: PrismaCaseWithRelations['document_records'],
+  docTypes?: Array<{ code: string; label: string }>,
 ): DocumentUnit[] {
   const versionUnits = units.filter((u) => u.unit_type === 'version');
   const supportDocTypes = ['intake_document', 'revision_document', 'revision_attachment', 'supporter_output', 'supporter_attachment', 'evidence', 'generic'];
@@ -282,9 +315,13 @@ function buildSupportFlowDocuments(
       const unitRecords = records.filter((r) => r.lifecycle_unit_id === unit.id);
       const supportRecords = unitRecords.filter((r) => supportDocTypes.includes(r.doc_type));
 
-      const files = supportRecords.length > 0
-        ? supportRecords.map(toDocumentFile)
-        : legacyFilesFromUnit(unit);
+      const studentDocTypes = ['intake_document', 'revision_document'];
+      const hasStudentDocInRecords = supportRecords.some((r) => studentDocTypes.includes(r.doc_type));
+
+      const files = [
+        ...supportRecords.map((r) => toDocumentFile(r, docTypes)),
+        ...(!hasStudentDocInRecords ? legacyFilesFromUnit(unit) : []),
+      ];
 
       if (files.length === 0) {
         return null;
@@ -305,6 +342,7 @@ function buildSupportFlowDocuments(
 function buildExternalFeedbackDocuments(
   units: PrismaCaseWithRelations['lifecycle_units'],
   records: PrismaCaseWithRelations['document_records'],
+  docTypes?: Array<{ code: string; label: string }>,
 ): ExternalFeedbackUnit[] {
   const assessmentUnits = units.filter((u) => u.unit_type === 'assessment');
   const feedbackDocTypes = ['external_feedback', 'external_evidence'];
@@ -323,7 +361,7 @@ function buildExternalFeedbackDocuments(
       unit_code: unit.unit_code,
       assessment_no: unit.assessment_no,
       linked_version_no: unit.linked_version_no,
-      files: feedbackRecords.map(toDocumentFile),
+      files: feedbackRecords.map((r) => toDocumentFile(r, docTypes)),
       metadata,
     });
   }
