@@ -13,7 +13,8 @@ import {
   Circle,
   Clock,
   UserCheck,
-  MessageSquare
+  MessageSquare,
+  Trash2
 } from "lucide-react";
 
 interface ActivityTimelineProps {
@@ -83,6 +84,13 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
           icon: Upload,
           colorClass: "bg-info-soft text-info border-info/20",
         };
+      case "revision_recalled":
+        return {
+          label: "Bản sửa đổi đã được thu hồi",
+          desc: "Bản sửa đổi đã được thu hồi và không còn hiệu lực.",
+          icon: XCircle,
+          colorClass: "bg-danger-soft text-danger border-danger/20",
+        };
       case "message_sent":
         return {
           label: "Tin nhắn mới",
@@ -135,6 +143,27 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
           desc: "Supporter yêu cầu nhóm bổ sung hoặc giải trình về nội dung hồ sơ.",
           icon: HelpCircle,
           colorClass: "bg-warning-soft text-warning border-warning/20",
+        };
+      case "supporter_output_uploaded":
+        return {
+          label: "Tải lên tài liệu hỗ trợ",
+          desc: "Tài liệu đầu ra hỗ trợ (supporter output) đã được tải lên.",
+          icon: FileCheck,
+          colorClass: "bg-success-soft text-success border-success/20",
+        };
+      case "external_feedback_uploaded":
+        return {
+          label: "Đánh giá bên ngoài",
+          desc: "Tài liệu đánh giá của chuyên gia/giảng viên bên ngoài đã được tải lên.",
+          icon: Upload,
+          colorClass: "bg-info-soft text-info border-info/20",
+        };
+      case "document_deleted":
+        return {
+          label: "Xóa tài liệu",
+          desc: "Tài liệu đã được gỡ bỏ khỏi hệ thống bởi quản trị viên.",
+          icon: Trash2,
+          colorClass: "bg-danger-soft text-danger border-danger/20",
         };
       default:
         return {
