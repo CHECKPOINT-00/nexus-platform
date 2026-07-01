@@ -7,6 +7,8 @@ import { acceptCaseUseCase } from "../application/accept-case.usecase.js";
 import { rejectCaseUseCase } from "../application/reject-case.usecase.js";
 import { adminRequestMoreInfoUseCase } from "../application/request-more-info.usecase.js";
 import { adminAssignSupporterUseCase } from "../application/assign-supporter.usecase.js";
+import { listAdminDocumentsUseCase } from "../application/list-admin-documents.usecase.js";
+import { deleteAdminDocumentUseCase } from "../application/delete-admin-document.usecase.js";
 import type { ListAdminCasesRequest } from "../application/admin.dto.js";
 
 // ---------------------------------------------------------------------------
@@ -143,6 +145,44 @@ export async function adminAssignSupporterHandler(c: Context) {
     const body = await readJsonBody(c) as { supporter_id?: string };
     const supporter_id = body?.supporter_id || "";
     const result = await adminAssignSupporterUseCase(session.user.id, caseId, supporter_id);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/documents — List all document records
+// ---------------------------------------------------------------------------
+
+export async function listAdminDocumentsHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const result = await listAdminDocumentsUseCase();
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/admin/documents/:id — Delete document record
+// ---------------------------------------------------------------------------
+
+export async function deleteAdminDocumentHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const documentId = c.req.param("id") || "";
+
+  try {
+    const result = await deleteAdminDocumentUseCase(authResult.session.user.id, documentId);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);

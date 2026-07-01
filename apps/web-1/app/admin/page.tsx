@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import { useAdminPayments } from "./hooks/useAdminPayments";
 import { useAdminCases } from "./hooks/useAdminCases";
+import { useAdminDocuments } from "./hooks/useAdminDocuments";
 import AdminPaymentVerificationTable from "./_components/AdminPaymentVerificationTable";
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
+import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -33,9 +35,16 @@ export default function AdminHubPage() {
     deleteCase,
   } = useAdminCases();
 
+  const {
+    documents,
+    isLoading: isDocsLoading,
+    deleteDocument,
+    isDeleting: isDeletingDoc,
+  } = useAdminDocuments();
+
   // Rejection modal control
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases">("payments");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents">("payments");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
@@ -172,7 +181,24 @@ export default function AdminHubPage() {
     }
   };
 
-  const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading;
+  const handleDeleteDocument = async (id: string) => {
+    try {
+      await deleteDocument(id);
+      notifications.show({
+        title: "Xóa tài liệu thành công",
+        message: "Đã xóa tài liệu khỏi hệ thống thành công!",
+        color: "green",
+      });
+    } catch (e: any) {
+      notifications.show({
+        title: "Lỗi",
+        message: `Gặp lỗi khi xóa tài liệu: ${e?.message || "Unknown error"}`,
+        color: "red",
+      });
+    }
+  };
+
+  const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading;
 
   const pendingPaymentsCount = payments.filter((p) => p.status === "pending_verification").length;
   const unassignedCasesCount = cases.filter((c) => c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned").length;
@@ -242,18 +268,30 @@ export default function AdminHubPage() {
                 )}
               </UnstyledButton>
             </Tooltip>
+
+            <Tooltip label="Quản lý tài liệu" position="right" withArrow>
+              <UnstyledButton
+                onClick={() => setActiveSection("documents")}
+                className={classes.mainLink}
+                data-active={activeSection === "documents" || undefined}
+              >
+                <FileText className="w-5 h-5" />
+              </UnstyledButton>
+            </Tooltip>
           </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={6} className={classes.title}>
-                {activeSection === "payments" ? "Giao dịch" : "Hồ sơ đề tài" }
+                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : "Quản lý tài liệu" }
               </Title>
               <Text size="xs" c="dimmed" className="font-body text-[11px]">
                 {activeSection === "payments"
                   ? "Duyệt minh chứng chuyển khoản."
-                  : "Phân loại ý tưởng & phân công."}
+                  : activeSection === "cases"
+                  ? "Phân loại ý tưởng & phân công."
+                  : "Danh mục tài liệu trên hệ thống."}
               </Text>
             </div>
 
@@ -284,7 +322,7 @@ export default function AdminHubPage() {
                   <span>Lịch sử giao dịch</span>
                 </UnstyledButton>
               </div>
-            ) : (
+            ) : activeSection === "cases" ? (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
                   onClick={() => setCaseFilter("all")}
@@ -329,6 +367,15 @@ export default function AdminHubPage() {
                   <span>Quản lý (CRUD)</span>
                 </UnstyledButton>
               </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Tất cả tài liệu</span>
+                </UnstyledButton>
+              </div>
             )}
           </div>
         </div>
@@ -367,7 +414,7 @@ export default function AdminHubPage() {
                   onReject={handleRejectClick}
                 />
               </div>
-            ) : (
+            ) : activeSection === "cases" ? (
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
                   <h3 className="font-heading font-bold text-sm text-text-app">Phân công Supporter chuyên môn</h3>
@@ -383,6 +430,18 @@ export default function AdminHubPage() {
                   onRequestMoreInfo={handleRequestMoreInfo}
                   isCrudMode={caseFilter === "crud"}
                   onDelete={handleDeleteCase}
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
+                  <h3 className="font-heading font-bold text-sm text-text-app">Quản lý hệ thống tài liệu</h3>
+                  <p className="text-[10px] text-text-muted">Xem, tải xuống và gỡ bỏ tài liệu khỏi cơ sở dữ liệu & Cloudinary.</p>
+                </div>
+                <AdminDocumentsTable
+                  documents={documents}
+                  onDelete={handleDeleteDocument}
+                  isDeleting={isDeletingDoc}
                 />
               </div>
             )}
