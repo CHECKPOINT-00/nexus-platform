@@ -119,6 +119,14 @@ function stableStringHash(str: string) {
 export async function findDocumentRecordsByCaseId(caseId: string) {
   return await prisma.documentRecord.findMany({
     where: { case_id: caseId },
+    include: {
+      uploaded_by: {
+        select: {
+          name: true,
+          role: true,
+        },
+      },
+    },
     orderBy: [{ checkpoint_id: "asc" }, { seq: "asc" }, { created_at: "asc" }],
   });
 }
@@ -129,6 +137,14 @@ export async function findDocumentRecordsByCaseIdAndCheckpointId(
 ) {
   return await prisma.documentRecord.findMany({
     where: { case_id: caseId, checkpoint_id: checkpointId },
+    include: {
+      uploaded_by: {
+        select: {
+          name: true,
+          role: true,
+        },
+      },
+    },
     orderBy: [{ seq: "asc" }, { created_at: "asc" }],
   });
 }

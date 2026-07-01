@@ -87,13 +87,13 @@ export async function uploadFile(
   }
 }
 
-export async function deleteFile(publicId: string): Promise<void> {
+export async function deleteFile(publicId: string, resourceType: string = 'raw'): Promise<void> {
   if (!publicId) return;
 
   try {
     ensureConfig();
     await cloudinary.uploader.destroy(publicId, {
-      resource_type: 'auto',
+      resource_type: resourceType,
       invalidate: true,
     });
   } catch (err) {
@@ -139,6 +139,7 @@ export function generateSignedUrl(
   publicId: string,
   ttlSeconds: number = DEFAULT_SIGNED_URL_TTL,
   originalFilename?: string | null,
+  version?: string | null,
 ): string {
   if (!publicId) {
     throw new AppError(400, 'INVALID_PUBLIC_ID', 'publicId is required');
@@ -155,8 +156,14 @@ export function generateSignedUrl(
     secure: true,
   };
 
+  if (version) {
+    options.version = version;
+  }
+
   if (originalFilename) {
-    const encodedFilename = encodeURIComponent(originalFilename);
+    // Strip file extension to prevent Cloudinary 400 bad request "Invalid flag in transformation: pdf"
+    const nameWithoutExt = originalFilename.split('?')[0].split('#')[0].replace(/\.[^/.]+$/, "");
+    const encodedFilename = encodeURIComponent(nameWithoutExt);
     options.flags = `attachment:${encodedFilename}`;
   }
 
@@ -181,4 +188,17 @@ export function extractPublicId(url: string): string | null {
   } catch {
     return null;
   }
+}
+
+export function extractVersion(url: string): string | null {
+  if (!url || !isValidCloudinaryUrl(url)) return null;
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const versionSegment = parts.find((part) => /^v\d+$/.test(part));
+    if (versionSegment) {
+      return versionSegment.substring(1); // Remove the 'v' prefix
+    }
+  } catch {}
+  return null;
 }

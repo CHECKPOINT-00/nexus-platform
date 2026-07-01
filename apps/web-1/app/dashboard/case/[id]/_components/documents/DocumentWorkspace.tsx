@@ -20,6 +20,8 @@ type DocumentRow = {
   hasAction: boolean;
   sourceLabel: string;
   formatLabel: string;
+  uploaderLabel: string;
+  createdAt: string;
 };
 
 export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps) {
@@ -45,8 +47,15 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
     );
   }
 
-  const documentRows = buildSupportFlowRows(selectedCheckpoint.support_flow_documents);
-  const feedbackRows = buildExternalFeedbackRows(selectedCheckpoint.external_feedback_documents);
+  const documentRows = useMemo(() => {
+    return buildSupportFlowRows(selectedCheckpoint.support_flow_documents)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [selectedCheckpoint.support_flow_documents]);
+
+  const feedbackRows = useMemo(() => {
+    return buildExternalFeedbackRows(selectedCheckpoint.external_feedback_documents)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [selectedCheckpoint.external_feedback_documents]);
 
   return (
     <Stack gap="md">
@@ -139,6 +148,21 @@ function CheckpointOverview({ checkpoint }: { checkpoint: DocumentCheckpoint }) 
   );
 }
 
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
 function DocumentTable({
   rows,
   emptyMessage,
@@ -156,13 +180,15 @@ function DocumentTable({
 
   return (
     <div className="border border-border-app bg-surface-app overflow-hidden">
-      <Table.ScrollContainer minWidth={680}>
+      <Table.ScrollContainer minWidth={780}>
         <Table highlightOnHover verticalSpacing="md" horizontalSpacing="md">
           <Table.Thead className="bg-surface-soft">
             <Table.Tr>
-              <Table.Th style={{ width: "130px" }}>{versionHeader}</Table.Th>
+              <Table.Th style={{ width: "95px" }}>{versionHeader}</Table.Th>
               <Table.Th style={{ width: "150px" }}>{contextHeader}</Table.Th>
+              <Table.Th style={{ width: "120px" }}>Người tải</Table.Th>
               <Table.Th>Tài liệu / Đường dẫn</Table.Th>
+              <Table.Th style={{ width: "150px" }}>Ngày tải</Table.Th>
               <Table.Th style={{ width: "140px" }}>Nguồn</Table.Th>
               <Table.Th style={{ width: "110px" }}>Định dạng</Table.Th>
             </Table.Tr>
@@ -172,6 +198,7 @@ function DocumentTable({
               <Table.Tr key={row.key}>
                 <Table.Td><Text>{row.versionLabel}</Text></Table.Td>
                 <Table.Td><Text>{row.contextLabel}</Text></Table.Td>
+                <Table.Td><Text>{row.uploaderLabel}</Text></Table.Td>
                 <Table.Td>
                   {row.hasAction ? (
                     <Anchor
@@ -194,6 +221,7 @@ function DocumentTable({
                     </Group>
                   )}
                 </Table.Td>
+                <Table.Td><Text>{formatDate(row.createdAt)}</Text></Table.Td>
                 <Table.Td><Text>{row.sourceLabel}</Text></Table.Td>
                 <Table.Td><Text style={{ fontFamily: "monospace" }}>{row.formatLabel}</Text></Table.Td>
               </Table.Tr>
@@ -237,6 +265,31 @@ function getFeedbackSourceLabel(metadata: ExternalFeedbackMetadata): string {
 
 function buildCommonRow(unit: DocumentUnit | ExternalFeedbackUnit, file: DocumentFile): DocumentRow {
   const url = file.file_url || file.download_url;
+
+  let uploaderLabel = "—";
+  if (file.uploaded_by_role === "user") {
+    uploaderLabel = "Người dùng";
+  } else if (file.uploaded_by_role === "supporter") {
+    uploaderLabel = "Supporter";
+  } else if (file.uploaded_by_role === "admin") {
+    uploaderLabel = "Admin";
+  } else if (file.uploaded_by_name) {
+    uploaderLabel = file.uploaded_by_name;
+  } else if (file.source_kind === "generated") {
+    uploaderLabel = "Hệ thống";
+  } else {
+    // Fallback based on document type for legacy documents
+    const userDocTypes = ["intake_document", "revision_document", "revision_attachment", "external_feedback", "external_evidence"];
+    const supporterDocTypes = ["supporter_output", "supporter_attachment"];
+    if (file.doc_type && userDocTypes.includes(file.doc_type)) {
+      uploaderLabel = "Người dùng";
+    } else if (file.doc_type && supporterDocTypes.includes(file.doc_type)) {
+      uploaderLabel = "Supporter";
+    } else if (file.source_kind === "drive") {
+      uploaderLabel = "Người dùng";
+    }
+  }
+
   return {
     key: `${unit.unit_code}-${file.id}`,
     displayName: getFileDisplayName(file, url),
@@ -246,6 +299,8 @@ function buildCommonRow(unit: DocumentUnit | ExternalFeedbackUnit, file: Documen
     formatLabel: getFormatLabel(file, url),
     versionLabel: "",
     contextLabel: "",
+    uploaderLabel,
+    createdAt: file.created_at ?? "",
   };
 }
 

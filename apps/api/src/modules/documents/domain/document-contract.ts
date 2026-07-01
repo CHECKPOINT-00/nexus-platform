@@ -114,4 +114,7 @@ export interface DocumentFile {
   download_url: string | null;
   open_action: "open_url_new_tab" | "download" | null;
   download_action: "open_url_new_tab" | "download" | null;
+  uploaded_by_name?: string | null;
+  uploaded_by_role?: string | null;
+  created_at?: string | null;
 }

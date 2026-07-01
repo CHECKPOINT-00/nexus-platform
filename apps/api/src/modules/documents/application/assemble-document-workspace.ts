@@ -9,7 +9,7 @@ import type {
 } from '../domain/document-contract.js';
 import { deriveSourceBehaviorPolicy, deriveSourceKindFromUrl } from '../domain/document-types.js';
 import type { DocumentSourceKind } from '../domain/document-types.js';
-import { generateSignedUrl, extractPublicId } from '../../../services/cloudinary.js';
+import { generateSignedUrl, extractPublicId, extractVersion } from '../../../services/cloudinary.js';
 
 type PrismaCaseWithRelations = {
   id: string;
@@ -30,6 +30,7 @@ type PrismaCaseWithRelations = {
     linked_version_no: number | null;
     file_url: string | null;
     content: string | null;
+    created_at?: Date | string;
   }>;
   document_records: Array<{
     id: string;
@@ -47,6 +48,11 @@ type PrismaCaseWithRelations = {
     file_url: string | null;
     download_url: string | null;
     metadata_json?: unknown;
+    uploaded_by?: {
+      name: string;
+      role: string;
+    } | null;
+    created_at?: Date | string;
   }>;
 };
 
@@ -66,13 +72,13 @@ export function assembleDocumentWorkspace(
     const supportFlowDocuments = buildSupportFlowDocuments(units, records, docTypes);
     const externalFeedbackDocuments = buildExternalFeedbackDocuments(units, records, docTypes);
 
-    const totalFiles = versionUnits.reduce((sum, unit) => sum + unit.files.length, 0) +
-    assessmentUnits.reduce((sum, unit) => sum + unit.files.length, 0);
+    const totalFiles = supportFlowDocuments.reduce((sum, unit) => sum + unit.files.length, 0) +
+      externalFeedbackDocuments.reduce((sum, unit) => sum + unit.files.length, 0);
 
     const overview: DocumentCheckpointOverview = {
       total_files: totalFiles,
-      version_count: versionUnits.length,
-      assessment_count: assessmentUnits.length,
+      version_count: supportFlowDocuments.length,
+      assessment_count: externalFeedbackDocuments.length,
       selected_label:
         selectedCheckpoint?.id === cp.id ? 'Đang chọn ' + cp.checkpoint_code : cp.checkpoint_code,
     };
@@ -183,7 +189,6 @@ function buildAssessmentUnits(
       return left - right;
     });
 }
-
 function legacyFilesFromUnit(
   unit: PrismaCaseWithRelations['lifecycle_units'][number],
 ): DocumentFile[] {
@@ -192,12 +197,25 @@ function legacyFilesFromUnit(
     const sourceKind = deriveSourceKindFromUrl(unit.file_url);
     const policy = deriveSourceBehaviorPolicy(sourceKind);
 
-    // VERIFY-002 fix: sign Cloudinary URLs with short-TTL
     let fileUrl = unit.file_url;
+    let originalName: string | null = null;
+    let extension: string | null = null;
+
     if (sourceKind === 'cloudinary') {
       const publicId = extractPublicId(fileUrl);
       if (publicId) {
-        fileUrl = generateSignedUrl(publicId);
+        const cleanUrl = fileUrl.split('?')[0].split('#')[0];
+        const filenameWithExt = cleanUrl.split('/').pop() || 'document.pdf';
+        const dotIndex = filenameWithExt.lastIndexOf('.');
+        if (dotIndex !== -1) {
+          originalName = filenameWithExt;
+          extension = filenameWithExt.substring(dotIndex + 1);
+        } else {
+          originalName = filenameWithExt + '.pdf';
+          extension = 'pdf';
+        }
+        const version = extractVersion(fileUrl);
+        fileUrl = generateSignedUrl(publicId, undefined, originalName, version);
       }
     }
 
@@ -208,19 +226,19 @@ function legacyFilesFromUnit(
       doc_type: 'intake_document',
       doc_type_label: 'Tài liệu chính',
       source_kind: sourceKind,
-      canonical_name: null,
-      original_name: null,
-      extension: null,
-      mime_type: null,
+      canonical_name: originalName,
+      original_name: originalName,
+      extension: extension,
+      mime_type: extension === 'pdf' ? 'application/pdf' : null,
       file_url: fileUrl,
       download_url: fileUrl,
       open_action: policy.open_action,
       download_action: policy.download_action,
+      created_at: unit.created_at ? (typeof unit.created_at === 'string' ? unit.created_at : unit.created_at.toISOString()) : new Date().toISOString(),
     });
   }
   return files;
 }
-
 function toDocumentFile(
   record: {
     id: string;
@@ -234,6 +252,11 @@ function toDocumentFile(
     mime_type: string | null;
     file_url: string | null;
     download_url: string | null;
+    uploaded_by?: {
+      name: string;
+      role: string;
+    } | null;
+    created_at?: Date | string;
   },
   docTypes?: Array<{ code: string; label: string }>,
 ): DocumentFile {
@@ -245,16 +268,21 @@ function toDocumentFile(
   let downloadUrl = record.download_url;
 
   if (sourceKind === 'cloudinary') {
+    const defaultFilename = (fileUrl || downloadUrl || '').split('?')[0].split('#')[0].split('/').pop() || 'document.pdf';
+    const filename = record.original_name || record.canonical_name || defaultFilename;
+
     if (fileUrl) {
       const publicId = extractPublicId(fileUrl);
       if (publicId) {
-        fileUrl = generateSignedUrl(publicId);
+        const version = extractVersion(fileUrl);
+        fileUrl = generateSignedUrl(publicId, undefined, filename, version);
       }
     }
     if (downloadUrl) {
       const publicId = extractPublicId(downloadUrl);
       if (publicId) {
-        downloadUrl = generateSignedUrl(publicId);
+        const version = extractVersion(downloadUrl);
+        downloadUrl = generateSignedUrl(publicId, undefined, filename, version);
       }
     }
   }
@@ -289,6 +317,9 @@ function toDocumentFile(
     download_url: downloadUrl,
     open_action: fileUrl ? policy.open_action : null,
     download_action: downloadUrl ? policy.download_action : null,
+    uploaded_by_name: record.uploaded_by?.name ?? null,
+    uploaded_by_role: record.uploaded_by?.role ?? null,
+    created_at: record.created_at ? (typeof record.created_at === 'string' ? record.created_at : record.created_at.toISOString()) : new Date().toISOString(),
   };
 }
 
