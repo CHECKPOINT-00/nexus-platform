@@ -50,13 +50,28 @@ export function validateManagedDocumentFile(file: ManagedUploadFile) {
   return extension;
 }
 
+function generateSafeCloudinaryPublicId(originalName: string): string {
+  const ext = path.extname(originalName).toLowerCase();
+  const baseName = path.basename(originalName, ext);
+
+  const cleanBase = baseName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove Vietnamese accents
+    .replace(/[^a-zA-Z0-9-_]/g, "_")  // Replace other characters with underscore
+    .replace(/_+/g, "_")              // Collapse multiple underscores
+    .slice(0, 80);                    // Limit length
+
+  const randomChars = Math.random().toString(36).substring(2, 6);
+  return `${cleanBase}-${randomChars}${ext}`;
+}
+
 export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promise<UploadedManagedDocument> {
   const extension = validateManagedDocumentFile(file);
 
   try {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const publicId = crypto.randomUUID();
+    const publicId = generateSafeCloudinaryPublicId(file.name);
     const result = await uploadFile(buffer, CLOUDINARY_FOLDER, publicId, "raw");
 
     return {
