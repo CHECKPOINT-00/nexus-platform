@@ -55,6 +55,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
+  const hasRevisionBanner =
+    !!(openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0) ||
+    caseData.user_facing_stage === "report_ready" ||
+    caseData.user_facing_stage === "waiting_for_revision";
+
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
       <WorkspaceSidebar
@@ -111,7 +116,20 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         <div className="flex-grow min-h-0">
           {activeTab === "documents" && (
             <>
-              <div className="mb-4 flex justify-end">
+              <div className="mb-4 flex justify-end gap-3">
+                {(caseData.user_facing_stage === "report_ready" ||
+                  caseData.user_facing_stage === "waiting_for_revision" ||
+                  caseData.user_facing_stage === "need_more_information") &&
+                  !hasRevisionBanner && (
+                  <Button
+                    size="sm"
+                    color="brand"
+                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    onClick={() => setIsRevisionOpen(true)}
+                  >
+                    Nộp bản sửa
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   color="brand"
