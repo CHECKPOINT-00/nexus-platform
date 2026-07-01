@@ -13,7 +13,12 @@ export type DocumentSourceKind = (typeof DOCUMENT_SOURCE_KINDS)[number];
 export const DOCUMENT_TYPES = [
   "intake_document",
   "revision_document",
+  "revision_attachment",
+  "supporter_output",
+  "supporter_attachment",
   "assessment_report",
+  "external_feedback",
+  "external_evidence",
   "payment_proof",
   "evidence",
   "generic",
@@ -24,6 +29,22 @@ export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export const DOCUMENT_DIRECTIONS = ["inbound", "outbound", "system"] as const;
 
 export type DocumentDirection = (typeof DOCUMENT_DIRECTIONS)[number];
+
+export const DOCUMENT_TYPE_FLOWS = ["intake", "revision", "supporter_output", "external_feedback"] as const;
+
+export type DocumentTypeFlow = (typeof DOCUMENT_TYPE_FLOWS)[number];
+
+export const DOCUMENT_UNIT_SCOPES = ["version", "assessment"] as const;
+
+export type DocumentUnitScope = (typeof DOCUMENT_UNIT_SCOPES)[number];
+
+export const EXTERNAL_FEEDBACK_SOURCES = ["lecturer", "mentor", "other"] as const;
+
+export type ExternalFeedbackSource = (typeof EXTERNAL_FEEDBACK_SOURCES)[number];
+
+export const EXTERNAL_FEEDBACK_TIMINGS = ["pre_support", "post_support"] as const;
+
+export type ExternalFeedbackTiming = (typeof EXTERNAL_FEEDBACK_TIMINGS)[number];
 
 /**
  * Canonical unit code patterns.

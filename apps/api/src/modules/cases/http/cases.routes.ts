@@ -5,7 +5,12 @@ import {
   listSupportersHandler,
   getCaseDetailHandler,
   getCaseDocumentsHandler,
+  listDocumentTypesHandler,
+  uploadManagedDocumentHandler,
   submitRevisionHandler,
+  submitRevisionUploadHandler,
+  submitSupporterOutputUploadHandler,
+  submitExternalFeedbackUploadHandler,
   assignSupporterHandler,
   updateCaseStatusHandler,
   listMessagesHandler,
@@ -19,9 +24,14 @@ export const casesRouter = new Hono();
 casesRouter.get("/", listCasesHandler);
 casesRouter.post("/", createCaseHandler);
 casesRouter.get("/supporters", listSupportersHandler);
+casesRouter.get("/document-types", listDocumentTypesHandler);
+casesRouter.post("/uploads/managed-document", uploadManagedDocumentHandler);
 casesRouter.get("/:id", getCaseDetailHandler);
 casesRouter.get("/:id/documents", getCaseDocumentsHandler);
 casesRouter.post("/:id/revisions", submitRevisionHandler);
+casesRouter.post("/:id/revisions/upload", submitRevisionUploadHandler);
+casesRouter.post("/:id/supporter-outputs/upload", submitSupporterOutputUploadHandler);
+casesRouter.post("/:id/external-feedback/upload", submitExternalFeedbackUploadHandler);
 casesRouter.post("/:id/assign", assignSupporterHandler);
 casesRouter.post("/:id/status", updateCaseStatusHandler);
 casesRouter.get("/:id/messages", listMessagesHandler);

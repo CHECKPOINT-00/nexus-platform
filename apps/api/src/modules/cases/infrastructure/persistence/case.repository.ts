@@ -374,6 +374,14 @@ export async function findOpenRequestsForMoreInfo(caseId: string) {
   });
 }
 
+function buildVersionUnitCode(versionNo: number) {
+  return `v${String(versionNo).padStart(2, "0")}`;
+}
+
+function buildAssessmentUnitCode(assessmentNo: number, linkedVersionNo: number) {
+  return `a${String(assessmentNo).padStart(2, "0")}-v${String(linkedVersionNo).padStart(2, "0")}`;
+}
+
 export async function submitCaseRevision(data: {
   caseId: string;
   checkpointId: string;
@@ -403,7 +411,7 @@ export async function submitCaseRevision(data: {
       data: {
         case_id: caseId,
         checkpoint_id: checkpointId,
-        unit_code: `v0${nextVersion}`,
+        unit_code: buildVersionUnitCode(nextVersion),
         unit_type: "version",
         version_no: nextVersion,
         content: JSON.stringify({
@@ -445,6 +453,170 @@ export async function submitCaseRevision(data: {
     });
 
     return revisionUnit;
+  });
+}
+
+export async function createSupporterOutput(data: {
+  caseId: string;
+  checkpointId: string;
+  userId: string;
+  note?: string;
+  documents: any[];
+}) {
+  const { caseId, checkpointId, userId, note, documents } = data;
+
+  return await prisma.$transaction(async (tx: any) => {
+    const checkpoint = await tx.checkpoint.findUnique({
+      where: { id: checkpointId },
+      select: { latest_version_no: true },
+    });
+
+    if (!checkpoint) {
+      throw new Error("CHECKPOINT_NOT_FOUND");
+    }
+
+    const versionNo = checkpoint.latest_version_no;
+    const unitCode = buildVersionUnitCode(versionNo);
+    const versionUnit = await tx.lifecycleUnit.findFirst({
+      where: {
+        case_id: caseId,
+        checkpoint_id: checkpointId,
+        unit_type: "version",
+        version_no: versionNo,
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (!versionUnit) {
+      throw new Error("VERSION_UNIT_NOT_FOUND");
+    }
+
+    await createDocumentRecordsForUnit(
+      caseId,
+      checkpointId,
+      versionUnit.id,
+      unitCode,
+      documents,
+      userId,
+      "supporter_output",
+      "outbound",
+      tx,
+    );
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "supporter_output_uploaded",
+        actor_auth_user_id: userId,
+        metadata_json: {
+          unit_code: unitCode,
+          document_count: documents.length,
+          note: note || null,
+        },
+      },
+    });
+
+    return {
+      unit_code: unitCode,
+      version_no: versionNo,
+      document_count: documents.length,
+    };
+  });
+}
+
+export async function createExternalFeedback(data: {
+  caseId: string;
+  checkpointId: string;
+  userId: string;
+  note?: string;
+  selectedVersionNo: number;
+  metadataJson: any;
+  documents: any[];
+}) {
+  const { caseId, checkpointId, userId, note, selectedVersionNo, metadataJson, documents } = data;
+
+  return await prisma.$transaction(async (tx: any) => {
+    const checkpoint = await tx.checkpoint.findUnique({
+      where: { id: checkpointId },
+      select: { latest_assessment_no: true },
+    });
+
+    if (!checkpoint) {
+      throw new Error("CHECKPOINT_NOT_FOUND");
+    }
+
+    const versionUnit = await tx.lifecycleUnit.findFirst({
+      where: {
+        case_id: caseId,
+        checkpoint_id: checkpointId,
+        unit_type: "version",
+        version_no: selectedVersionNo,
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (!versionUnit) {
+      throw new Error("VERSION_UNIT_NOT_FOUND");
+    }
+
+    const nextAssessmentNo = (checkpoint.latest_assessment_no ?? 0) + 1;
+    const assessmentUnit = await tx.lifecycleUnit.create({
+      data: {
+        case_id: caseId,
+        checkpoint_id: checkpointId,
+        unit_code: buildAssessmentUnitCode(nextAssessmentNo, selectedVersionNo),
+        unit_type: "assessment",
+        version_no: selectedVersionNo,
+        assessment_no: nextAssessmentNo,
+        linked_version_no: selectedVersionNo,
+        content: JSON.stringify({
+          source: metadataJson.source,
+          source_other_text: metadataJson.source_other_text ?? null,
+          timing: metadataJson.timing,
+          note: note || null,
+        }),
+        file_url: documents[0]?.file_url || null,
+      },
+    });
+
+    await tx.checkpoint.update({
+      where: { id: checkpointId },
+      data: { latest_assessment_no: nextAssessmentNo },
+    });
+
+    await createDocumentRecordsForUnit(
+      caseId,
+      checkpointId,
+      assessmentUnit.id,
+      assessmentUnit.unit_code,
+      documents,
+      userId,
+      "external_feedback",
+      "inbound",
+      tx,
+      () => metadataJson,
+    );
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "external_feedback_uploaded",
+        actor_auth_user_id: userId,
+        metadata_json: {
+          unit_code: assessmentUnit.unit_code,
+          selected_version_no: selectedVersionNo,
+          document_count: documents.length,
+          note: note || null,
+        },
+      },
+    });
+
+    return {
+      unit_code: assessmentUnit.unit_code,
+      version_no: selectedVersionNo,
+      assessment_no: nextAssessmentNo,
+      document_count: documents.length,
+    };
   });
 }
 

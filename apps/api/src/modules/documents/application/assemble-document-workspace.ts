@@ -4,6 +4,8 @@ import type {
   DocumentFile,
   DocumentUnit,
   DocumentWorkspace,
+  ExternalFeedbackUnit,
+  ExternalFeedbackMetadata,
 } from '../domain/document-contract.js';
 import { deriveSourceBehaviorPolicy, deriveSourceKindFromUrl } from '../domain/document-types.js';
 import type { DocumentSourceKind } from '../domain/document-types.js';
@@ -44,6 +46,7 @@ type PrismaCaseWithRelations = {
     mime_type: string | null;
     file_url: string | null;
     download_url: string | null;
+    metadata_json?: unknown;
   }>;
 };
 
@@ -59,6 +62,8 @@ export function assembleDocumentWorkspace(
 
     const versionUnits = buildVersionUnits(units, records);
     const assessmentUnits = buildAssessmentUnits(records);
+    const supportFlowDocuments = buildSupportFlowDocuments(units, records);
+    const externalFeedbackDocuments = buildExternalFeedbackDocuments(units, records);
 
     const totalFiles = versionUnits.reduce((sum, unit) => sum + unit.files.length, 0) +
     assessmentUnits.reduce((sum, unit) => sum + unit.files.length, 0);
@@ -77,6 +82,9 @@ export function assembleDocumentWorkspace(
       overview,
       version_units: versionUnits,
       assessment_units: assessmentUnits,
+      support_flow_documents: supportFlowDocuments,
+      external_feedback_documents: externalFeedbackDocuments,
+      latest_version_no: cp.latest_version_no,
     };
   });
 
@@ -260,4 +268,95 @@ function parseAssessmentNo(unitCode: string): number {
 function parseLinkedVersionNo(unitCode: string): number | null {
   const match = /^a\d+-v(\d+)$/.exec(unitCode);
   return match ? Number.parseInt(match[1], 10) : null;
+}
+
+function buildSupportFlowDocuments(
+  units: PrismaCaseWithRelations['lifecycle_units'],
+  records: PrismaCaseWithRelations['document_records'],
+): DocumentUnit[] {
+  const versionUnits = units.filter((u) => u.unit_type === 'version');
+  const supportDocTypes = ['intake_document', 'revision_document', 'revision_attachment', 'supporter_output', 'supporter_attachment', 'evidence', 'generic'];
+
+  return versionUnits
+    .map((unit) => {
+      const unitRecords = records.filter((r) => r.lifecycle_unit_id === unit.id);
+      const supportRecords = unitRecords.filter((r) => supportDocTypes.includes(r.doc_type));
+
+      if (supportRecords.length === 0 && unitRecords.length === 0) {
+        return null;
+      }
+
+      const files = supportRecords.length > 0
+        ? supportRecords.map(toDocumentFile)
+        : legacyFilesFromUnit(unit);
+
+      return {
+        unit_code: unit.unit_code,
+        version_no: unit.version_no,
+        assessment_no: 0,
+        linked_version_no: null,
+        files,
+      };
+    })
+    .filter((unit): unit is DocumentUnit => unit !== null)
+    .sort((a, b) => b.version_no - a.version_no);
+}
+
+function buildExternalFeedbackDocuments(
+  units: PrismaCaseWithRelations['lifecycle_units'],
+  records: PrismaCaseWithRelations['document_records'],
+): ExternalFeedbackUnit[] {
+  const assessmentUnits = units.filter((u) => u.unit_type === 'assessment');
+  const feedbackDocTypes = ['external_feedback', 'external_evidence'];
+
+  const feedbackUnits: ExternalFeedbackUnit[] = [];
+
+  for (const unit of assessmentUnits) {
+    const unitRecords = records.filter((r) => r.lifecycle_unit_id === unit.id);
+    const feedbackRecords = unitRecords.filter((r) => feedbackDocTypes.includes(r.doc_type));
+
+    if (feedbackRecords.length === 0) continue;
+
+    const metadata = extractExternalFeedbackMetadata(feedbackRecords[0]);
+
+    feedbackUnits.push({
+      unit_code: unit.unit_code,
+      assessment_no: unit.assessment_no,
+      linked_version_no: unit.linked_version_no,
+      files: feedbackRecords.map(toDocumentFile),
+      metadata,
+    });
+  }
+
+  return feedbackUnits.sort((a, b) => {
+    const byAssessment = b.assessment_no - a.assessment_no;
+    if (byAssessment !== 0) return byAssessment;
+    const left = b.linked_version_no ?? -1;
+    const right = a.linked_version_no ?? -1;
+    return left - right;
+  });
+}
+
+function extractExternalFeedbackMetadata(
+  record: PrismaCaseWithRelations['document_records'][number],
+): ExternalFeedbackMetadata | null {
+  if (!record.metadata_json || typeof record.metadata_json !== 'object') {
+    return null;
+  }
+
+  const meta = record.metadata_json as Record<string, unknown>;
+  const source = typeof meta.source === 'string' ? meta.source : null;
+  const timing = typeof meta.timing === 'string' ? meta.timing : null;
+  const selectedVersionNo = typeof meta.selected_version_no === 'number' ? meta.selected_version_no : null;
+
+  if (!source || !timing || selectedVersionNo === null) {
+    return null;
+  }
+
+  return {
+    source: source as ExternalFeedbackMetadata['source'],
+    source_other_text: typeof meta.source_other_text === 'string' ? meta.source_other_text : null,
+    timing: timing as ExternalFeedbackMetadata['timing'],
+    selected_version_no: selectedVersionNo,
+  };
 }

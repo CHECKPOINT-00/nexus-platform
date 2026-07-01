@@ -9,16 +9,26 @@ import { listCasesUseCase } from "../application/list-cases.usecase.js";
 import { createCaseUseCase } from "../application/create-case.usecase.js";
 import { listSupportersUseCase } from "../application/list-supporters.usecase.js";
 import { getCaseDetailUseCase, getCaseDocumentWorkspaceUseCase } from "../application/get-case-detail.usecase.js";
-import { submitRevisionUseCase } from "../application/submit-revision.usecase.js";
+import {
+  submitRevisionUseCase,
+  submitRevisionUploadUseCase,
+  submitSupporterOutputUploadUseCase,
+  submitExternalFeedbackUploadUseCase,
+} from "../application/submit-revision.usecase.js";
 import { assignSupporterUseCase } from "../application/assign-supporter.usecase.js";
 import { updateCaseStatusUseCase } from "../application/update-case-status.usecase.js";
 import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
+import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
+import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
 import type {
   CreateCaseRequest,
   SubmitRevisionRequest,
+  SubmitRevisionUploadRequest,
+  SupporterOutputUploadRequest,
+  ExternalFeedbackUploadRequest,
   UpdateCaseSettingsRequest,
 } from "../application/cases.dto.js";
 
@@ -122,6 +132,51 @@ export async function getCaseDocumentsHandler(c: Context) {
 
 
 // ---------------------------------------------------------------------------
+// GET /api/cases/document-types — Active document type options for UI
+// ---------------------------------------------------------------------------
+
+export async function listDocumentTypesHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  try {
+    const flow = c.req.query("flow");
+    const unit_scope = c.req.query("unit_scope");
+    const result = await listDocumentTypesUseCase({ flow, unit_scope });
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/uploads/managed-document — Shared post-intake upload helper
+// ---------------------------------------------------------------------------
+
+export async function uploadManagedDocumentHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  try {
+    const body = await c.req.parseBody();
+    const file = body["file"] as any;
+
+    if (!file) {
+      return c.json({ code: "VALIDATION_ERROR", message: "Thiếu tệp tải lên" }, 400);
+    }
+
+    const result = await uploadManagedDocumentFile(file);
+    return c.json(result, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/cases/:id/revisions — Student submits a revision
 // ---------------------------------------------------------------------------
 
@@ -138,6 +193,80 @@ export async function submitRevisionHandler(c: Context) {
     const result = await submitRevisionUseCase(session.user.id, caseId, body);
     return c.json(result, 201);
   } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/revisions/upload — Student submits uploaded revision docs
+// ---------------------------------------------------------------------------
+
+function collectUploadedPublicIds(documents: Array<{ cloudinary_public_id?: string }> | undefined) {
+  const uploadedPublicIds: string[] = [];
+  for (const document of documents || []) {
+    if (document?.cloudinary_public_id) {
+      uploadedPublicIds.push(document.cloudinary_public_id);
+    }
+  }
+  return uploadedPublicIds;
+}
+
+export async function submitRevisionUploadHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+  let uploadedPublicIds: string[] = [];
+
+  try {
+    const body = await readJsonBody(c) as SubmitRevisionUploadRequest;
+    uploadedPublicIds = collectUploadedPublicIds(body?.documents);
+    const result = await submitRevisionUploadUseCase(session.user.id, caseId, body);
+    return c.json(result, 201);
+  } catch (error: any) {
+    await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));
+    return handleError(c, error);
+  }
+}
+
+export async function submitSupporterOutputUploadHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+  let uploadedPublicIds: string[] = [];
+
+  try {
+    const body = await readJsonBody(c) as SupporterOutputUploadRequest;
+    uploadedPublicIds = collectUploadedPublicIds(body?.documents);
+    const result = await submitSupporterOutputUploadUseCase(session.user.id, caseId, body);
+    return c.json(result, 201);
+  } catch (error: any) {
+    await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));
+    return handleError(c, error);
+  }
+}
+
+export async function submitExternalFeedbackUploadHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+  let uploadedPublicIds: string[] = [];
+
+  try {
+    const body = await readJsonBody(c) as ExternalFeedbackUploadRequest;
+    uploadedPublicIds = collectUploadedPublicIds(body?.documents);
+    const result = await submitExternalFeedbackUploadUseCase(session.user.id, caseId, body);
+    return c.json(result, 201);
+  } catch (error: any) {
+    await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));
     return handleError(c, error);
   }
 }

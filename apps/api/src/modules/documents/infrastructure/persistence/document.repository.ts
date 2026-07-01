@@ -11,6 +11,7 @@ import type {
   DocumentSourceKind,
   DocumentType,
 } from "../../domain/document-types.js";
+import type { ExternalFeedbackMetadata } from "../../application/validate-document-write.js";
 
 type DocumentRecordClient = typeof prisma | Prisma.TransactionClient;
 
@@ -22,6 +23,9 @@ type DocumentInputLike = {
   document_type?: string;
   extension?: string;
   mime_type?: string;
+  download_url?: string;
+  cloudinary_public_id?: string;
+  metadata_json?: Prisma.InputJsonValue;
 };
 
 export type CreateDocumentRecordInput = {
@@ -41,6 +45,7 @@ export type CreateDocumentRecordInput = {
   file_url: string | null;
   download_url: string | null;
   cloudinary_public_id: string | null;
+  metadata_json?: Prisma.InputJsonValue;
   uploaded_by_auth_user_id: string;
 };
 
@@ -78,8 +83,9 @@ export function buildDocumentRecordInput(
     extension: extension || null,
     mime_type: mimeType || null,
     file_url: url,
-    download_url: url,
-    cloudinary_public_id: null,
+    download_url: doc.download_url || url,
+    cloudinary_public_id: doc.cloudinary_public_id || null,
+    metadata_json: doc.metadata_json,
     uploaded_by_auth_user_id: uploaderId,
   };
 }
@@ -172,6 +178,7 @@ export async function createDocumentRecordsForUnit(
   defaultDocType: string,
   defaultDirection: DocumentDirection,
   client: DocumentRecordClient = prisma,
+  metadataFactory?: (doc: DocumentInputLike, index: number) => Prisma.InputJsonValue | undefined,
 ) {
   const inputs: CreateDocumentRecordInput[] = [];
   let seq = 0;
@@ -181,7 +188,10 @@ export async function createDocumentRecordsForUnit(
       checkpointId,
       lifecycleUnitId,
       unitCode,
-      doc,
+      {
+        ...doc,
+        metadata_json: metadataFactory?.(doc, seq) ?? doc.metadata_json,
+      },
       seq,
       uploaderId,
       defaultDocType,
@@ -301,4 +311,13 @@ export async function upsertReportArtifactDocumentRecord(
       uploaded_by_auth_user_id: createdByUserId,
     },
   });
+}
+
+export function toExternalFeedbackMetadataJson(metadata: ExternalFeedbackMetadata): Prisma.InputJsonValue {
+  return {
+    source: metadata.source,
+    source_other_text: metadata.source_other_text ?? null,
+    timing: metadata.timing,
+    selected_version_no: metadata.selected_version_no,
+  };
 }

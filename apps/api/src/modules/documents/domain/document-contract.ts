@@ -58,6 +58,25 @@ export interface DocumentCheckpoint {
   overview: DocumentCheckpointOverview;
   version_units: DocumentUnit[];
   assessment_units: DocumentUnit[];
+  /** Additive UI-facing collections for 3-tab workspace */
+  support_flow_documents: DocumentUnit[];
+  external_feedback_documents: ExternalFeedbackUnit[];
+  latest_version_no: number;
+}
+
+export interface ExternalFeedbackUnit {
+  unit_code: string;
+  assessment_no: number;
+  linked_version_no: number | null;
+  files: DocumentFile[];
+  metadata: ExternalFeedbackMetadata | null;
+}
+
+export interface ExternalFeedbackMetadata {
+  source: "lecturer" | "mentor" | "other";
+  source_other_text?: string | null;
+  timing: "pre_support" | "post_support";
+  selected_version_no: number;
 }
 
 export interface DocumentCheckpointOverview {
