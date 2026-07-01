@@ -235,6 +235,7 @@ model DocumentRecord {
   file_url                  String?
   download_url              String?
   cloudinary_public_id      String?
+  metadata_json             Json?
   uploaded_by_auth_user_id  String
   created_at                DateTime  @default(now())
   updated_at                DateTime  @updatedAt
@@ -253,7 +254,19 @@ model DocumentRecord {
   @@map("document_records")
 }
 
+model DocumentType {
+  code        String   @id
+  label       String
+  flow        String
+  unit_scope  String
+  is_active   Boolean  @default(true)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
+  @@index([flow, unit_scope, is_active])
+  @@map("document_types")
+}
 
 model Report {
   id                        String    @id @default(uuid())
