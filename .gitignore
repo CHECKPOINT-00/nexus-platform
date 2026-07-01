@@ -45,4 +45,4 @@ apps-web-repomix.xml
 cookie.txt
 temp/
 data/system-prompts/
-docs/case-documents/
+# docs/case-documents/
