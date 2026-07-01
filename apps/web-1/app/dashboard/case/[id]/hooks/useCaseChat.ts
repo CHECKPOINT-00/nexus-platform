@@ -28,7 +28,9 @@ export function useCaseChat(caseId: string) {
   return {
     messages: messagesQuery.data || [],
     isLoading: messagesQuery.isLoading,
+    isFetching: messagesQuery.isFetching,
     error: messagesQuery.error,
+    refetch: messagesQuery.refetch,
     sendMessage: sendMessageMutation.mutateAsync,
     isSending: sendMessageMutation.isPending,
   };

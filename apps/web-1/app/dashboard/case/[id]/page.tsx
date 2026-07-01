@@ -78,56 +78,58 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       />
 
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
+        {activeTab !== "discussion" && (
+          <>
+            <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
 
-        <UnpaidAlertBanner
-          caseData={caseData}
-          onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
-        />
+            <UnpaidAlertBanner
+              caseData={caseData}
+              onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
+            />
 
-        {openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0 && (
-          <div className="p-4 bg-warning-soft border border-warning/15 text-warning rounded-lg font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
-            <div className="space-y-1">
-              <h5 className="font-bold">⚠️ Yêu cầu bổ sung thông tin từ Supporter</h5>
-              <p>{openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng xem chi tiết phản hồi."}</p>
-            </div>
-            <Button
-              size="sm"
-              color="brand"
-              className="font-semibold cursor-pointer h-8.5 text-xs"
-              onClick={() => setIsRevisionOpen(true)}
-            >
-              Nộp bản sửa / Bổ sung tài liệu
-            </Button>
-          </div>
-        )}
-
-
-
-        {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") &&
-          (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
-            <Alert
-              variant="light"
-              color="blue"
-              radius="md"
-              title="Hồ sơ đã có báo cáo phản biện"
-              className="animate-fade-in font-body text-xs shrink-0"
-            >
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mt-1">
-                <p className="text-text-muted text-xs">
-                  Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới để Supporter thẩm định vòng tiếp theo.
-                </p>
+            {openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0 && (
+              <div className="p-4 bg-warning-soft border border-warning/15 text-warning rounded-lg font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
+                <div className="space-y-1">
+                  <h5 className="font-bold">⚠️ Yêu cầu bổ sung thông tin từ Supporter</h5>
+                  <p>{openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng xem chi tiết phản hồi."}</p>
+                </div>
                 <Button
-                  size="xs"
+                  size="sm"
                   color="brand"
-                  className="font-semibold cursor-pointer shrink-0"
+                  className="font-semibold cursor-pointer h-8.5 text-xs"
                   onClick={() => setIsRevisionOpen(true)}
                 >
-                  Nộp bản sửa
+                  Nộp bản sửa / Bổ sung tài liệu
                 </Button>
               </div>
-            </Alert>
-          )}
+            )}
+
+            {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") &&
+              (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
+                <Alert
+                  variant="light"
+                  color="blue"
+                  radius="md"
+                  title="Hồ sơ đã có báo cáo phản biện"
+                  className="animate-fade-in font-body text-xs shrink-0"
+                >
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mt-1">
+                    <p className="text-text-muted text-xs">
+                      Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới để Supporter thẩm định vòng tiếp theo.
+                    </p>
+                    <Button
+                      size="xs"
+                      color="brand"
+                      className="font-semibold cursor-pointer shrink-0"
+                      onClick={() => setIsRevisionOpen(true)}
+                    >
+                      Nộp bản sửa
+                    </Button>
+                  </div>
+                </Alert>
+              )}
+          </>
+        )}
 
         <div className="flex-grow min-h-0">
           {activeTab === "documents" && (
