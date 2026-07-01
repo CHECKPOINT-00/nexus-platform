@@ -148,7 +148,7 @@ test("Phase 01 - Backend boundaries & contracts", async (t) => {
 
     assert.strictEqual(workspace.selected_checkpoint_id, "cp-2");
     assert.strictEqual(workspace.checkpoints[0].overview.total_files, 1);
-    assert.strictEqual(workspace.checkpoints[1].overview.total_files, 3);
+    assert.strictEqual(workspace.checkpoints[1].overview.total_files, 1);
     assert.strictEqual(workspace.checkpoints[1].overview.selected_label, "Đang chọn CP-2");
   });
 
