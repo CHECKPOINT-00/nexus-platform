@@ -8,14 +8,14 @@ Trục tài liệu chính:
 
 ## Focus hiện tại
 
-Bộ canonical hiện tại đang chốt MVP cho flow `audit + review CP1`, trình bày như một workflow `student -> admin -> supporter` xoay quanh `Hồ sơ phản biện`.
+Bộ canonical hiện tại đang chốt MVP cho flow `audit + review CP1`, trình bày như workflow `student -> admin -> supporter` xoay quanh `Hồ sơ phản biện`, `Tài liệu minh chứng`, `Báo cáo phản biện`, và các vòng sửa trong cùng case workspace.
 
 Giá trị chính cần giữ trong mọi tài liệu:
-- giúp team biết idea/tài liệu yếu ở đâu;
+- giúp team biết tài liệu hoặc hướng làm đang yếu ở đâu;
 - biết nên sửa gì trước;
 - nhận report rõ ràng;
 - gửi bản sửa để được review lại;
-- theo dõi trao đổi và tiến độ xử lý trong cùng một case workspace.
+- theo dõi trao đổi, tài liệu, và tiến độ xử lý trong cùng một workspace.
 
 `Case management` chỉ là lớp vận hành hỗ trợ value flow đó.
 
@@ -78,6 +78,7 @@ Giá trị chính cần giữ trong mọi tài liệu:
   - guardrails khi cập nhật MVP demo realignment
 - [`system-architecture.md`](./system-architecture.md)
   - architecture hiện trạng bám codebase
+  - document workspace, payment surface phụ, và shared shell hiện tại
 - [`tech-doc-urls.txt`](./tech-doc-urls.txt)
   - nguồn docs ngoài ưu tiên khi cần viết về library/framework
 
