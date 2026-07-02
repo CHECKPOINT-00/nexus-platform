@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
+import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import WorkspaceSidebar from "./_components/WorkspaceSidebar";
 import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
@@ -87,77 +88,25 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
             />
 
-            {openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0 && (
-              <div className="p-4 bg-warning-soft border border-warning/15 text-warning rounded-lg font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
-                <div className="space-y-1">
-                  <h5 className="font-bold">⚠️ Yêu cầu bổ sung thông tin từ Supporter</h5>
-                  <p>{openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng xem chi tiết phản hồi."}</p>
-                </div>
-                <Button
-                  size="sm"
-                  color="brand"
-                  className="font-semibold cursor-pointer h-8.5 text-xs"
-                  onClick={() => setIsRevisionOpen(true)}
-                >
-                  Nộp bản sửa / Bổ sung tài liệu
-                </Button>
-              </div>
+            {(caseData.package?.price === 0 || 
+              (caseData.payment_status !== "unpaid" && 
+               caseData.payment_status !== "pending_verification" && 
+               caseData.payment_status !== "rejected")) && (
+              <StatusGuidanceCard
+                caseData={caseData}
+                openRequestsForMoreInfo={openRequestsForMoreInfo}
+                onOpenRevision={() => setIsRevisionOpen(true)}
+                onRecallRevision={handleRecall}
+                isRecalling={isRecalling}
+                onSelectTab={setActiveTab}
+              />
             )}
-
-            {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") &&
-              (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
-                <Alert
-                  variant="light"
-                  color="blue"
-                  radius="md"
-                  title="Hồ sơ đã có báo cáo phản biện"
-                  className="animate-fade-in font-body text-xs shrink-0"
-                >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mt-1">
-                    <p className="text-text-muted text-xs">
-                      Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới để Supporter thẩm định vòng tiếp theo.
-                    </p>
-                    <Button
-                      size="xs"
-                      color="brand"
-                      className="font-semibold cursor-pointer shrink-0"
-                      onClick={() => setIsRevisionOpen(true)}
-                    >
-                      Nộp bản sửa
-                    </Button>
-                  </div>
-                </Alert>
-              )}
           </>
         )}
 
         <div className="flex-grow min-h-0">
           {activeTab === "documents" && (
             <>
-              {caseData.user_facing_stage === "revision_submitted" && (
-                <Alert
-                  variant="light"
-                  color="blue"
-                  radius="md"
-                  title="Hồ sơ đang chờ Supporter thẩm định"
-                  className="animate-fade-in font-body text-xs shrink-0 mb-4"
-                >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mt-1">
-                    <p className="text-text-muted text-xs">
-                      Nếu bạn phát hiện thông tin bị thiếu hoặc tải nhầm tệp, bạn có thể thu hồi bản nộp này để chuẩn bị lại tài liệu đầy đủ.
-                    </p>
-                    <Button
-                      size="xs"
-                      color="red"
-                      className="font-semibold cursor-pointer shrink-0"
-                      loading={isRecalling}
-                      onClick={handleRecall}
-                    >
-                      Thu hồi bản nộp
-                    </Button>
-                  </div>
-                </Alert>
-              )}
               <div className="mb-4 flex justify-end gap-3">
                 {(caseData.user_facing_stage === "report_ready" ||
                   caseData.user_facing_stage === "waiting_for_revision" ||

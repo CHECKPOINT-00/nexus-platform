@@ -124,7 +124,22 @@ export default function CaseStatusHeader({
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-text-app">
               {caseData.case_code}
             </h2>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold font-body ${badgeClass}`}>
+            <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold font-body shadow-xs border ${badgeClass}`}>
+              {(caseData.user_facing_stage === "submitted" || 
+                caseData.user_facing_stage === "under_review" || 
+                caseData.user_facing_stage === "revision_submitted" ||
+                caseData.user_facing_stage === "need_more_information") && (
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    statusTheme.color === "primary" ? "bg-brand" : 
+                    statusTheme.color === "warning" ? "bg-warning" : "bg-text-muted"
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    statusTheme.color === "primary" ? "bg-brand" : 
+                    statusTheme.color === "warning" ? "bg-warning" : "bg-text-muted"
+                  }`}></span>
+                </span>
+              )}
               {statusTheme.label}
             </span>
           </div>
