@@ -181,7 +181,9 @@ export default function AdminPaymentVerificationTable({
                   <Table.Td>
                     {payment.proof_file_url ? (
                       <a
-                        href={`http://localhost:8000${payment.proof_file_url}`}
+                        href={payment.proof_file_url.startsWith("http")
+                          ? payment.proof_file_url
+                          : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${payment.proof_file_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-brand hover:underline font-semibold"

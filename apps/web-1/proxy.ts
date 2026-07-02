@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AUTH_BASE_URL = "http://localhost:8000";
+const AUTH_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 type AuthSession = {
   user?: {
