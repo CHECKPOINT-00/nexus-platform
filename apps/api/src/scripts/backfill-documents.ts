@@ -6,6 +6,10 @@ import {
 } from "../modules/documents/infrastructure/persistence/document.repository.js";
 import type { DocumentWriteInput } from "../modules/documents/application/document-dto.js";
 
+interface ParsedUnitContent {
+  documents?: DocumentWriteInput[];
+}
+
 interface QuarantineEntry {
   case_id: string;
   lifecycle_unit_id: string;
@@ -14,6 +18,10 @@ interface QuarantineEntry {
 }
 
 const quarantine: QuarantineEntry[] = [];
+
+function isParsedUnitContent(value: unknown): value is ParsedUnitContent {
+  return typeof value === "object" && value !== null;
+}
 
 function quarantineRow(
   caseId: string,
@@ -37,8 +45,8 @@ async function backfillCase(caseId: string, uploaderId: string) {
 
   const checkpoints = caseRecord.checkpoints;
   const currentCheckpoint =
-    checkpoints.find((cp) => cp.checkpoint_code === caseRecord.current_checkpoint) ||
-    checkpoints.sort((a, b) => b.latest_version_no - a.latest_version_no)[0];
+    checkpoints.find((cp: (typeof checkpoints)[number]) => cp.checkpoint_code === caseRecord.current_checkpoint) ||
+    checkpoints.sort((a: (typeof checkpoints)[number], b: (typeof checkpoints)[number]) => b.latest_version_no - a.latest_version_no)[0];
 
   if (!currentCheckpoint) {
     console.warn('No checkpoint found for case ' + caseId);
@@ -51,10 +59,11 @@ async function backfillCase(caseId: string, uploaderId: string) {
       continue;
     }
 
-    let parsedContent: any = null;
+    let parsedContent: ParsedUnitContent | null = null;
     if (unit.content) {
       try {
-        parsedContent = JSON.parse(unit.content);
+        const parsed = JSON.parse(unit.content) as unknown;
+        parsedContent = isParsedUnitContent(parsed) ? parsed : null;
       } catch {
         quarantineRow(caseId, unit.id, 'malformed JSON content', { content: unit.content });
         continue;
@@ -107,7 +116,10 @@ async function backfillCase(caseId: string, uploaderId: string) {
 
   for (const report of reports) {
     const linkedUnit = report.lifecycle_unit_id
-      ? caseRecord.lifecycle_units.find((u) => u.id === report.lifecycle_unit_id)
+      ? caseRecord.lifecycle_units.find(
+          (unitRecord: (typeof caseRecord.lifecycle_units)[number]) =>
+            unitRecord.id === report.lifecycle_unit_id,
+        )
       : null;
     const checkpointId = linkedUnit?.checkpoint_id || report.checkpoint_id;
     const unitCode = linkedUnit?.unit_code || null;
