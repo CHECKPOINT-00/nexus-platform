@@ -11,11 +11,11 @@ interface ReviewSubmitStepProps {
 }
 
 const PRIMARY_NEEDS_MAP: Record<string, string> = {
-  filter_select_idea: "Lọc & lựa chọn ý tưởng khởi nghiệp (khi có nhiều ý tưởng hoặc chưa chốt)",
-  clarify_customer_pain: "Làm rõ khách hàng mục tiêu & nỗi đau (Problem & Customer)",
-  critique_feasibility: "Phản biện tính khả thi & giải pháp (Solution & Feasibility)",
-  audit_cp1_draft: "Tổng duyệt & rà soát lỗi báo cáo Checkpoint 1",
-  improve_rejected_idea: "Cải thiện ý tưởng bị giảng viên từ chối / đánh giá yếu",
+  filter_select_idea: "Cần hỗ trợ chọn hướng ý tưởng phù hợp để phát triển tiếp",
+  clarify_customer_pain: "Cần phản biện để làm rõ khách hàng mục tiêu và vấn đề cốt lõi",
+  critique_feasibility: "Cần phản biện để đánh giá giải pháp hiện tại có hợp lý và khả thi không",
+  audit_cp1_draft: "Cần rà soát báo cáo Checkpoint 1 và chỉ ra điểm cần chỉnh sửa",
+  improve_rejected_idea: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên",
 };
 
 const getDisplayBlocker = (values: any) => {
@@ -35,6 +35,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
   const selectedPackage = packages?.find((p) => p.id === values.package_id);
 
   const formatPrice = (price: number) => {
+    if (price === 0) return "Miễn phí";
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",

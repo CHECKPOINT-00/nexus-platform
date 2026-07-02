@@ -143,6 +143,7 @@ export default function IntakeChatFlow({
   };
 
   const formatPrice = (price: number) => {
+    if (price === 0) return "Miễn phí";
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",

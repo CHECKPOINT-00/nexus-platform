@@ -23,6 +23,7 @@ export default function PackagePreview() {
   }
 
   const formatPrice = (price: number) => {
+    if (price === 0) return "Miễn phí";
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
@@ -81,7 +82,7 @@ export default function PackagePreview() {
                   <h3 className="font-heading text-xl font-bold text-text-app">{pkg.name}</h3>
                   <div className="flex items-baseline gap-1">
                     <span className="font-heading text-3xl font-bold text-text-app">{formatPrice(pkg.price)}</span>
-                    <span className="font-body text-xs text-text-subtle">/ hồ sơ</span>
+                    {pkg.price > 0 && <span className="font-body text-xs text-text-subtle">/ hồ sơ</span>}
                   </div>
                 </div>
 

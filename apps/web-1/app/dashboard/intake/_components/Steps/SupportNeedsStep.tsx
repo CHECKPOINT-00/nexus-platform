@@ -10,11 +10,11 @@ interface SupportNeedsStepProps {
 }
 
 const PRIMARY_NEEDS = [
-  { key: "filter_select_idea", label: "Lọc & lựa chọn ý tưởng khởi nghiệp (khi có nhiều ý tưởng hoặc chưa chốt)" },
-  { key: "clarify_customer_pain", label: "Làm rõ khách hàng mục tiêu & nỗi đau (Problem & Customer)" },
-  { key: "critique_feasibility", label: "Phản biện tính khả thi & giải pháp (Solution & Feasibility)" },
-  { key: "audit_cp1_draft", label: "Tổng duyệt & rà soát lỗi báo cáo Checkpoint 1" },
-  { key: "improve_rejected_idea", label: "Cải thiện ý tưởng bị giảng viên từ chối / đánh giá yếu" },
+  { key: "filter_select_idea", label: "Cần hỗ trợ chọn hướng ý tưởng phù hợp để phát triển tiếp" },
+  { key: "clarify_customer_pain", label: "Cần phản biện để làm rõ khách hàng mục tiêu và vấn đề cốt lõi" },
+  { key: "critique_feasibility", label: "Cần phản biện để đánh giá giải pháp hiện tại có hợp lý và khả thi không" },
+  { key: "audit_cp1_draft", label: "Cần rà soát báo cáo Checkpoint 1 và chỉ ra điểm cần chỉnh sửa" },
+  { key: "improve_rejected_idea", label: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên" },
 ];
 
 export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps) {
