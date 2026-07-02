@@ -30,6 +30,22 @@ type SubmitRevisionDeps = {
   findActiveDocumentTypeByCode?: typeof findActiveDocumentTypeByCode;
 };
 
+type CheckpointLike = {
+  id: string;
+  checkpoint_code: string;
+  latest_version_no: number;
+  latest_assessment_no?: number;
+};
+
+type CaseMemberLike = {
+  auth_user_id: string;
+};
+
+type CaseWithCheckpointsLike = {
+  current_checkpoint?: string | null;
+  checkpoints?: CheckpointLike[];
+};
+
 const defaultDeps = {
   findCaseByIdWithMembersAndCheckpoints: defaultFindCaseByIdWithMembersAndCheckpoints,
   submitCaseRevision: defaultSubmitCaseRevision,
@@ -39,15 +55,10 @@ const defaultDeps = {
 };
 
 function selectCheckpoint(
-  caseRecord: any,
+  caseRecord: CaseWithCheckpointsLike,
 ): { id: string; latest_version_no: number } | null {
   if (!caseRecord?.checkpoints?.length) return null;
-  const checkpoints = caseRecord.checkpoints as Array<{
-    id: string;
-    checkpoint_code: string;
-    latest_version_no: number;
-    latest_assessment_no?: number;
-  }>;
+  const checkpoints = caseRecord.checkpoints;
   if (caseRecord.current_checkpoint) {
     const matched = checkpoints.find(
       (cp) => cp.checkpoint_code === caseRecord.current_checkpoint,
@@ -108,7 +119,9 @@ export async function submitRevisionUseCase(
   }
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some((m: any) => m.auth_user_id === userId);
+  const isMember = caseDetails.members.some(
+    (member: CaseMemberLike) => member.auth_user_id === userId,
+  );
   if (!isOwner && !isMember) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền nộp sửa đổi cho dự án này");
   }
@@ -189,7 +202,9 @@ export async function submitRevisionUploadUseCase(
   }
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some((m: any) => m.auth_user_id === userId);
+  const isMember = caseDetails.members.some(
+    (member: CaseMemberLike) => member.auth_user_id === userId,
+  );
   if (!isOwner && !isMember) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền nộp sửa đổi cho dự án này");
   }
@@ -291,7 +306,9 @@ export async function submitExternalFeedbackUploadUseCase(
   }
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some((m: any) => m.auth_user_id === userId);
+  const isMember = caseDetails.members.some(
+    (member: CaseMemberLike) => member.auth_user_id === userId,
+  );
   if (!isOwner && !isMember) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền tải đánh giá bên ngoài cho dự án này");
   }

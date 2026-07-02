@@ -1,21 +1,33 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { prisma as defaultPrisma } from "../../../db.js";
+import type { Prisma } from "@prisma/client";
 import { deleteManagedDocumentFile as defaultDeleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
 import {
   findCaseByIdWithMembersAndCheckpoints as defaultFindCaseByIdWithMembersAndCheckpoints,
   findOpenRequestsForMoreInfo as defaultFindOpenRequestsForMoreInfo,
 } from "../infrastructure/persistence/case.repository.js";
 
+type CheckpointLike = {
+  id: string;
+  checkpoint_code: string;
+  latest_version_no: number;
+  latest_assessment_no?: number;
+};
+
+type CaseMemberLike = {
+  auth_user_id: string;
+};
+
+type CaseWithCheckpointsLike = {
+  current_checkpoint?: string | null;
+  checkpoints?: CheckpointLike[];
+};
+
 function selectCheckpoint(
-  caseRecord: any,
+  caseRecord: CaseWithCheckpointsLike,
 ): { id: string; latest_version_no: number } | null {
   if (!caseRecord?.checkpoints?.length) return null;
-  const checkpoints = caseRecord.checkpoints as Array<{
-    id: string;
-    checkpoint_code: string;
-    latest_version_no: number;
-    latest_assessment_no?: number;
-  }>;
+  const checkpoints = caseRecord.checkpoints;
   if (caseRecord.current_checkpoint) {
     const matched = checkpoints.find(
       (cp) => cp.checkpoint_code === caseRecord.current_checkpoint,
@@ -70,7 +82,9 @@ export async function recallRevisionUseCase(
   }
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some((m: any) => m.auth_user_id === userId);
+  const isMember = caseDetails.members.some(
+    (member: CaseMemberLike) => member.auth_user_id === userId,
+  );
   if (!isOwner && !isMember) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền thu hồi sửa đổi cho dự án này");
   }
@@ -146,7 +160,7 @@ export async function recallRevisionUseCase(
   const nextInternalStatus = openRequests.length > 0 ? "waiting_user" : "report_ready_to_publish";
 
   // Perform database cleanup in a transaction
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // Revert checkpoint version
     await tx.checkpoint.update({
       where: { id: checkpoint.id },

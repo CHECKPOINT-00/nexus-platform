@@ -1,5 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { prisma } from "../../../db.js";
+import type { Prisma } from "@prisma/client";
 import { deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
 
 export async function deleteAdminDocumentUseCase(adminId: string, documentId: string) {
@@ -21,7 +22,7 @@ export async function deleteAdminDocumentUseCase(adminId: string, documentId: st
   }
 
   // Delete document and log the case event in a database transaction
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // Delete the database record
     await tx.documentRecord.delete({
       where: { id: documentId },
