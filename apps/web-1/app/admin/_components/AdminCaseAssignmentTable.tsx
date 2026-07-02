@@ -47,7 +47,6 @@ export default function AdminCaseAssignmentTable({
   // Search, filter, and sort state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("all");
-  const [selectedCompleteness, setSelectedCompleteness] = useState("all");
   const [sortBy, setSortBy] = useState("created_at_desc");
 
   // Extract unique packages dynamically
@@ -77,24 +76,12 @@ export default function AdminCaseAssignmentTable({
       result = result.filter((c) => c.package_name === selectedPackage);
     }
 
-    if (selectedCompleteness === "high") {
-      result = result.filter((c) => c.completeness >= 80);
-    } else if (selectedCompleteness === "low") {
-      result = result.filter((c) => c.completeness < 80);
-    }
-
     result.sort((a, b) => {
       if (sortBy === "created_at_desc") {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
       if (sortBy === "created_at_asc") {
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      if (sortBy === "completeness_desc") {
-        return b.completeness - a.completeness;
-      }
-      if (sortBy === "completeness_asc") {
-        return a.completeness - b.completeness;
       }
       if (sortBy === "case_code_asc") {
         return (a.case_code || "").localeCompare(b.case_code || "");
@@ -106,12 +93,12 @@ export default function AdminCaseAssignmentTable({
     });
 
     return result;
-  }, [cases, searchQuery, selectedPackage, selectedCompleteness, sortBy]);
+  }, [cases, searchQuery, selectedPackage, sortBy]);
 
   // Reset page when filtering or cases change
   useEffect(() => {
     setActivePage(1);
-  }, [cases.length, searchQuery, selectedPackage, selectedCompleteness, sortBy]);
+  }, [cases.length, searchQuery, selectedPackage, sortBy]);
 
   if (cases.length === 0) {
     return (
@@ -153,24 +140,10 @@ export default function AdminCaseAssignmentTable({
           style={{ width: 160 }}
         />
         <Select
-          placeholder="Độ chi tiết hồ sơ"
-          data={[
-            { value: "all", label: "Mọi độ chi tiết" },
-            { value: "high", label: "Chi tiết (≥ 80%)" },
-            { value: "low", label: "Cần bổ sung (< 80%)" },
-          ]}
-          value={selectedCompleteness}
-          onChange={(val) => setSelectedCompleteness(val || "all")}
-          radius="md"
-          style={{ width: 180 }}
-        />
-        <Select
           placeholder="Sắp xếp"
           data={[
             { value: "created_at_desc", label: "Mới nhất" },
             { value: "created_at_asc", label: "Cũ nhất" },
-            { value: "completeness_desc", label: "Độ chi tiết (Giảm dần)" },
-            { value: "completeness_asc", label: "Độ chi tiết (Tăng dần)" },
             { value: "case_code_asc", label: "Mã hồ sơ (A-Z)" },
             { value: "case_code_desc", label: "Mã hồ sơ (Z-A)" },
           ]}
@@ -188,7 +161,6 @@ export default function AdminCaseAssignmentTable({
               <Table.Th className="text-left">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
-              <Table.Th className="text-left">Hồ sơ</Table.Th>
               <Table.Th className="text-left">Trạng thái</Table.Th>
               <Table.Th className="text-center w-24">Thao tác</Table.Th>
             </Table.Tr>
@@ -196,7 +168,7 @@ export default function AdminCaseAssignmentTable({
           <Table.Tbody>
             {filteredAndSortedCases.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={6} className="text-center py-8 text-text-muted">
+                <Table.Td colSpan={5} className="text-center py-8 text-text-muted">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -217,11 +189,6 @@ export default function AdminCaseAssignmentTable({
                     </Table.Td>
                     <Table.Td className="text-text-muted" title={item.package_name}>
                       {item.package_name && item.package_name.length > 30 ? `${item.package_name.slice(0, 30)}...` : item.package_name}
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge color={item.completeness >= 80 ? "green" : "yellow"} variant="light" size="sm">
-                        {item.completeness}% chi tiết
-                      </Badge>
                     </Table.Td>
                     <Table.Td>
                       <Badge

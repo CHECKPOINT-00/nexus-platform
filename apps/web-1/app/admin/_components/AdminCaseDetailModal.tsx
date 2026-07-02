@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Modal, Button, Badge, Loader } from "@mantine/core";
-import { ExternalLink } from "lucide-react";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
 
 interface AdminCaseDetailModalProps {
@@ -13,6 +12,18 @@ interface AdminCaseDetailModalProps {
   onApprove: (caseId: string) => void;
   onAssign: (caseId: string) => void;
 }
+
+const PRIMARY_NEED_LABELS: Record<string, string> = {
+  filter_select_idea: "Cần hỗ trợ chọn hướng ý tưởng phù hợp để phát triển tiếp",
+  clarify_customer_pain: "Cần phản biện để làm rõ khách hàng mục tiêu và vấn đề cốt lõi",
+  critique_feasibility: "Cần phản biện để đánh giá giải pháp hiện tại có hợp lý và khả thi không",
+  audit_cp1_draft: "Cần rà soát báo cáo Checkpoint 1 và chỉ ra điểm cần chỉnh sửa",
+  improve_rejected_idea: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên",
+};
+
+const getPrimaryNeedLabel = (key: string) => {
+  return PRIMARY_NEED_LABELS[key] || key;
+};
 
 export default function AdminCaseDetailModal({
   caseId,
@@ -54,30 +65,30 @@ export default function AdminCaseDetailModal({
               <h4 className="font-heading font-bold text-sm text-text-app mb-3">Thông tin chung</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Tên nhóm / Đề tài</span>
-                  <p className="font-bold text-sm text-text-app">{detailData.case.team_name || "Chưa đặt tên"}</p>
+                  <span className="font-bold text-xs text-text-subtle">Tên nhóm / Đề tài</span>
+                  <p className="text-sm text-text-app font-normal">{detailData.case.team_name || "Chưa đặt tên"}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Gói dịch vụ</span>
-                  <p className="font-bold text-sm text-brand">{detailData.case.package?.name || "N/A"}</p>
+                  <span className="font-bold text-xs text-text-subtle">Gói dịch vụ</span>
+                  <p className="text-sm text-brand font-normal">{detailData.case.package?.name || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Trường học</span>
-                  <p className="font-semibold text-sm text-text-app">{detailData.case.school || "N/A"}</p>
+                  <span className="font-bold text-xs text-text-subtle">Trường học</span>
+                  <p className="text-sm text-text-app font-normal">{detailData.case.school || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Bối cảnh môn học</span>
-                  <p className="font-semibold text-sm text-text-app">{detailData.case.course_context || "N/A"}</p>
+                  <span className="font-bold text-xs text-text-subtle">Bối cảnh môn học</span>
+                  <p className="text-sm text-text-app font-normal">{detailData.case.course_context || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Ngày tạo</span>
-                  <p className="text-sm font-medium text-text-app">
+                  <span className="font-bold text-xs text-text-subtle">Ngày tạo</span>
+                  <p className="text-sm text-text-app font-normal">
                     {new Date(detailData.case.created_at).toLocaleDateString("vi-VN")}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-text-subtle font-medium">Trạng thái nội bộ</span>
-                  <div className="pt-0.5">
+                  <span className="font-bold text-xs text-text-subtle">Trạng thái nội bộ</span>
+                  <div className="pt-0.5 font-normal">
                     <Badge
                       color={
                         detailData.case.internal_status === "triage_pending"
@@ -105,29 +116,29 @@ export default function AdminCaseDetailModal({
                 <h4 className="font-heading font-bold text-sm text-text-app mb-3">Người liên hệ chính (Đại diện nhóm)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Họ tên</span>
-                    <p className="font-bold text-sm text-text-app">{detailData.intake_snapshot.contact.full_name || "N/A"}</p>
+                    <span className="font-bold text-xs text-text-subtle">Họ tên</span>
+                    <p className="text-sm text-text-app font-normal">{detailData.intake_snapshot.contact.full_name || "N/A"}</p>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Mã sinh viên</span>
-                    <p className="font-semibold text-sm text-text-app">{detailData.intake_snapshot.contact.student_code || "N/A"}</p>
+                    <span className="font-bold text-xs text-text-subtle">Mã sinh viên</span>
+                    <p className="text-sm text-text-app font-normal">{detailData.intake_snapshot.contact.student_code || "N/A"}</p>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Email</span>
-                    <p className="text-sm font-medium text-text-app">{detailData.intake_snapshot.contact.email || "N/A"}</p>
+                    <span className="font-bold text-xs text-text-subtle">Email</span>
+                    <p className="text-sm text-text-app font-normal">{detailData.intake_snapshot.contact.email || "N/A"}</p>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Zalo / Telegram</span>
-                    <p className="text-sm font-medium text-text-app">
+                    <span className="font-bold text-xs text-text-subtle">Zalo / Telegram</span>
+                    <p className="text-sm text-text-app font-normal">
                       Zalo: {detailData.intake_snapshot.contact.zalo || "N/A"}
                       {detailData.intake_snapshot.contact.telegram && (
-                        <span className="text-text-muted"> | Telegram: {detailData.intake_snapshot.contact.telegram}</span>
+                        <span className="text-text-muted font-normal"> | Telegram: {detailData.intake_snapshot.contact.telegram}</span>
                       )}
                     </p>
                   </div>
                   <div className="space-y-1 md:col-span-2">
-                    <span className="text-xs text-text-subtle font-medium">Vai trò trong nhóm</span>
-                    <p className="text-sm text-text-app">{detailData.intake_snapshot.contact.team_role || "N/A"}</p>
+                    <span className="font-bold text-xs text-text-subtle">Vai trò trong nhóm</span>
+                    <p className="text-sm text-text-app font-normal">{detailData.intake_snapshot.contact.team_role || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -138,8 +149,8 @@ export default function AdminCaseDetailModal({
               <div className="space-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
                 {detailData.intake_snapshot?.current_blocker && (
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Điểm kẹt hiện tại</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-xs text-text-subtle">Điểm kẹt hiện tại</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap font-normal">
                       {detailData.intake_snapshot.current_blocker}
                     </p>
                   </div>
@@ -147,17 +158,17 @@ export default function AdminCaseDetailModal({
 
                 {detailData.intake_snapshot?.support_needs?.primary_need && (
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Nhu cầu hỗ trợ chính</span>
-                    <p className="font-bold text-sm text-brand">
-                      {detailData.intake_snapshot.support_needs.primary_need}
+                    <span className="font-bold text-xs text-text-subtle">Nhu cầu hỗ trợ chính</span>
+                    <p className="text-sm text-text-app leading-relaxed font-normal">
+                      {getPrimaryNeedLabel(detailData.intake_snapshot.support_needs.primary_need)}
                     </p>
                   </div>
                 )}
 
                 {detailData.intake_snapshot?.expected_outputs && (
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Kỳ vọng đầu ra</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-xs text-text-subtle">Kỳ vọng đầu ra</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap font-normal">
                       {detailData.intake_snapshot.expected_outputs}
                     </p>
                   </div>
@@ -165,8 +176,8 @@ export default function AdminCaseDetailModal({
 
                 {detailData.intake_snapshot?.support_needs?.extra_notes && (
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Ghi chú thêm cho Supporter</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-xs text-text-subtle">Ghi chú thêm cho Supporter</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap font-normal">
                       {detailData.intake_snapshot.support_needs.extra_notes}
                     </p>
                   </div>
@@ -174,8 +185,8 @@ export default function AdminCaseDetailModal({
 
                 {detailData.intake_snapshot?.lecturer_feedback && (
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Góp ý từ giảng viên (nếu có)</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-xs text-text-subtle">Góp ý từ giảng viên (nếu có)</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap font-normal">
                       {detailData.intake_snapshot.lecturer_feedback}
                     </p>
                   </div>
@@ -183,8 +194,8 @@ export default function AdminCaseDetailModal({
 
                 {!detailData.intake_snapshot?.current_blocker && detailData.intake_snapshot?.case_summary && (
                   <div className="space-y-1">
-                    <span className="text-xs text-text-subtle font-medium">Tóm tắt ý tưởng đề tài (legacy)</span>
-                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-xs text-text-subtle">Tóm tắt ý tưởng đề tài (legacy)</span>
+                    <p className="text-sm text-text-app leading-relaxed whitespace-pre-wrap font-normal">
                       {detailData.intake_snapshot.case_summary}
                     </p>
                   </div>
@@ -195,24 +206,23 @@ export default function AdminCaseDetailModal({
             {detailData.intake_snapshot?.documents && detailData.intake_snapshot.documents.length > 0 && (
               <div>
                 <h4 className="font-heading font-bold text-sm text-text-app mb-3">Tài liệu minh chứng hồ sơ</h4>
-                <div className="bg-surface-app p-5 rounded-xl border border-border-app shadow-sm divide-y divide-border-app/40">
+                <div className="bg-surface-app p-5 rounded-xl border border-border-app shadow-sm divide-y divide-border-app/40 space-y-3">
                   {detailData.intake_snapshot.documents.map((doc: any, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center py-3 first:pt-0 last:pb-0 gap-4">
-                      <div className="space-y-0.5 min-w-0 flex-1">
-                        <p className="font-bold text-sm text-text-app truncate">{doc.document_type || "Tài liệu đính kèm"}</p>
-                        {doc.role_description && <p className="text-xs text-text-muted">{doc.role_description}</p>}
-                      </div>
-                      {(doc.drive_url || doc.file_url) && (
+                    <div key={idx} className="py-3 first:pt-0 last:pb-0 flex flex-col gap-1.5">
+                      <span className="font-bold text-xs text-text-subtle">{doc.document_type || "Tài liệu đính kèm"}</span>
+                      {(doc.drive_url || doc.file_url) ? (
                         <a
                           href={doc.drive_url || doc.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 font-semibold text-sm text-brand hover:underline shrink-0"
+                          className="text-xs sm:text-sm text-brand hover:text-brand-hover underline break-all font-normal"
                         >
-                          <span>Mở tài liệu</span>
-                          <ExternalLink className="w-4 h-4" />
+                          {doc.drive_url || doc.file_url}
                         </a>
+                      ) : (
+                        <p className="text-sm text-text-muted italic font-normal">Chưa có liên kết</p>
                       )}
+                      {doc.role_description && <p className="text-sm text-text-muted font-normal">{doc.role_description}</p>}
                     </div>
                   ))}
                 </div>
