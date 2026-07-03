@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Payment } from "@/types";
 import { Check, X, FileText, Image as ImageIcon, ExternalLink, AlertCircle, MoreVertical, Search } from "lucide-react";
 import { Table, ActionIcon, Menu, Pagination, Badge, TextInput, Select, Group } from "@mantine/core";
+import { formatPrice } from "@/lib/pricing";
 
 interface AdminPaymentVerificationTableProps {
   payments: Payment[];
@@ -22,13 +23,7 @@ export default function AdminPaymentVerificationTable({
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [sortBy, setSortBy] = useState("created_at_desc");
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString("vi-VN", {

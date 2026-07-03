@@ -17,6 +17,7 @@ import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadMod
 import { Button, Alert, Modal } from "@mantine/core";
 import { useRecallRevision } from "./hooks/useRecallRevision";
 import { notifications } from "@mantine/notifications";
+import { getCaseEffectivePrice, caseRequiresPayment } from "@/lib/pricing";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -69,6 +70,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     !!(openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0) ||
     caseData.user_facing_stage === "report_ready" ||
     caseData.user_facing_stage === "waiting_for_revision";
+  const effectivePrice = getCaseEffectivePrice(caseData);
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
@@ -88,10 +90,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
             />
 
-            {(caseData.package?.price === 0 || 
-              (caseData.payment_status !== "unpaid" && 
-               caseData.payment_status !== "pending_verification" && 
-               caseData.payment_status !== "rejected")) && (
+            {!caseRequiresPayment(caseData) && (
               <StatusGuidanceCard
                 caseData={caseData}
                 openRequestsForMoreInfo={openRequestsForMoreInfo}

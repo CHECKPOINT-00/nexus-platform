@@ -8,6 +8,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button, Tooltip } from "@mantine/core";
 import { ServicePackage } from "@/types";
 import { ArrowLeft, ArrowRight, Bot, HelpCircle, Send } from "lucide-react";
+import { formatPrice } from "@/lib/pricing";
 
 // Import step components
 import SituationStep from "./Steps/SituationStep";
@@ -142,14 +143,7 @@ export default function IntakeChatFlow({
     return [];
   };
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return "Miễn phí";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">

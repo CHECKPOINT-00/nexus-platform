@@ -4,6 +4,7 @@ import React from "react";
 import { Case } from "@/types";
 import { AlertCircle, CreditCard, Clock, XCircle } from "lucide-react";
 import { Button } from "@mantine/core";
+import { getCaseEffectivePrice } from "@/lib/pricing";
 
 interface UnpaidAlertBannerProps {
   caseData: Case;
@@ -11,7 +12,8 @@ interface UnpaidAlertBannerProps {
 }
 
 export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAlertBannerProps) {
-  if (caseData.package?.price === 0) {
+  const effectivePrice = getCaseEffectivePrice(caseData);
+  if (effectivePrice === 0) {
     return null;
   }
 

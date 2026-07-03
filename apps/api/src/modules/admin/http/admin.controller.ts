@@ -10,6 +10,7 @@ import { adminAssignSupporterUseCase } from "../application/assign-supporter.use
 import { listAdminDocumentsUseCase } from "../application/list-admin-documents.usecase.js";
 import { deleteAdminDocumentUseCase } from "../application/delete-admin-document.usecase.js";
 import type { ListAdminCasesRequest } from "../application/admin.dto.js";
+import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -188,3 +189,31 @@ export async function deleteAdminDocumentHandler(c: Context) {
     return handleError(c, error);
   }
 }
+
+// ---------------------------------------------------------------------------
+// PUT /api/admin/packages/:id/price — Update service package price
+// ---------------------------------------------------------------------------
+
+export async function updatePackagePriceHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const packageId = c.req.param("id") || "";
+  const adminId = authResult.session.user.id;
+
+  try {
+    const body = await readJsonBody(c) as { price?: number };
+    const price = body?.price;
+    if (price === undefined) {
+      return c.json({ code: "BAD_REQUEST", message: "Thiếu giá tiền" }, 400);
+    }
+
+    const result = await updatePackagePriceUseCase(packageId, price, adminId);
+    return c.json({ ok: true, data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+

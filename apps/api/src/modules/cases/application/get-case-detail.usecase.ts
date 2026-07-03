@@ -52,6 +52,7 @@ function toBaseResponse(caseDetails: any) {
     course_context: caseDetails.course_context,
     current_checkpoint: caseDetails.current_checkpoint,
     package_id: caseDetails.package_id,
+    locked_price: caseDetails.locked_price,
     assigned_supporter_auth_user_id: caseDetails.assigned_supporter_auth_user_id,
     user_facing_stage: caseDetails.user_facing_stage,
     deadline: caseDetails.deadline,

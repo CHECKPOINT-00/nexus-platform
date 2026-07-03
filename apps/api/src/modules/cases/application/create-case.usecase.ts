@@ -2,6 +2,7 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { asNonEmptyString } from "../../../shared/infrastructure/http-helpers.js";
 import { validateCp1Intake } from "../http/cases.schema.js";
 import { validateDocumentWriteInputs } from "../../documents/application/validate-document-write.js";
+import { isValidPrice } from "../domain/case.types.js";
 import {
   createCaseWithCheckpointAndIntake,
   findCaseByCode,
@@ -78,7 +79,16 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
   const group_no = team_context?.group_no || null;
 
   const servicePackage = await findPackageById(package_id);
-  const isFree = servicePackage ? servicePackage.price === 0 : false;
+  if (!servicePackage) {
+    throw new AppError(400, "INVALID_PACKAGE", "Không tìm thấy gói dịch vụ hợp lệ");
+  }
+
+  const lockedPrice = servicePackage.price;
+  if (!isValidPrice(lockedPrice)) {
+    throw new AppError(400, "INVALID_PACKAGE_PRICE", "Giá gói dịch vụ hiện tại không hợp lệ");
+  }
+
+  const isFree = lockedPrice === 0;
 
   return await createCaseWithCheckpointAndIntake({
     caseCode: randomCode,
@@ -88,6 +98,7 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
     courseContext: course_context,
     groupNo: group_no,
     packageId: package_id,
+    lockedPrice,
     deadline: parsedDeadline,
     isFree,
     rawBody: normalizedBody,

@@ -60,3 +60,8 @@ export function isValidStageTransition(from: string, to: string): boolean {
 
   return allowed[from]?.includes(to) ?? false;
 }
+
+export function isValidPrice(price: unknown): price is number {
+  return typeof price === "number" && Number.isInteger(price) && price >= 0;
+}
+

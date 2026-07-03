@@ -16,7 +16,8 @@ Quy tắc:
 - F04 `Supporter audit workspace and report publishing`
 - F05 `Revision rounds and history`
 - F06 `Roles and access boundary`
+- F07 `Packages pricing configuration, pricing audit trail, and payment proof validation`
 
 ## Deferred
 
-- `packages-pricing-and-payment-proof.md` đang ở trạng thái deferred và không phải source of truth của MVP hiện tại.
+(None)

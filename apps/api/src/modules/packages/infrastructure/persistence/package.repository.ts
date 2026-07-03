@@ -17,3 +17,26 @@ export async function findPackageById(id: string) {
     where: { id },
   });
 }
+
+type PriceChangeMetadata = {
+  previousPrice: number;
+  changedBy: string;
+  changedAt: Date;
+};
+
+export async function updatePackagePrice(
+  id: string,
+  price: number,
+  metadata: PriceChangeMetadata,
+) {
+  return await prisma.servicePackage.update({
+    where: { id },
+    data: {
+      price,
+      previous_price: metadata.previousPrice,
+      last_price_changed_by: metadata.changedBy,
+      last_price_changed_at: metadata.changedAt,
+    },
+  });
+}
+

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePackages } from "@/hooks/usePackages";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
+import { formatPrice } from "@/lib/pricing";
 import { Card } from "@mantine/core";
 import { Check } from "lucide-react";
 
@@ -22,14 +23,7 @@ export default function PackagePreview() {
     return null;
   }
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return "Miễn phí";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+
 
   const getFeaturesList = (features: any): string[] => {
     if (Array.isArray(features)) return features;

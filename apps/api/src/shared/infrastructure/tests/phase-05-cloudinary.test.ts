@@ -52,6 +52,7 @@ test("Phase 05 - Cloudinary uploads", async (t) => {
         findCaseByIdWithAllRelations: async () => ({
           package_id: "pkg-1",
           package: { price: 199000 },
+          locked_price: 199000,
           payment_status: "unpaid",
         } as any),
         saveProofFile: async () => ({
@@ -86,6 +87,7 @@ test("Phase 05 - Cloudinary uploads", async (t) => {
         findCaseByIdWithAllRelations: async () => ({
           package_id: "pkg-1",
           package: { price: 199000 },
+          locked_price: 199000,
           payment_status: "unpaid",
         } as any),
         saveProofFile: async () => ({

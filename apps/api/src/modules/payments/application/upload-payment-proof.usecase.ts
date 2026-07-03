@@ -3,6 +3,7 @@ import { fileStorageService } from "../infrastructure/file-storage.service.js";
 import { createPaymentProof } from "../infrastructure/persistence/payment.repository.js";
 import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
+import { isValidPrice } from "../../cases/domain/case.types.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
 type SavedProofFile = {
@@ -64,8 +65,17 @@ export async function uploadPaymentProofUseCase(
     );
   }
 
-  const amount = caseObj.package.price;
-  if (amount <= 0) {
+  const lockedPrice = caseObj.locked_price;
+  if (!isValidPrice(lockedPrice)) {
+    throw new AppError(
+      400,
+      "INVALID_LOCKED_PRICE",
+      "Dự án thiếu thông tin giá đã khóa hợp lệ để tạo minh chứng thanh toán",
+    );
+  }
+
+  const amount = lockedPrice as number;
+  if (amount === 0) {
     throw new AppError(
       400,
       "INVALID_AMOUNT",

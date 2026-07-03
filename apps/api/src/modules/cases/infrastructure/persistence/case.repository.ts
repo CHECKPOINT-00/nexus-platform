@@ -143,6 +143,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
   courseContext: string | null;
   groupNo: string | null;
   packageId: string;
+  lockedPrice: number;
   deadline: Date | null;
   isFree: boolean;
   rawBody: any;
@@ -155,6 +156,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
     courseContext,
     groupNo,
     packageId,
+    lockedPrice,
     deadline,
     isFree,
     rawBody,
@@ -170,6 +172,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
         course_context: courseContext,
         group_no: groupNo,
         package_id: packageId,
+        locked_price: lockedPrice,
         deadline,
         user_facing_stage: "submitted",
         internal_status: "triage_pending",

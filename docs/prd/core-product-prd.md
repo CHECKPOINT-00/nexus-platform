@@ -93,6 +93,7 @@ MVP đạt khi có thể demo trọn câu chuyện sau:
 | F04 | Supporter audit workspace and report publishing | Must | Giữ chất lượng xử lý và output | Supporter, user | Không thể audit nhất quán nếu thiếu ngữ cảnh và lịch sử | Đang làm việc |
 | F05 | Revision rounds and history | Must | Hỗ trợ nhiều vòng trong cùng case | User, supporter | Bản sửa bị tách rời khỏi ngữ cảnh cũ | Đang làm việc |
 | F06 | Roles and access boundary | Must | Tách rõ public, user-private, internal, restricted | Tất cả role | Lộ dữ liệu và lộ logic vận hành | Đang làm việc |
+| F07 | Admin packages pricing configuration | Must | Cho phép Admin cập nhật giá tiền động của các gói dịch vụ | Admin | Cấu hình giá gói dịch vụ cứng không linh hoạt | Đã hoàn thành |
 
 ## 6. Screen inventory MVP
 
@@ -108,13 +109,14 @@ MVP đạt khi có thể demo trọn câu chuyện sau:
 - Supporter queue
 - Supporter case detail / audit workspace
 - Submit revision modal/page
+- Admin Packages Settings panel (bảng cấu hình giá các gói dịch vụ)
 
 ## 7. Business rules liên quan nhiều feature
 
 - Không tạo case mù khi chưa đủ thông tin tối thiểu.
 - Intake phải có cấu trúc dù UX có thể mang cảm giác hội thoại.
 - User-facing value phải là audit + review, không phải quản lý hồ sơ.
-- Report phải publish vào case workspace.
+- Report must publish vào case workspace.
 - Một case có nhiều round, không tạo case mới cho mỗi vòng sửa.
 - Một feedback mới không tự động đồng nghĩa với version tài liệu mới.
 - Output quan trọng phải có người chịu trách nhiệm.
@@ -126,7 +128,7 @@ MVP đạt khi có thể demo trọn câu chuyện sau:
 - Admin có thể `Yêu cầu bổ sung` trước khi accept.
 - Report phase 1 là structured rich text trong hệ thống và có thể kèm file đính kèm.
 - Không làm in-app chat hoặc hỏi đáp tự do trong phase 1.
-- Payment không nằm trong luồng bắt buộc của demo round đầu.
+- Payment không nằm trong luồng bắt buộc của demo round đầu, nhưng tính năng cấu hình giá gói dịch vụ (Packages Pricing Configuration) dành cho Admin đã được hiện thực hóa đầy đủ ở admin console, cùng với cơ chế khóa giá (Price Locking) và lưu vết thay đổi (Pricing Change Audit Trail).
 
 ## 9. Thiếu / chưa rõ
 
