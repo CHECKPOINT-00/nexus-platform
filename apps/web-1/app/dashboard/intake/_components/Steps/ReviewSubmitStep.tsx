@@ -3,6 +3,7 @@
 import React from "react";
 import { ServicePackage } from "@/types";
 import dayjs from "dayjs";
+import { formatPrice } from "@/lib/pricing";
 
 interface ReviewSubmitStepProps {
   values: any;
@@ -34,14 +35,7 @@ const getDisplayBlocker = (values: any) => {
 export default function ReviewSubmitStep({ values, packages, error }: ReviewSubmitStepProps) {
   const selectedPackage = packages?.find((p) => p.id === values.package_id);
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return "Miễn phí";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   const formatDate = (dateVal: any) => {
     if (!dateVal) return "Chưa chọn";

@@ -181,7 +181,7 @@ User không cần thấy naming kỹ thuật như `v01`, `a01-v01`. Nhưng hệ 
   - phần chính là structured rich text để user đọc trực tiếp trong case workspace;
   - supporter có thể đính kèm file report nếu cần tải xuống hoặc in ra.
 - Giữ tab chat text đơn giản trong case như một coordination surface cốt lõi; không mở rộng thành realtime chat subsystem trước demo.
-- Payment không phải phần bắt buộc của MVP demo hiện tại và có thể tạm ẩn khỏi luồng chính.
+- Payment không phải phần bắt buộc của MVP demo hiện tại và có thể tạm ẩn khỏi luồng chính. Tuy nhiên, khả năng cấu hình giá các gói dịch vụ (Packages Pricing Configuration) dành cho Admin đã được tích hợp và hoàn thành, đi kèm với cơ chế **Price Locking** (snapshot `locked_price` khi tạo case) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`) để bảo vệ dữ liệu lịch sử. Logic giá và kiểm thử minh chứng thanh toán được tập trung qua các helper như `getCaseEffectivePrice` và `validatePaymentProof` trong `@/lib/pricing.ts`.
 - Admin được phép `Yêu cầu bổ sung` ngay từ bước triage trước khi accept case.
 
 ## 12. Liên kết source of truth

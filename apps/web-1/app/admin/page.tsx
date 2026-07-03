@@ -4,12 +4,14 @@ import React, { useState } from "react";
 import { useAdminPayments } from "./hooks/useAdminPayments";
 import { useAdminCases } from "./hooks/useAdminCases";
 import { useAdminDocuments } from "./hooks/useAdminDocuments";
+import { useAdminPackages } from "./hooks/useAdminPackages";
 import AdminPaymentVerificationTable from "./_components/AdminPaymentVerificationTable";
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
+import AdminPackagesSettings from "./_components/AdminPackagesSettings";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -42,9 +44,16 @@ export default function AdminHubPage() {
     isDeleting: isDeletingDoc,
   } = useAdminDocuments();
 
+  const {
+    packages,
+    isLoading: isPackagesLoading,
+    updatePackagePrice,
+    isUpdating: isUpdatingPackage,
+  } = useAdminPackages();
+
   // Rejection modal control
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents">("payments");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages">("payments");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
@@ -198,7 +207,7 @@ export default function AdminHubPage() {
     }
   };
 
-  const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading;
+  const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
   const pendingPaymentsCount = payments.filter((p) => p.status === "pending_verification").length;
   const unassignedCasesCount = cases.filter((c) => c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned").length;
@@ -278,20 +287,32 @@ export default function AdminHubPage() {
                 <FileText className="w-5 h-5" />
               </UnstyledButton>
             </Tooltip>
+
+            <Tooltip label="Cấu hình giá gói" position="right" withArrow>
+              <UnstyledButton
+                onClick={() => setActiveSection("packages")}
+                className={classes.mainLink}
+                data-active={activeSection === "packages" || undefined}
+              >
+                <Settings className="w-5 h-5" />
+              </UnstyledButton>
+            </Tooltip>
           </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={6} className={classes.title}>
-                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : "Quản lý tài liệu" }
+                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói" }
               </Title>
               <Text size="xs" c="dimmed" className="font-body text-[11px]">
                 {activeSection === "payments"
                   ? "Duyệt minh chứng chuyển khoản."
                   : activeSection === "cases"
                   ? "Phân loại ý tưởng & phân công."
-                  : "Danh mục tài liệu trên hệ thống."}
+                  : activeSection === "documents"
+                  ? "Danh mục tài liệu trên hệ thống."
+                  : "Cấu hình đơn giá gói dịch vụ."}
               </Text>
             </div>
 
@@ -367,13 +388,22 @@ export default function AdminHubPage() {
                   <span>Quản lý (CRUD)</span>
                 </UnstyledButton>
               </div>
-            ) : (
+            ) : activeSection === "documents" ? (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
                   className={classes.link}
                   data-active={true}
                 >
                   <span>Tất cả tài liệu</span>
+                </UnstyledButton>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Danh sách gói dịch vụ</span>
                 </UnstyledButton>
               </div>
             )}
@@ -432,7 +462,7 @@ export default function AdminHubPage() {
                   onDelete={handleDeleteCase}
                 />
               </div>
-            ) : (
+            ) : activeSection === "documents" ? (
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
                   <h3 className="font-heading font-bold text-sm text-text-app">Quản lý hệ thống tài liệu</h3>
@@ -442,6 +472,18 @@ export default function AdminHubPage() {
                   documents={documents}
                   onDelete={handleDeleteDocument}
                   isDeleting={isDeletingDoc}
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
+                  <h3 className="font-heading font-bold text-sm text-text-app">Thiết lập đơn giá gói dịch vụ</h3>
+                  <p className="text-[10px] text-text-muted">Cập nhật đơn giá cho các gói hỗ trợ trên hệ thống.</p>
+                </div>
+                <AdminPackagesSettings
+                  packages={packages}
+                  onUpdatePrice={updatePackagePrice}
+                  isUpdating={isUpdatingPackage}
                 />
               </div>
             )}

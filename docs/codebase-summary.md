@@ -57,7 +57,7 @@ Mô hình dữ liệu Postgres trung tâm cho auth, case, checkpoint, lifecycle 
 - `ActivityTimeline` đã có và render `caseData.events`.
 - `useCaseDetails` polling 10 giây và expose `case`, `intake_snapshot`, `latest_report`, `latest_user_action`, `document_board_sections`, `round_history`, `open_requests_for_more_info`, và `document_workspace`.
 - Intake documents hiện vẫn dùng 1 Drive/Docs URL chính + checklist loại tài liệu trong thư mục, kèm template helper để copy Markdown hoặc tải `.docx`.
-- Payment tồn tại như bề mặt phụ trong case workspace qua `payment_status`, unpaid banner, và payment page; không phải golden path của demo.
+- Payment tồn tại như bề mặt phụ trong case workspace qua `payment_status`, unpaid banner, và payment page; không phải golden path của demo. Hệ thống đã bổ sung chức năng cho phép Admin cập nhật giá tiền động của các gói dịch vụ qua tab Settings/Packages mới trong Admin panel, tích hợp cơ chế **Price Locking** (chốt `Case.locked_price` khi tạo) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`). Logic giá và minh chứng thanh toán được tập trung qua các helper `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, và `validatePaymentProof` trong `@/lib/pricing.ts`.
 
 ## Ràng buộc vận hành
 

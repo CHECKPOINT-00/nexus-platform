@@ -12,6 +12,7 @@ export interface Case {
   course_context?: string | null;
   current_checkpoint?: string | null;
   package_id?: string | null;
+  locked_price?: number | null;
   assigned_supporter_auth_user_id?: string | null;
   user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
   internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;

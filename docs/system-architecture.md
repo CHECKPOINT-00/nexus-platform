@@ -136,6 +136,7 @@ Tham chiếu:
 - `user_facing_stage`
 - `internal_status`
 - `payment_status`
+- `locked_price`
 - `messages`
 - `events`
 - `checkpoints`
@@ -145,10 +146,18 @@ Tham chiếu:
 
 Điều này cho thấy workspace hiện tại đã bám model giàu hơn nhiều so với form submit đơn giản.
 
+### 6.2 ServicePackage
+`ServicePackage` hiện đã có các trường cấu hình giá và audit trail:
+- `price`
+- `previous_price`
+- `last_price_changed_at`
+- `last_price_changed_by`
+
 Tham chiếu:
 - `apps/web-1/types/case.ts`
+- `apps/web-1/types/package.ts`
 
-### 6.2 Message
+### 6.3 Message
 `CaseMessage` hiện gồm:
 - `sender_auth_user_id`
 - `sender_role_snapshot`
@@ -156,7 +165,7 @@ Tham chiếu:
 - `created_at`
 - optional `sender`
 
-### 6.3 Event
+### 6.4 Event
 `CaseEvent` hiện gồm:
 - `event_type`
 - `actor_auth_user_id`
@@ -164,7 +173,7 @@ Tham chiếu:
 - `metadata_json`
 - `created_at`
 
-### 6.4 Intake document
+### 6.5 Intake document
 `IntakeDocument` hiện gồm:
 - `source_type: "drive" | "upload"`
 - `drive_url?`

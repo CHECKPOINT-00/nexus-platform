@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { getCaseEffectivePrice, caseRequiresPayment, formatPrice, validatePaymentProof } from "@/lib/pricing";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -40,7 +41,7 @@ export default function CasePaymentPage({ params }: PageProps) {
   const { caseData, isLoading: isCaseLoading, error: caseError } = useCaseDetails(caseId);
 
   useEffect(() => {
-    if (caseData && (caseData.payment_status === "paid" || caseData.package?.price === 0)) {
+    if (caseData && !caseRequiresPayment(caseData)) {
       router.push(`/dashboard/case/${caseId}`);
     }
   }, [caseData, caseId, router]);
@@ -52,13 +53,7 @@ export default function CasePaymentPage({ params }: PageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -89,26 +84,9 @@ export default function CasePaymentPage({ params }: PageProps) {
 
   const validateAndSetFile = (file: File) => {
     reset();
-    // Validate size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      notifications.show({
-        title: "Kích thước file quá lớn",
-        message: "Kích thước file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.",
-        color: "red",
-      });
-      return;
+    if (validatePaymentProof(file)) {
+      setSelectedFile(file);
     }
-    // Validate type (image or pdf)
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    if (!allowedTypes.includes(file.type)) {
-      notifications.show({
-        title: "Định dạng không hợp lệ",
-        message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP) hoặc PDF.",
-        color: "red",
-      });
-      return;
-    }
-    setSelectedFile(file);
   };
 
   const handleUpload = async () => {
@@ -149,7 +127,7 @@ export default function CasePaymentPage({ params }: PageProps) {
     );
   }
 
-  const amount = caseData.package?.price || 0;
+  const amount = getCaseEffectivePrice(caseData);
   const addInfo = `${caseData.case_code} thanh toan`;
   const qrUrl = `https://img.vietqr.io/image/mb-0909090909-print.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=NEXUS%20PLATFORM`;
 

@@ -6,6 +6,7 @@ import { notifications } from "@mantine/notifications";
 import { usePaymentUpload } from "../hooks/usePaymentUpload";
 import { Case } from "@/types";
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
+import { getCaseEffectivePrice, formatPrice, validatePaymentProof } from "@/lib/pricing";
 
 interface PaymentDrawerProps {
   isOpen: boolean;
@@ -18,14 +19,12 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const effectivePrice = getCaseEffectivePrice(caseData);
+  const showLockedPriceNote =
+    caseData.locked_price !== null &&
+    caseData.locked_price !== undefined &&
+    caseData.package?.price !== undefined &&
+    caseData.locked_price !== caseData.package.price;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -56,26 +55,9 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
 
   const validateAndSetFile = (file: File) => {
     reset();
-    // Validate size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      notifications.show({
-        title: "Kích thước file quá lớn",
-        message: "Kích thước file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.",
-        color: "red",
-      });
-      return;
+    if (validatePaymentProof(file)) {
+      setSelectedFile(file);
     }
-    // Validate type (image or pdf)
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    if (!allowedTypes.includes(file.type)) {
-      notifications.show({
-        title: "Định dạng không hợp lệ",
-        message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP) hoặc PDF.",
-        color: "red",
-      });
-      return;
-    }
-    setSelectedFile(file);
   };
 
   const handleUpload = async () => {
@@ -140,9 +122,16 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Số tiền cần chuyển</span>
-              <span className="font-bold text-brand text-sm">
-                {formatPrice(caseData.package?.price || 0)}
-              </span>
+              <div className="text-right">
+                <span className="font-bold text-brand text-sm block">
+                  {formatPrice(effectivePrice)}
+                </span>
+                {showLockedPriceNote && (
+                  <p className="text-[10px] text-text-muted italic mt-0.5">
+                    Giá tại thời điểm đăng ký
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Nội dung chuyển khoản</span>
