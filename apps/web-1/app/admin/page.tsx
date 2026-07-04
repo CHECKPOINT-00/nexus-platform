@@ -48,7 +48,9 @@ export default function AdminHubPage() {
     packages,
     isLoading: isPackagesLoading,
     updatePackagePrice,
-    isUpdating: isUpdatingPackage,
+    updatePackageStatus,
+    isUpdatingPrice,
+    isUpdatingStatus,
   } = useAdminPackages();
 
   // Rejection modal control
@@ -477,13 +479,15 @@ export default function AdminHubPage() {
             ) : (
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Thiết lập đơn giá gói dịch vụ</h3>
-                  <p className="text-[10px] text-text-muted">Cập nhật đơn giá cho các gói hỗ trợ trên hệ thống.</p>
+                  <h3 className="font-heading font-bold text-sm text-text-app">Thiết lập gói dịch vụ</h3>
+                  <p className="text-[10px] text-text-muted">Bật/tắt hiển thị với khách hàng mới và cập nhật đơn giá các gói trên hệ thống.</p>
                 </div>
                 <AdminPackagesSettings
                   packages={packages}
                   onUpdatePrice={updatePackagePrice}
-                  isUpdating={isUpdatingPackage}
+                  onUpdateStatus={updatePackageStatus}
+                  isUpdatingPrice={isUpdatingPrice}
+                  isUpdatingStatus={isUpdatingStatus}
                 />
               </div>
             )}

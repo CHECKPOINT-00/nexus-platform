@@ -43,7 +43,7 @@ export default function ContactUs() {
                   <Mail className="w-5 h-5 text-brand shrink-0" />
                   <div>
                     <div className="text-[10px] text-text-muted font-bold uppercase">Email</div>
-                    <div className="text-xs text-text-app font-semibold">support@nexus.edu.vn</div>
+                    <div className="text-xs text-text-app font-semibold">phungluuhoanglong@gmail.com</div>
                   </div>
                 </div>
 
@@ -51,15 +51,7 @@ export default function ContactUs() {
                   <Phone className="w-5 h-5 text-brand shrink-0" />
                   <div>
                     <div className="text-[10px] text-text-muted font-bold uppercase">Hotline</div>
-                    <div className="text-xs text-text-app font-semibold">0987.654.321</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-brand shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-text-muted font-bold uppercase">Địa chỉ</div>
-                    <div className="text-xs text-text-app font-semibold">Tòa nhà FPT, Quận 9, TP. HCM</div>
+                    <div className="text-xs text-text-app font-semibold">0776506822</div>
                   </div>
                 </div>
               </div>

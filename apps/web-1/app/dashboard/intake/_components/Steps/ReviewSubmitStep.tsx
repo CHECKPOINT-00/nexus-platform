@@ -136,7 +136,9 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Gói phản biện đã chọn:</div>
             <div className="text-text-app">
-              {selectedPackage?.name} ({formatPrice(selectedPackage?.price || 0)})
+              {selectedPackage
+                ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
+                : "Gói đã chọn không còn mở cho hồ sơ mới. Vui lòng quay lại bước chọn gói."}
             </div>
 
             <div className="font-semibold text-text-app">Hạn nộp bài mong muốn:</div>

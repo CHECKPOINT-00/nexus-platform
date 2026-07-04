@@ -3,14 +3,15 @@ import { Skeleton, Card } from "@mantine/core";
 interface LoadingSkeletonProps {
   variant?: "card" | "table-row" | "text-block" | "avatar";
   count?: number;
+  className?: string;
 }
 
-export default function LoadingSkeleton({ variant = "text-block", count = 1 }: LoadingSkeletonProps) {
+export default function LoadingSkeleton({ variant = "text-block", count = 1, className }: LoadingSkeletonProps) {
   const items = Array.from({ length: count });
 
   if (variant === "card") {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      <div className={className || "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full"}>
         {items.map((_, i) => (
           <Card key={i} p="lg" radius="md" withBorder className="space-y-5 bg-surface-app">
             <div className="flex justify-between items-center">

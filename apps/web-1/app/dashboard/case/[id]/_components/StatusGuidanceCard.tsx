@@ -138,8 +138,8 @@ export default function StatusGuidanceCard({
             <Button
               size="xs"
               color="red"
-              variant="outline"
-              className="font-semibold shrink-0 cursor-pointer border-danger/30 hover:bg-danger-soft/10 text-danger"
+              variant="filled"
+              className="font-semibold shrink-0 cursor-pointer"
               loading={isRecalling}
               onClick={onRecallRevision}
             >
