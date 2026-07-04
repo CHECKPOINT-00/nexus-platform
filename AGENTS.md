@@ -76,6 +76,7 @@ npm run prisma:migrate
   - [documentation-management.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/documentation-management.md): Guidelines for maintaining roadmaps, changelogs, and plan files.
   - [orchestration-protocol.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/orchestration-protocol.md): Standards for delegating tasks to subagents and parallel execution.
   - [primary-workflow.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/primary-workflow.md): The step-by-step workflow covering planning, implementation, testing, code quality, integration, and visual explanations.
+  - [prisma-migration-safety.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/prisma-migration-safety.md): Prisma migration safety rules, database mutation guidelines, and target database classification rules for AI agents.
 
 ## UI-UX-PRO-MAX USAGE RULE FOR NEXUS
 

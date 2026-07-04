@@ -43,5 +43,6 @@ npm run check-types --workspace=apps/api
 
 ## NOTES
 - Keep auth and Prisma changes aligned with root schema/URL config.
+- **Database Migration Safety**: For any Prisma schema or database migration tasks, you MUST strictly read and follow the [prisma-migration-safety.md](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/prisma-migration-safety.md) rules. Direct database mutation on production is strictly forbidden for agents.
 - API is backend-only; no UI conventions belong here.
 - Configure provider API keys in root `.env` (e.g., `GOOGLE_GENERATIVE_AI_API_KEY`, `OPENAI_API_KEY`) for AI Engine capabilities.
