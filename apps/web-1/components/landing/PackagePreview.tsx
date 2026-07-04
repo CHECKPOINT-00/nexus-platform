@@ -14,7 +14,11 @@ export default function PackagePreview() {
     return (
       <section id="packages" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-center font-heading text-3xl font-semibold mb-10 text-text-app">Dịch vụ phản biện & Đánh giá</h2>
-        <LoadingSkeleton variant="card" count={3} />
+        <LoadingSkeleton
+          variant="card"
+          count={3}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full"
+        />
       </section>
     );
   }
@@ -22,8 +26,6 @@ export default function PackagePreview() {
   if (error || !packages) {
     return null;
   }
-
-
 
   const getFeaturesList = (features: any): string[] => {
     if (Array.isArray(features)) return features;
@@ -46,63 +48,71 @@ export default function PackagePreview() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
-          {packages.map((pkg) => {
-            const featuresList = getFeaturesList(pkg.features);
-            const isRecommended = pkg.name.toLowerCase().includes("gói 2") || pkg.name.toLowerCase().includes("goi 2");
+        {packages.length === 0 ? (
+          <Card withBorder radius="lg" p="xl" className="max-w-2xl mx-auto bg-surface-app text-center">
+            <p className="font-body text-sm text-text-muted">
+              Hiện chưa có gói dịch vụ nào mở cho hồ sơ mới. Vui lòng quay lại sau hoặc liên hệ đội ngũ hỗ trợ.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-center">
+            {packages.map((pkg) => {
+              const featuresList = getFeaturesList(pkg.features);
+              const isRecommended = pkg.name.toLowerCase().includes("gói 2") || pkg.name.toLowerCase().includes("goi 2");
 
-            return (
-              <Card
-                key={pkg.id}
-                p="xl"
-                radius="lg"
-                withBorder
-                style={{ overflow: "visible" }}
-                className={`flex flex-col bg-surface-app transition-all relative ${
-                  isRecommended
-                    ? "border-brand ring-2 ring-brand/10 shadow-lg scale-[1.02]"
-                    : "border-border-app shadow-sm hover:border-brand/40"
-                }`}
-              >
-                {isRecommended && (
-                  <div className="absolute top-0 left-8 transform -translate-y-1/2 z-10">
-                    <span className="bg-brand text-white font-body text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-                      Phổ biến
-                    </span>
-                  </div>
-                )}
-
-                <div className="mb-6 space-y-2">
-                  <h3 className="font-heading text-xl font-bold text-text-app">{pkg.name}</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-heading text-3xl font-bold text-text-app">{formatPrice(pkg.price)}</span>
-                    {pkg.price > 0 && <span className="font-body text-xs text-text-subtle">/ hồ sơ</span>}
-                  </div>
-                </div>
-
-                <ul className="flex-grow space-y-4 mb-8">
-                  {featuresList.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-text-muted font-body">
-                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href={`/auth?packageId=${pkg.id}&tab=register`}
-                  className={`w-full inline-flex items-center justify-center font-body text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer text-center ${
+              return (
+                <Card
+                  key={pkg.id}
+                  p="xl"
+                  radius="lg"
+                  withBorder
+                  style={{ overflow: "visible" }}
+                  className={`flex flex-col bg-surface-app transition-all relative ${
                     isRecommended
-                      ? "bg-brand text-white hover:bg-brand-hover shadow-md"
-                      : "bg-surface-app border border-border-strong text-text-muted hover:text-text-app hover:bg-surface-soft"
+                      ? "border-brand ring-2 ring-brand/10 shadow-lg scale-[1.02]"
+                      : "border-border-app shadow-sm hover:border-brand/40"
                   }`}
                 >
-                  Bắt đầu ngay
-                </Link>
-              </Card>
-            );
-          })}
-        </div>
+                  {isRecommended && (
+                    <div className="absolute top-0 left-8 transform -translate-y-1/2 z-10">
+                      <span className="bg-brand text-white font-body text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Phổ biến
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="mb-6 space-y-2">
+                    <h3 className="font-heading text-xl font-bold text-text-app">{pkg.name}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-heading text-3xl font-bold text-text-app">{formatPrice(pkg.price)}</span>
+                      {pkg.price > 0 && <span className="font-body text-xs text-text-subtle">/ hồ sơ</span>}
+                    </div>
+                  </div>
+
+                  <ul className="flex-grow space-y-4 mb-8">
+                    {featuresList.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm text-text-muted font-body">
+                        <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href={`/auth?packageId=${pkg.id}&tab=register`}
+                    className={`w-full inline-flex items-center justify-center font-body text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer text-center ${
+                      isRecommended
+                        ? "bg-brand text-white hover:bg-brand-hover shadow-md"
+                        : "bg-surface-app border border-border-strong text-text-muted hover:text-text-app hover:bg-surface-soft"
+                    }`}
+                  >
+                    Bắt đầu ngay
+                  </Link>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useStore } from "@tanstack/react-form";
 import { usePackages } from "@/hooks/usePackages";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
@@ -117,6 +117,21 @@ export default function IntakeChatFlow({
 
   const values = useStore(form.store, (state: any) => state.values);
 
+  useEffect(() => {
+    if (!packages || !values.package_id) return;
+
+    const hasSelectedPackage = packages.some((pkg: ServicePackage) => pkg.id === values.package_id);
+    if (hasSelectedPackage) return;
+
+    const nextValues = { ...values, package_id: "" };
+    form.setFieldValue("package_id", "");
+    saveDraft(nextValues);
+
+    if (currentStep === IntakeStep.REVIEW) {
+      setCurrentStep(IntakeStep.PACKAGE);
+    }
+  }, [currentStep, form, packages, saveDraft, setCurrentStep, values]);
+
   const isStepValid = () => checkStepValidity(currentStep, values);
 
   const handleNext = () => {
@@ -179,9 +194,9 @@ export default function IntakeChatFlow({
 
             {isLoadingPackages ? (
               <LoadingSkeleton variant="card" count={3} />
-            ) : (
+            ) : packages && packages.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {packages?.map((pkg: ServicePackage) => (
+                {packages.map((pkg: ServicePackage) => (
                   <div
                     key={pkg.id}
                     onClick={() => {
@@ -218,6 +233,10 @@ export default function IntakeChatFlow({
                     </ul>
                   </div>
                 ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border-app bg-surface-soft/40 p-4 text-sm text-text-muted">
+                Hiện chưa có gói dịch vụ nào mở cho hồ sơ mới. Vui lòng quay lại sau hoặc liên hệ đội ngũ hỗ trợ.
               </div>
             )}
           </div>
