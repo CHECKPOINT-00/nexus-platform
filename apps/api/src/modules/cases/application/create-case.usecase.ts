@@ -7,8 +7,20 @@ import {
   createCaseWithCheckpointAndIntake,
   findCaseByCode,
 } from "../infrastructure/persistence/case.repository.js";
-import { findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
+import { findPackageById as defaultFindPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
 import type { CreateCaseRequest } from "./cases.dto.js";
+
+type CreateCaseDeps = {
+  findCaseByCode?: typeof findCaseByCode;
+  findPackageById?: typeof defaultFindPackageById;
+  createCaseWithCheckpointAndIntake?: typeof createCaseWithCheckpointAndIntake;
+};
+
+const defaultDeps = {
+  findCaseByCode,
+  findPackageById: defaultFindPackageById,
+  createCaseWithCheckpointAndIntake,
+};
 
 function normalizeCreateCaseBody(body: CreateCaseRequest): CreateCaseRequest {
   const legacySituations = Array.isArray(body.current_situations)
@@ -28,7 +40,16 @@ function normalizeCreateCaseBody(body: CreateCaseRequest): CreateCaseRequest {
   };
 }
 
-export async function createCaseUseCase(userId: string, body: CreateCaseRequest) {
+export async function createCaseUseCase(
+  userId: string,
+  body: CreateCaseRequest,
+  deps: CreateCaseDeps = {},
+) {
+  const { findCaseByCode, findPackageById, createCaseWithCheckpointAndIntake } = {
+    ...defaultDeps,
+    ...deps,
+  };
+
   const normalizedBody = normalizeCreateCaseBody(body);
   const validationErrors = validateCp1Intake(normalizedBody);
   if (validationErrors.length > 0) {
@@ -81,6 +102,9 @@ export async function createCaseUseCase(userId: string, body: CreateCaseRequest)
   const servicePackage = await findPackageById(package_id);
   if (!servicePackage) {
     throw new AppError(400, "INVALID_PACKAGE", "Không tìm thấy gói dịch vụ hợp lệ");
+  }
+  if (!servicePackage.is_active) {
+    throw new AppError(400, "PACKAGE_INACTIVE", "Gói dịch vụ này đã tạm ngưng nhận hồ sơ mới");
   }
 
   const lockedPrice = servicePackage.price;

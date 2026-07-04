@@ -10,7 +10,9 @@ import { adminAssignSupporterUseCase } from "../application/assign-supporter.use
 import { listAdminDocumentsUseCase } from "../application/list-admin-documents.usecase.js";
 import { deleteAdminDocumentUseCase } from "../application/delete-admin-document.usecase.js";
 import type { ListAdminCasesRequest } from "../application/admin.dto.js";
+import { listAdminPackagesUseCase } from "../application/list-admin-packages.usecase.js";
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
+import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -191,6 +193,24 @@ export async function deleteAdminDocumentHandler(c: Context) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/admin/packages — List all service packages for admin
+// ---------------------------------------------------------------------------
+
+export async function listAdminPackagesHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const packages = await listAdminPackagesUseCase();
+    return c.json(packages);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // PUT /api/admin/packages/:id/price — Update service package price
 // ---------------------------------------------------------------------------
 
@@ -217,3 +237,28 @@ export async function updatePackagePriceHandler(c: Context) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// PUT /api/admin/packages/:id/status — Update service package status
+// ---------------------------------------------------------------------------
+
+export async function updatePackageStatusHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const packageId = c.req.param("id") || "";
+  const adminId = authResult.session.user.id;
+
+  try {
+    const body = await readJsonBody(c) as { is_active?: boolean };
+    if (typeof body?.is_active !== "boolean") {
+      return c.json({ code: "BAD_REQUEST", message: "Thiếu trạng thái kích hoạt" }, 400);
+    }
+
+    const result = await updatePackageStatusUseCase(packageId, body.is_active, adminId);
+    return c.json({ ok: true, data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
