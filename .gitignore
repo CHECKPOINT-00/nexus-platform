@@ -48,3 +48,4 @@ temp/
 data/system-prompts/
 docs/case-documents/
 docker-example
+prisma/backup

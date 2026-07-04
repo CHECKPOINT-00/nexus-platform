@@ -23,8 +23,14 @@ WITH payment_backfill AS (
   ORDER BY p.case_id, p.created_at ASC, p.id ASC
 )
 UPDATE "cases" c
-SET "locked_price" = COALESCE(pb.amount, sp.price)
+SET "locked_price" = COALESCE(
+  (
+    SELECT pb.amount
+    FROM payment_backfill pb
+    WHERE pb.case_id = c.id
+  ),
+  sp.price
+)
 FROM "service_packages" sp
-LEFT JOIN payment_backfill pb ON pb.case_id = c.id
 WHERE c.package_id = sp.id
   AND c.locked_price IS NULL;

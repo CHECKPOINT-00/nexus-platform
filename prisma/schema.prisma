@@ -111,6 +111,7 @@ model ServicePackage {
   id                    String    @id @default(uuid())
   name                  String
   price                 Int
+  is_active             Boolean   @default(true)
   previous_price        Int?
   last_price_changed_at DateTime?
   last_price_changed_by String?

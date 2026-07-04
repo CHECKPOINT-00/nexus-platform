@@ -1,8 +1,15 @@
 import { prisma } from "../../../../db.js";
 
+export async function findActivePackages() {
+  return await prisma.servicePackage.findMany({
+    where: { is_active: true },
+    orderBy: { price: "asc" },
+  });
+}
+
 export async function findAllPackages() {
   return await prisma.servicePackage.findMany({
-    orderBy: { price: "asc" },
+    orderBy: [{ is_active: "desc" }, { price: "asc" }],
   });
 }
 
@@ -40,3 +47,11 @@ export async function updatePackagePrice(
   });
 }
 
+export async function updatePackageStatus(id: string, isActive: boolean) {
+  return await prisma.servicePackage.update({
+    where: { id },
+    data: {
+      is_active: isActive,
+    },
+  });
+}

@@ -21,16 +21,20 @@ test("backend demo regression coverage", async (t) => {
     ];
 
     const packages = await listPackagesUseCase({
+      findActivePackages: async () => (created.length === 0 ? [] : (created as any)),
       findAllPackages: async () => (created.length === 0 ? [] : (created as any)),
       createPackage: async (data: { name: string; price: number; features: string[] }) => {
-        created.push(data);
-        return { id: `pkg-${created.length}`, ...data } as any;
+        created.push({ ...data, is_active: true } as any);
+        return { id: `pkg-${created.length}`, ...data, is_active: true } as any;
       },
       defaultPackages,
     } as any);
 
     assert.strictEqual(created.length, 2);
-    assert.deepStrictEqual(created, defaultPackages);
+    assert.deepStrictEqual(
+      created.map(({ is_active, ...pkg }: any) => pkg),
+      defaultPackages,
+    );
     assert.strictEqual(packages.length, 2);
   });
 

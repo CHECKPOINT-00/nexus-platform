@@ -8,7 +8,9 @@ import {
   adminAssignSupporterHandler,
   listAdminDocumentsHandler,
   deleteAdminDocumentHandler,
+  listAdminPackagesHandler,
   updatePackagePriceHandler,
+  updatePackageStatusHandler,
 } from "./admin.controller.js";
 
 export const adminRouter = new Hono();
@@ -23,5 +25,6 @@ adminRouter.post("/cases/:id/assign", adminAssignSupporterHandler);
 adminRouter.get("/documents", listAdminDocumentsHandler);
 adminRouter.delete("/documents/:id", deleteAdminDocumentHandler);
 
+adminRouter.get("/packages", listAdminPackagesHandler);
 adminRouter.put("/packages/:id/price", updatePackagePriceHandler);
-
+adminRouter.put("/packages/:id/status", updatePackageStatusHandler);
