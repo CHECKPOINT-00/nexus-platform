@@ -27,7 +27,7 @@ Locate and identify all configuration files, database schemas, backend and front
 - [apps/web/app/providers.tsx](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web/app/providers.tsx)
   - Current state: Wraps children with TanStack `QueryClientProvider` and Theme provider.
 - [apps/web/AGENTS.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web/AGENTS.md)
-  - Current state: Reference files for HeroUI v3 React components.
+  - Current state: Reference files for Mantine UI v9 React components.
 
 ## Unresolved Items
 - Need to determine direct file upload endpoint vs link integration in `lifecycle_units`.

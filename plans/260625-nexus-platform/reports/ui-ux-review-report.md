@@ -52,7 +52,7 @@ Based on the `ui-ux-pro-max` stack guidelines for a calm, professional feedback 
     - **Lý do (Reason)**
     - **Câu hỏi làm rõ (Question)**
     - **Hành động tiếp theo (Next Action)**
-  - Implement collapsible Accordion sections (HeroUI Accordion) for detailed reports.
+  - Implement collapsible Accordion sections (Mantine UI Accordion) for detailed reports.
 
 ### Gap D: Revision & Document Versioning (Rule 14)
 - **Current Plan**: Mentions documents and reports.
@@ -64,7 +64,7 @@ Based on the `ui-ux-pro-max` stack guidelines for a calm, professional feedback 
 
 ## 3. Recommended Actions & Phase Modifications
 
-1. **Phase 2 (Layout)**: Insert breadcrumbs component using HeroUI for clear navigation hierarchy.
+1. **Phase 2 (Layout)**: Insert breadcrumbs component using Mantine UI for clear navigation hierarchy.
 2. **Phase 3 (Landing)**: Replace English slogans with direct Vietnamese value propositions.
 3. **Phase 4 (Intake)**: Include a validation workflow for Google Drive links (mock permissions verify) and step-by-step progress cards.
 4. **Phase 5 (AI Engine)**: Restructure the AI output template to match the Field-Status-Evidence-Reason-Question structure.

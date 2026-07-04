@@ -2,393 +2,507 @@
 trigger: always_on
 ---
 
-# Frontend UI/UX Design Rules
+# Nexus Frontend UI/UX Design Rules v2
 
-## 1. Design Direction
+## 1. Design Intent
 
-Frontend của hệ thống dùng **HeroUI + Tailwind**, nhưng đi theo triết lý thiết kế giao diện kiểu Google: **đơn giản, rõ ràng, thực dụng, bình tĩnh, dễ hiểu, ít nhiễu**.
+Nexus uses **HeroUI + Tailwind** as the frontend stack.
 
-Không dùng Material Design component.
-Không copy giao diện Google.
-Chỉ lấy nguyên tắc thiết kế: rõ trước, đẹp sau; quen thuộc trước, sáng tạo sau; hành động chính phải dễ thấy; trạng thái hệ thống phải minh bạch; nội dung phải dễ đọc và dễ hành động.
+The interface should feel:
 
-## 2. Core Philosophy
+* clear
+* focused
+* calm
+* practical
+* trustworthy
+* modern
+* polished
+* slightly creative, but never confusing
 
-Giao diện không được cố gây ấn tượng bằng hiệu ứng, màu sắc hoặc layout phức tạp.
+Do not copy Material Design components.
+Do not copy Google UI directly.
+Use Google-like product thinking only: clarity, hierarchy, useful defaults, visible system status, understandable language, and predictable interaction.
 
-Giao diện phải giúp người dùng trả lời ngay 4 câu hỏi:
+HeroUI is the component base, not the design ceiling. Custom layout, composition, spacing, visual rhythm, and product-specific UI patterns are allowed when they improve the experience.
 
-1. Tôi đang ở đâu?
-2. Tôi cần làm gì tiếp?
-3. Vì sao tôi cần làm việc đó?
-4. Sau khi làm xong thì chuyện gì xảy ra?
+## 2. Rule Priority
 
-Nếu một màn hình không trả lời được 4 câu hỏi này, màn hình đó chưa đạt yêu cầu UX.
+Not every rule has the same weight.
 
-## 3. Clarity Over Decoration
+Use this priority order:
 
-Ưu tiên sự rõ ràng hơn sự đẹp mắt.
+1. **Non-negotiable rules**: must be followed.
+2. **Design principles**: should guide decisions, but can be adapted by screen context.
+3. **Pattern suggestions**: examples, not strict requirements.
 
-Không dùng text marketing sáo rỗng.
-Không dùng slogan mơ hồ.
-Không dùng icon, gradient, animation nếu chúng không giúp người dùng hiểu nhanh hơn.
-Không làm giao diện “ngầu” nhưng khó dùng.
-Không dùng nhiều thành phần trang trí gây phân tán sự chú ý.
+When two rules conflict, prioritize:
 
-Text trong UI phải ngắn, rõ, trực tiếp, thực dụng.
+1. User understanding
+2. User trust
+3. Task completion
+4. Accessibility
+5. Visual polish
+6. Visual creativity
 
-Ví dụ tốt:
+Creativity is allowed when it improves clarity, hierarchy, emotion, or product memorability. Creativity is not allowed when it makes the user slower, confused, or less confident.
 
-* “Gửi tài liệu CP1”
-* “Chạy audit”
-* “Cần bổ sung thông tin”
-* “Xem lý do”
-* “Nộp bản sửa mới”
+## 3. Non-Negotiable Rules
 
-Tránh các câu như:
+These rules must be followed across the frontend.
 
-* “Unlock your startup potential”
-* “Enhance your entrepreneurial journey”
-* “AI-powered innovation platform”
-* “Transform your idea with intelligence”
+### 3.1 AI Output Must Be Explainable
 
-## 4. One Screen, One Main Job
+Any AI judgment shown to the user must explain itself.
 
-Mỗi màn hình chỉ nên phục vụ một nhiệm vụ chính.
+Do not show unsupported AI conclusions like:
 
-Không trộn quá nhiều mục tiêu vào cùng một màn hình.
+> Pain point chưa rõ.
 
-Ví dụ:
+Instead, each AI finding should include:
 
-* Màn hình intake: chỉ để nhận thông tin và tài liệu.
-* Màn hình clarification: chỉ để chỉ ra thông tin chưa rõ.
-* Màn hình report: chỉ để đọc kết quả.
-* Màn hình re-audit: chỉ để nộp bản sửa mới.
-* Màn hình admin/case management: chỉ để quản lý trạng thái case.
-
-Nếu một màn hình có quá nhiều việc, hãy tách thành step, tab, drawer hoặc page riêng.
-
-## 5. One Primary Action
-
-Mỗi màn hình chỉ được có một hành động chính.
-
-Primary button chỉ dùng cho hành động quan trọng nhất tại thời điểm đó.
-
-Không đặt hai primary button cạnh nhau.
-Không dùng màu nổi cho action phụ.
-Không để người dùng phải đoán nên bấm nút nào.
-
-Ví dụ:
-
-Primary action:
-
-* “Gửi tài liệu”
-* “Chạy audit”
-* “Tiếp tục”
-* “Nộp bản sửa”
-* “Xem report”
-
-Secondary action:
-
-* “Lưu nháp”
-* “Quay lại”
-* “Xem ví dụ”
-* “Hủy”
-* “Xem chi tiết”
-
-## 6. Progressive Disclosure
-
-Không hiển thị toàn bộ thông tin cùng lúc.
-
-Luôn hiển thị phần quan trọng trước, phần chi tiết sau.
-
-Thứ tự ưu tiên:
-
-1. Kết luận ngắn
-2. Trạng thái hiện tại
-3. Việc cần làm tiếp theo
-4. Lý do
-5. Bằng chứng
-6. Chi tiết mở rộng
-
-Dùng accordion, drawer, tabs hoặc expandable section cho thông tin dài.
-
-Không bắt người dùng đọc một khối nội dung dài mới hiểu mình cần làm gì.
-
-## 7. Familiar Patterns First
-
-Ưu tiên pattern quen thuộc hơn UI sáng tạo.
-
-Người dùng không nên phải học cách dùng giao diện.
-
-Nên dùng:
-
-* Form cho nhập liệu
-* Card cho từng nhóm thông tin
-* Badge/Chip cho trạng thái
-* Stepper cho quy trình nhiều bước
-* Table cho danh sách case
-* Drawer cho chi tiết phụ
-* Modal cho xác nhận ngắn
-* Accordion cho nội dung dài
-* Toast cho phản hồi nhanh
-* Tabs cho các nhóm nội dung ngang cấp
-
-Không tạo interaction lạ nếu pattern quen thuộc đã giải quyết tốt.
-
-## 8. Calm Visual Hierarchy
-
-Giao diện phải bình tĩnh, sạch, rõ thứ bậc.
-
-Không dùng quá nhiều màu.
-Không dùng quá nhiều border mạnh.
-Không dùng quá nhiều shadow.
-Không làm mọi card đều nổi bật như nhau.
-Không dùng animation nếu không cần thiết.
-Không nhồi quá nhiều nội dung vào một vùng nhỏ.
-
-Chỉ làm nổi bật những thứ thật sự quan trọng:
-
-* Trạng thái case
-* Lỗi nghiêm trọng
-* Hành động tiếp theo
-* Bản report mới nhất
-* Bằng chứng quan trọng
-* Cảnh báo cần xử lý
-
-## 9. Status Must Be Visible
-
-Người dùng phải luôn biết case, tài liệu hoặc report đang ở trạng thái nào.
-
-Mọi object quan trọng phải có status rõ ràng.
-
-Ví dụ status cho case:
-
-* Draft
-* Submitted
-* Auditing
-* Need Clarification
-* Ready for Reality Check
-* Human Reviewed
-* Final
-* Re-audit Requested
-
-Mỗi status cần có mô tả ngắn, dễ hiểu.
-
-Ví dụ:
-
-“Need Clarification: Nexus đã đọc tài liệu nhưng còn thiếu thông tin để audit sâu.”
-
-Không chỉ hiển thị status bằng màu. Phải có label chữ rõ ràng.
-
-## 10. AI Judgment Must Be Explainable
-
-Nếu giao diện hiển thị kết luận từ AI, kết luận đó phải có giải thích.
-
-AI không được chỉ nói:
-
-“Pain point chưa rõ.”
-
-Mỗi finding cần có cấu trúc:
-
-* Field: phần nào bị vấn đề
+* Field: phần nào đang có vấn đề
 * Status: loại vấn đề là gì
-* Evidence: bằng chứng từ tài liệu
+* Evidence: bằng chứng từ input/tài liệu
 * Reason: vì sao bị đánh giá như vậy
 * Question: người dùng cần trả lời gì
 * Next action: người dùng nên làm gì tiếp theo
 
-AI output phải tạo cảm giác có căn cứ, không phải phán bừa.
+If there is not enough evidence, say that evidence is missing. Do not make the AI look certain when the input is weak.
 
-## 11. Design for Trust, Not Magic
+### 3.2 Design for Trust, Not Magic
 
-Không trình bày AI như một công cụ thần kỳ.
+Do not present Nexus as a magic AI tool.
 
-Không hứa rằng AI sẽ làm ý tưởng chắc chắn tốt hơn.
-Không nói AI có thể đảm bảo pass.
-Không dùng ngôn ngữ quá tự tin khi kết quả vẫn cần con người đánh giá.
+Avoid claims like:
 
-Nên trình bày AI như một hệ thống hỗ trợ kiểm tra có quy trình.
+* “Tối ưu ý tưởng để chắc chắn pass.”
+* “AI đảm bảo ý tưởng của bạn tốt hơn.”
+* “Tự động sửa toàn bộ bài cho bạn.”
 
-Ví dụ tốt:
+Use trust-building language:
 
-“Nexus kiểm tra tài liệu theo các tiêu chí CP1 và chỉ ra điểm chưa rõ.”
+* “Nexus kiểm tra tài liệu theo tiêu chí checkpoint.”
+* “Kết quả này là bản phản biện có cấu trúc, cần được xem lại bởi supporter.”
+* “AI draft chỉ là bản nháp, không phải quyết định cuối cùng.”
 
-Ví dụ không tốt:
+### 3.3 Status Must Be Visible
 
-“Nexus sẽ tối ưu ý tưởng của bạn để chắc chắn vượt checkpoint.”
+Important objects must show their status clearly:
 
-## 12. Reduce User Thinking Load
+* case
+* document
+* payment
+* report
+* AI draft
+* supporter review
+* revision/version
 
-Giao diện phải giảm việc người dùng phải tự đoán.
+Do not rely on color alone. Always include readable labels.
 
-Không hỏi câu quá rộng nếu có thể hỏi cụ thể hơn.
+Example:
 
-Không tốt:
+* `Chưa thanh toán`
+* `Đang phản biện`
+* `Cần làm rõ`
+* `Đã gửi báo cáo`
+* `Bản mới nhất`
 
-“Hãy mô tả khách hàng mục tiêu.”
+### 3.4 Separate Input, Output, and Decision
 
-Tốt hơn:
+Keep these layers visually and structurally separated:
 
-* “Ai là người trực tiếp gặp vấn đề này?”
-* “Họ thuộc nhóm sinh viên nào?”
-* “Họ gặp vấn đề trong tình huống cụ thể nào?”
-* “Hiện tại họ đang xử lý vấn đề đó bằng cách nào?”
+1. **Student Input**: what the user submitted
+2. **AI Output**: what AI analyzed or drafted
+3. **Supporter/Admin Decision**: what a human reviewed, approved, rejected, or sent
 
-UX tốt không chỉ là layout. UX tốt là hỏi đúng câu, đúng thời điểm.
+Do not mix original user data with AI interpretation.
+Do not make users think the AI has already rewritten or approved their work.
+Do not expose internal AI drafts to students unless they are approved for student view.
 
-## 13. Plain Language Only
+### 3.5 Error States Must Be Actionable
 
-Ngôn ngữ trong UI phải đơn giản, phổ thông, dễ hiểu.
+Every error must tell the user:
 
-Ưu tiên tiếng Việt rõ nghĩa.
+* what happened
+* where it happened
+* what to do next
 
-Nên dùng:
+Bad:
 
-* “Thiếu thông tin”
-* “Chưa rõ”
+> Upload failed.
+
+Better:
+
+> Không thể tải ảnh minh chứng. Hãy kiểm tra định dạng file hoặc thử tải lại.
+
+Bad:
+
+> Something went wrong.
+
+Better:
+
+> Không thể chạy phản biện lúc này. Hãy thử lại hoặc kiểm tra tài liệu đã được cấp quyền xem.
+
+### 3.6 Empty States Must Guide Action
+
+Do not leave blank pages or generic “No data” states.
+
+An empty state should say:
+
+* chưa có gì
+* vì sao chưa có
+* người dùng nên làm gì tiếp
+
+Example:
+
+> Chưa có dự án phản biện nào. Hãy gửi thông tin ý tưởng và link tài liệu để bắt đầu case đầu tiên.
+
+### 3.7 Accessibility Is Default
+
+The UI must be readable and usable.
+
+Minimum requirements:
+
+* Text is readable.
+* Contrast is clear.
+* Buttons are easy to click.
+* Form fields have labels or clear accessible names.
+* Error messages appear near the relevant field.
+* Keyboard navigation should not be broken.
+* Important states are not communicated by color alone.
+* Motion must not be excessive or required to understand the UI.
+
+Do not sacrifice basic accessibility for visual effects.
+
+## 4. Core Design Principles
+
+These principles should guide design decisions, but they are not rigid laws.
+
+### 4.1 Clarity Before Decoration
+
+The interface should be visually polished, but clarity comes first.
+
+Decoration is allowed when it:
+
+* improves hierarchy
+* directs attention
+* makes the product feel more complete
+* helps users understand workflow
+* creates trust or confidence
+
+Decoration is not allowed when it:
+
+* competes with the main task
+* makes content harder to read
+* makes the UI look like a generic AI SaaS template
+* adds noise without meaning
+
+Use visual design intentionally.
+
+### 4.2 One Main Job Per Screen
+
+Each screen should have one dominant user goal.
+
+A screen may contain secondary actions, but users should immediately understand what the screen is mainly for.
+
+Examples:
+
+* Landing: understand Nexus and start.
+* Auth: sign in or create account.
+* Dashboard: see current cases and start a new one.
+* Intake: submit project information step by step.
+* Case Workspace: understand case status and continue work.
+* Supporter Review: inspect, edit, and approve report.
+* Admin: process operational tasks quickly.
+
+If a screen has multiple jobs, use hierarchy, sections, tabs, or progressive disclosure to make the main job obvious.
+
+### 4.3 Clear Primary Action Per Context
+
+Avoid multiple competing primary actions in the same context.
+
+This does not mean the entire page can only have one important button. Large pages may have multiple sections, and each section may have its own main action.
+
+Use this rule:
+
+* One primary action per focused task area.
+* Avoid placing two equally loud primary buttons side by side.
+* Secondary actions should look visually quieter.
+* Destructive actions must not look like normal primary actions.
+
+### 4.4 Progressive Disclosure
+
+Show the most important information first.
+
+Preferred order:
+
+1. Current status
+2. Main action
+3. Summary
+4. Key problem or result
+5. Evidence/reason
+6. Details
+7. History/logs
+
+Use expandable areas, drawers, tabs, or detail panels when content is long.
+
+Do not force users to read long blocks before they know what to do.
+
+### 4.5 Familiar Patterns, Product-Specific Execution
+
+Use familiar patterns when they solve the problem well:
+
+* form
+* card
+* table
+* tabs
+* drawer
+* modal
+* accordion
+* timeline
+* stepper
+* toast
+* status badge
+
+However, do not let familiar patterns make the UI generic.
+
+It is acceptable to create product-specific compositions, such as:
+
+* a case progress header
+* report finding cards
+* evidence/reason panels
+* revision timeline
+* supporter review workspace
+* intake guidance flow
+* payment status panel
+
+The interaction should feel familiar; the product should not feel visually generic.
+
+### 4.6 Calm but Not Boring
+
+Nexus should feel calm and serious because users are dealing with academic/startup evaluation.
+
+But calm does not mean plain, empty, or visually dead.
+
+The interface may use:
+
+* thoughtful spacing
+* subtle depth
+* clean typography
+* restrained accent colors
+* structured cards
+* timeline visuals
+* product preview blocks
+* soft gradients or surfaces
+* clear section rhythm
+* useful micro-interactions
+
+Avoid:
+
+* excessive animation
+* too many glowing effects
+* random gradients
+* decorative icons everywhere
+* every card looking equally important
+* dashboard clutter
+
+### 4.7 Reduce User Thinking Load
+
+Do not make users guess what kind of answer is expected.
+
+Bad:
+
+> Mô tả khách hàng mục tiêu.
+
+Better:
+
+> Ai là người trực tiếp gặp vấn đề này? Họ thuộc nhóm sinh viên nào, ở tình huống nào?
+
+Bad:
+
+> Phân tích giải pháp thay thế.
+
+Better:
+
+> Hiện tại họ đang xử lý vấn đề này bằng cách nào nếu chưa dùng Nexus?
+
+Good UX is not only layout. It is also asking the right question at the right time.
+
+### 4.8 Plain Language, Not Marketing Language
+
+UI copy should be direct Vietnamese.
+
+Prefer:
+
+* “Gửi tài liệu”
+* “Chạy phản biện”
 * “Cần bổ sung”
 * “Xem lý do”
 * “Xem bằng chứng”
 * “Nộp bản sửa”
 * “Bản mới nhất”
-* “Đã được kiểm tra”
+* “Đã được supporter duyệt”
 
-Tránh dùng:
+Avoid:
 
-* “Optimize”
-* “Enhance”
-* “Leverage”
 * “Unlock”
+* “Enhance”
 * “Transform”
-* “Intelligent insight”
+* “Leverage”
 * “AI-powered journey”
+* “Intelligent innovation platform”
 
-Không dùng ngôn ngữ học thuật trong UI nếu người dùng không cần nó để hành động.
+Use English only for technical labels or product terms that are already familiar and useful.
 
-## 14. Design for Revision
+## 5. Screen-Level Guidance
 
-Hệ thống phải được thiết kế cho việc sửa đi sửa lại.
+### 5.1 Landing Page
 
-Không coi mỗi lần gửi tài liệu là một lần dùng độc lập.
+The landing page may be more creative than internal workspace pages.
 
-Mỗi case nên có:
+Goal:
 
-* Version tài liệu
-* Version report
-* Lịch sử audit
-* Bản mới nhất
-* Bản cũ
-* Trạng thái từng bản
-* Ghi chú thay đổi
-* Kết quả re-audit
+* explain what Nexus does
+* build trust
+* show the workflow
+* show packages/pricing
+* answer common questions
+* move users toward starting
 
-Người dùng phải luôn biết đâu là bản hiện tại và đâu là bản cũ.
+Allowed:
 
-## 15. Separate Input, Output, and Decision
+* editorial layout
+* split-screen layout
+* product preview mockups
+* workflow visualization
+* subtle gradients
+* visual metaphor for critique/audit/revision
+* stronger visual identity
 
-Phải tách rõ ba lớp:
+Avoid:
 
-1. Input: tài liệu hoặc câu trả lời người dùng gửi
-2. Output: kết quả AI phân tích
-3. Decision: quyết định của mentor, admin hoặc người dùng
+* vague AI SaaS slogans
+* overpromising outcomes
+* exposing sensitive syllabus details
+* making Nexus sound like it does homework for students
+* making the page so minimal that it lacks persuasion
 
-Không trộn dữ liệu gốc với nhận xét của AI.
-Không làm người dùng tưởng AI đã sửa thay họ.
-Không để human review bị lẫn với AI draft.
+Landing copy should be clear, practical, and credible.
 
-Mỗi lớp cần có label và khu vực hiển thị riêng.
+### 5.2 Auth
 
-## 16. Helpful Empty States
+Auth should feel secure, clean, and low-friction.
 
-Không để màn hình trống vô nghĩa.
+Allowed:
 
-Empty state phải nói rõ:
+* simple form
+* Google OAuth button if available
+* light visual side panel
+* short explanation of what users do after login
 
-1. Chưa có gì
-2. Vì sao chưa có
-3. Người dùng cần làm gì tiếp
+Avoid:
 
-Không tốt:
+* heavy marketing
+* unnecessary animation
+* too many choices
+* visually noisy background
 
-“No data.”
+### 5.3 Student Dashboard
 
-Tốt hơn:
+The student dashboard should not feel like an admin table unless there are many cases.
 
-“Chưa có report cho case này. Hãy gửi tài liệu CP1 để chạy audit đầu tiên.”
+For students, prefer:
 
-## 17. Helpful Error States
+* case cards
+* status-first layout
+* clear next action
+* empty state with CTA
+* recent activity summary
 
-Mỗi lỗi phải có hướng xử lý cụ thể.
+Tables are allowed when they improve scanning, but avoid making the first student experience feel like backend admin software.
 
-Không tốt:
+### 5.4 Intake Flow
 
-“Upload failed.”
+Intake should feel guided, not like a long bureaucratic form.
 
-Tốt hơn:
+Required information may include:
 
-“Tải file lên thất bại. Hãy kiểm tra quyền truy cập Google Drive hoặc gửi lại file PDF.”
+* stage
+* idea
+* customer
+* pain point
+* alternatives
+* team capability
+* deadline
+* Google Drive URL
 
-Không tốt:
+The flow may look conversational, but it must remain structured under the hood.
 
-“Something went wrong.”
+Do:
 
-Tốt hơn:
+* ask one focused question at a time
+* show lightweight progress
+* allow review before submit
+* show validation near the relevant input
+* save draft locally when useful
+* redirect to the case workspace after successful submit
 
-“Không thể chạy audit lúc này. Hãy thử lại hoặc kiểm tra tài liệu đã được cấp quyền xem.”
+Avoid:
 
-## 18. Accessibility by Default
+* fully free-form chat with no data structure
+* huge form with all fields exposed at once
+* progress UI that takes too much space
+* over-animated chat bubbles
 
-Giao diện phải dễ đọc và dễ thao tác.
+### 5.5 Case Workspace
 
-Yêu cầu tối thiểu:
+This is the core product screen.
 
-* Text đủ lớn
-* Contrast rõ
-* Button dễ bấm
-* Label không bị ẩn
-* Form field có mô tả rõ
-* Error message nằm gần field bị lỗi
-* Trạng thái không phụ thuộc vào màu בלבד
-* Navigation dùng được bằng keyboard
-* Không dùng animation gây khó chịu hoặc làm chậm thao tác
+The user should quickly understand:
 
-## 19. HeroUI Usage Rules
+* current case status
+* latest version
+* payment state if relevant
+* whether action is needed
+* where the report/feedback is
+* where discussion happens
 
-HeroUI chỉ là công cụ dựng giao diện, không quyết định UX.
+Recommended structure:
 
-Dùng HeroUI theo các rule sau:
+* status/action header at the top
+* main content area for input/report/discussion
+* secondary panel or timeline when useful
+* version switcher only when versions exist
+* progressive disclosure for detailed findings
 
-* Button: chỉ một primary action mỗi màn hình
-* Card: mỗi card chứa một nhóm thông tin rõ ràng
-* Chip/Badge: dùng cho status, severity, version
-* Accordion: dùng cho giải thích dài
-* Drawer: dùng để xem chi tiết mà không rời context chính
-* Modal: chỉ dùng cho xác nhận hoặc hành động ngắn
-* Tabs: dùng khi các phần ngang cấp nhau
-* Stepper: dùng cho quy trình nhiều bước
-* Textarea: dùng cho câu trả lời dài
-* Alert: dùng để đẩy các lưu ý nổi bật lên (ví dụ: cảnh báo thanh toán, lỗi form, thông báo quan trọng)
-* Toast: dùng cho các notification, phản hồi nhanh sau hành động (ví dụ: đã lưu bản nháp, cập nhật thành công)
-* Table: dùng cho quản lý nhiều case
+Do not force a fixed 3-column layout if it makes the UI crowded. Use tabs, panels, or responsive composition when better.
 
-Không lạm dụng component chỉ vì thư viện có sẵn.
+Separate clearly:
 
-## 20. Final Design Rule
+* submitted input
+* AI/supporter feedback
+* discussion
+* activity history
+* payment state
 
-Mỗi khi thiết kế một màn hình, phải kiểm tra bằng checklist sau:
+### 5.6 Report/Finding Display
 
-* Màn hình này có một nhiệm vụ chính chưa?
-* Người dùng có biết mình đang ở đâu không?
-* Người dùng có biết cần làm gì tiếp không?
-* Primary action có rõ không?
-* Có quá nhiều thông tin hiển thị cùng lúc không?
-* Status có rõ không?
-* AI judgment có bằng chứng và lý do không?
-* Text có đơn giản không?
-* Có phần nào chỉ để trang trí không?
-* Người dùng có thể sửa, quay lại, hoặc xem lịch sử không?
-* Empty state và error state có hướng dẫn hành động không?
-* Giao diện có dễ đọc, dễ bấm, dễ hiểu không?
+Reports should be scannable.
 
-Nếu câu trả lời là “không” ở bất kỳ điểm nào, cần sửa lại UI trước khi triển khai.
+Do not render AI output as one long essay.
+
+Prefer structured finding cards or sections:
+
+* severity/status
+* field
+* short summary
+* evidence
+* reason
+* question
+* next action
+
+Evidence and detailed reasoning can be collapsed by default if the screen is dense.
+
+The user should know what to fix without reading every detail.
+
+#

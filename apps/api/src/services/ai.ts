@@ -21,14 +21,7 @@ export interface AiReportOutput {
   findings: Finding[];
 }
 
-export async function generateReportDraft(intakeData: {
-  idea: string;
-  customer: string;
-  pain_point: string;
-  alternatives: string;
-  team_capability?: string;
-  drive_url?: string;
-}): Promise<AiReportOutput> {
+export async function generateReportDraft(intakeData: any): Promise<AiReportOutput> {
   const systemPrompt = `Bạn là một chuyên gia phản biện ý tưởng khởi nghiệp cao cấp cho sinh viên. Nhiệm vụ của bạn là phân tích tài liệu và thông tin đầu vào của sinh viên, chỉ ra các lỗi thiếu sót, điểm mơ hồ hoặc thiếu căn cứ theo tiêu chí Checkpoint môn học.
 Bạn bắt buộc phải trả về kết quả dạng JSON khớp chính xác với cấu trúc dưới đây. Tuyệt đối không viết thêm lời dẫn, lời kết hay các ký tự markdown nằm ngoài khối JSON.
 
@@ -48,15 +41,31 @@ Cấu trúc JSON yêu cầu:
 
 Hãy phân tích kỹ lưỡng, đưa ra từ 3 đến 5 findings chất lượng, tập trung vào những lỗ hổng logic lớn nhất.`;
 
-  const userPrompt = `Dữ liệu ý tưởng của sinh viên:
+  let userPrompt = "";
+  if (intakeData.idea) {
+    userPrompt = `Dữ liệu ý tưởng của sinh viên:
 - Ý tưởng kinh doanh: ${intakeData.idea}
 - Khách hàng mục tiêu: ${intakeData.customer}
 - Nỗi đau/Vấn đề cốt lõi: ${intakeData.pain_point}
 - Giải pháp thay thế hiện tại: ${intakeData.alternatives}
 - Năng lực của nhóm: ${intakeData.team_capability || "Chưa cung cấp"}
 - Liên kết tài liệu Google Drive: ${intakeData.drive_url || "Chưa đính kèm"}`;
+  } else {
+    const currentBlocker = typeof intakeData.current_blocker === "string" ? intakeData.current_blocker : "";
+    const situations = Array.isArray(intakeData.current_situations) ? intakeData.current_situations.join(", ") : "";
+    const docsStr = Array.isArray(intakeData.documents)
+      ? intakeData.documents
+          .map((d: any) => `${d.document_type}: ${d.drive_url || d.file_url || ""} (${d.role_description})`)
+          .join("\n")
+      : "";
+    userPrompt = `Dữ liệu Checkpoint 1 của sinh viên:
+- Điểm kẹt hiện tại: ${currentBlocker || intakeData.case_summary || ""}
+- Tình huống hiện tại: ${situations}
+- Nhu cầu hỗ trợ chính: ${intakeData.support_needs?.primary_need || ""}
+- Kỳ vọng đầu ra: ${intakeData.expected_outputs || ""}
+- Tài liệu đính kèm:\n${docsStr}`;
+  }
 
-  // Try Gemini first, fallback to OpenAI (V98)
   try {
     const modelName = process.env.GEMINI_MODEL_LLM || "gemini-1.5-flash";
     const response = await generateText({
@@ -71,7 +80,6 @@ Hãy phân tích kỹ lưỡng, đưa ra từ 3 đến 5 findings chất lượn
     console.error("Gemini failed, falling back to OpenAI/V98: ", error);
   }
 
-  // Fallback to OpenAI-compatible provider
   try {
     const modelName = process.env.OPENAI_MODEL_LLM || "gpt-4o-mini";
     const response = await generateText({
@@ -92,7 +100,6 @@ Hãy phân tích kỹ lưỡng, đưa ra từ 3 đến 5 findings chất lượn
 
 function parseJsonResponse(text: string): AiReportOutput | null {
   try {
-    // Basic cleaning of response text
     let cleanText = text.trim();
     if (cleanText.startsWith("```json")) {
       cleanText = cleanText.substring(7);

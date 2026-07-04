@@ -1,0 +1,29 @@
+import React from "react";
+import Link from "next/link";
+import ThemeToggler from "../ui/ThemeToggler";
+
+interface AuthShellProps {
+  children: React.ReactNode;
+}
+
+export default function AuthShell({ children }: AuthShellProps) {
+  return (
+    <div className="flex min-h-screen bg-bg-app transition-colors duration-200">
+      {/* Top action bar for theme toggle / back to home */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <ThemeToggler />
+      </div>
+
+      <div className="flex flex-col justify-center flex-1 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-md">
+
+
+          {/* Form Content */}
+          <div className="bg-surface-app py-8 px-4 border border-border-app shadow-sm rounded-lg sm:px-10">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

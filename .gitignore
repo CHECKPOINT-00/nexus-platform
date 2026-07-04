@@ -11,6 +11,7 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 
 # Testing
 coverage
@@ -41,3 +42,10 @@ yarn-error.log*
 # heroui-agents-md
 .heroui-docs/
 __pycache__
+apps-web-repomix.xml
+cookie.txt
+temp/
+data/system-prompts/
+docs/case-documents/
+docker-example
+prisma/backup

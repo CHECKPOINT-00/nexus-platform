@@ -29,11 +29,13 @@ model User {
   owned_cases        Case[]        @relation("OwnerCases")
   assigned_cases     Case[]        @relation("AssignedCases")
   case_memberships   CaseMember[]  @relation("CaseMembers")
-  approved_reports   Report[]      @relation("ReportApprover")
-  verified_payments  Payment[]     @relation("PaymentVerifier")
-  sent_messages      CaseMessage[] @relation("MessageSender")
-  acted_events       CaseEvent[]   @relation("EventActor")
+  approved_reports       Report[]      @relation("ReportApprover")
+  verified_payments      Payment[]     @relation("PaymentVerifier")
+  sent_messages          CaseMessage[] @relation("MessageSender")
+  acted_events           CaseEvent[]   @relation("EventActor")
+  package_price_changes  ServicePackage[] @relation("PackagePriceChanger")
 
+  document_records       DocumentRecord[]
   @@unique([email])
   @@unique([username])
   @@map("users")
@@ -106,16 +108,22 @@ model TwoFactor {
 // ==========================================
 
 model ServicePackage {
-  id          String   @id @default(uuid())
-  name        String
-  price       Int
-  features    Json
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id                    String    @id @default(uuid())
+  name                  String
+  price                 Int
+  is_active             Boolean   @default(true)
+  previous_price        Int?
+  last_price_changed_at DateTime?
+  last_price_changed_by String?
+  features              Json
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
 
-  cases       Case[]
-  payments    Payment[]
+  last_price_changed_by_user User?    @relation("PackagePriceChanger", fields: [last_price_changed_by], references: [id])
+  cases                     Case[]
+  payments                  Payment[]
 
+  @@index([last_price_changed_by])
   @@map("service_packages")
 }
 
@@ -129,6 +137,7 @@ model Case {
   course_context                  String?
   current_checkpoint              String?
   package_id                      String?
+  locked_price                    Int?
   assigned_supporter_auth_user_id String?
   user_facing_stage               String   @default("intake")
   internal_status                 String   @default("unassigned")
@@ -149,6 +158,7 @@ model Case {
   messages           CaseMessage[]
   events             CaseEvent[]
   ai_jobs            AiJob[]
+  document_records   DocumentRecord[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -187,6 +197,7 @@ model Checkpoint {
   lifecycle_units      LifecycleUnit[]
   reports              Report[]
 
+  document_records     DocumentRecord[]
   @@index([case_id])
   @@map("checkpoints")
 }
@@ -209,9 +220,60 @@ model LifecycleUnit {
   checkpoint         Checkpoint @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
   reports            Report[]
 
+  document_records   DocumentRecord[]
   @@index([case_id])
   @@index([checkpoint_id])
   @@map("lifecycle_units")
+}
+model DocumentRecord {
+  id                        String    @id @default(uuid())
+  case_id                   String
+  checkpoint_id             String
+  lifecycle_unit_id         String?
+  unit_code                 String?
+  direction                 String?
+  doc_type                  String    @default("generic")
+  seq                       Int       @default(0)
+  is_primary                Boolean   @default(false)
+  source_kind               String
+  canonical_name            String?
+  original_name             String?
+  extension                 String?
+  mime_type                 String?
+  file_url                  String?
+  download_url              String?
+  cloudinary_public_id      String?
+  metadata_json             Json?
+  uploaded_by_auth_user_id  String
+  created_at                DateTime  @default(now())
+  updated_at                DateTime  @updatedAt
+
+  case             Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  checkpoint       Checkpoint      @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
+  lifecycle_unit   LifecycleUnit?  @relation(fields: [lifecycle_unit_id], references: [id])
+  uploaded_by      User            @relation(fields: [uploaded_by_auth_user_id], references: [id], onDelete: Cascade)
+
+  @@index([case_id])
+  @@index([checkpoint_id])
+  @@index([lifecycle_unit_id])
+  @@index([uploaded_by_auth_user_id])
+  @@index([case_id, checkpoint_id])
+  @@index([case_id, source_kind])
+  @@map("document_records")
+}
+
+model DocumentType {
+  code        String   @id
+  label       String
+  flow        String
+  unit_scope  String
+  is_active   Boolean  @default(true)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([flow, unit_scope, is_active])
+  @@map("document_types")
 }
 
 model Report {

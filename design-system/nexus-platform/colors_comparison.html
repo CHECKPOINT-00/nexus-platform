@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Non-Tech Theme Comparison</title>
+  <!-- Load Inter & Outfit fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Outfit', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Option 1: Academic Sapphire */
+    .theme-sapphire-light {
+      --color-brand: #2563EB;
+      --color-brand-hover: #1D4ED8;
+      --color-brand-soft: #DBEAFE;
+      --color-bg: #F8FAFC;
+      --color-surface: #FFFFFF;
+      --color-surface-soft: #F1F5F9;
+      --color-border: #E2E8F0;
+      --color-text: #0F172A;
+      --color-text-muted: #475569;
+      --color-text-subtle: #64748B;
+    }
+    .theme-sapphire-dark {
+      --color-brand: #3B82F6;
+      --color-brand-hover: #60A5FA;
+      --color-brand-soft: rgba(59, 130, 246, 0.16);
+      --color-bg: #090E1A;
+      --color-surface: #121B2E;
+      --color-surface-soft: #1B2640;
+      --color-border: #1E294B;
+      --color-text: #F8FAFC;
+      --color-text-muted: #94A3B8;
+      --color-text-subtle: #64748B;
+    }
+
+    /* Option 2: Editorial Substack (Terracotta & Ivory) */
+    .theme-editorial-light {
+      --color-brand: #C2410C;
+      --color-brand-hover: #9A3412;
+      --color-brand-soft: #FFEDD5;
+      --color-bg: #FAF9F6;
+      --color-surface: #FFFFFF;
+      --color-surface-soft: #F4F3EE;
+      --color-border: #E6E4DD;
+      --color-text: #1C1917;
+      --color-text-muted: #57534E;
+      --color-text-subtle: #78716C;
+    }
+    .theme-editorial-dark {
+      --color-brand: #EA580C;
+      --color-brand-hover: #F97316;
+      --color-brand-soft: rgba(234, 88, 12, 0.16);
+      --color-bg: #121110;
+      --color-surface: #1C1A18;
+      --color-surface-soft: #272421;
+      --color-border: #312E2B;
+      --color-text: #F5F5F4;
+      --color-text-muted: #A8A29E;
+      --color-text-subtle: #78716C;
+    }
+
+    /* Option 3: Deep Forest Green */
+    .theme-forest-light {
+      --color-brand: #0F5132;
+      --color-brand-hover: #0A3622;
+      --color-brand-soft: #D1E7DD;
+      --color-bg: #F4F6F4;
+      --color-surface: #FFFFFF;
+      --color-surface-soft: #EAEFEA;
+      --color-border: #DCE3DC;
+      --color-text: #142214;
+      --color-text-muted: #4A564A;
+      --color-text-subtle: #738073;
+    }
+    .theme-forest-dark {
+      --color-brand: #198754;
+      --color-brand-hover: #20C997;
+      --color-brand-soft: rgba(25, 135, 84, 0.16);
+      --color-bg: #0D130E;
+      --color-surface: #161F18;
+      --color-surface-soft: #202D22;
+      --color-border: #2A3C2D;
+      --color-text: #ECF2ED;
+      --color-text-muted: #A3B1A4;
+      --color-text-subtle: #738073;
+    }
+
+    /* CSS Variable Bindings */
+    .demo-root {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .demo-surface {
+      background-color: var(--color-surface);
+      border-color: var(--color-border);
+      box-shadow: 0 0 12px 1px rgba(15, 23, 42, 0.04), 0 2px 4px 0 rgba(15, 23, 42, 0.02);
+    }
+    [data-mantine-color-scheme="dark"] .demo-surface {
+      box-shadow: 0 0 12px 1px rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+    }
+    .demo-surface-soft {
+      background-color: var(--color-surface-soft);
+    }
+    .demo-border {
+      border-color: var(--color-border);
+    }
+    .demo-text-muted {
+      color: var(--color-text-muted);
+    }
+    .demo-text-subtle {
+      color: var(--color-text-subtle);
+    }
+    .demo-brand-text {
+      color: var(--color-brand);
+    }
+    .demo-brand-bg {
+      background-color: var(--color-brand);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-body min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto space-y-8">
+    
+    <!-- Title & Description -->
+    <div class="text-center space-y-2">
+      <h1 class="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-white">Bảng Phối Màu Phi Công Nghệ (Non-Tech) Cho Nexus</h1>
+      <p class="text-slate-400 max-w-2xl mx-auto text-sm">
+        Tránh cảm giác web SaaS công nghệ lạnh lùng, hướng tới tâm lý học thuật, đáng tin cậy, nhẹ nhàng và nhân văn.
+      </p>
+    </div>
+
+    <!-- Controls -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 flex flex-col md:flex-row gap-6 justify-between items-center">
+      <!-- Options selector -->
+      <div class="flex flex-wrap gap-3">
+        <button onclick="setTheme('sapphire')" id="btn-sapphire" class="px-4 py-2 rounded-lg font-heading text-sm font-semibold border-2 border-blue-500 bg-blue-500/10 text-blue-400 transition-all">
+          1. Academic Sapphire (Xanh Học Thuật)
+        </button>
+        <button onclick="setTheme('editorial')" id="btn-editorial" class="px-4 py-2 rounded-lg font-heading text-sm font-semibold border-2 border-slate-700 hover:border-slate-600 text-slate-400 transition-all">
+          2. Editorial Substack (Đất Nung & Ngà)
+        </button>
+        <button onclick="setTheme('forest')" id="btn-forest" class="px-4 py-2 rounded-lg font-heading text-sm font-semibold border-2 border-slate-700 hover:border-slate-600 text-slate-400 transition-all">
+          3. Deep Forest (Xanh Lá Đại Ngàn)
+        </button>
+      </div>
+
+      <!-- Mode Toggler -->
+      <div class="flex items-center gap-3 bg-slate-900/60 p-1.5 rounded-lg border border-slate-700">
+        <button onclick="setMode('light')" id="mode-light" class="px-4 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 transition-all">
+          Nền Sáng
+        </button>
+        <button onclick="setMode('dark')" id="mode-dark" class="px-4 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition-all">
+          Nền Tối
+        </button>
+      </div>
+    </div>
+
+    <!-- Visualizer Sandbox -->
+    <div id="demo-viewport" class="demo-root theme-sapphire-light rounded-2xl border-4 border-slate-800 shadow-2xl overflow-hidden min-h-[500px] flex flex-col">
+      <!-- Dummy Header -->
+      <header class="demo-border border-b px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2 font-heading font-semibold text-xl demo-brand-text">
+          <span class="w-8 h-8 rounded-lg demo-brand-bg flex items-center justify-center text-white font-bold">N</span>
+          <span>Nexus</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="demo-text-muted text-xs">student@fpt.edu.vn</span>
+          <div class="w-8 h-8 rounded-full demo-brand-bg flex items-center justify-center text-white text-xs font-bold font-heading">
+            ST
+          </div>
+        </div>
+      </header>
+
+      <!-- Dummy Content Body -->
+      <main class="p-6 md:p-8 flex-grow space-y-6">
+        <div>
+          <span class="demo-text-subtle text-xs">Trang chủ / Dashboard</span>
+          <h2 class="font-heading text-2xl font-bold mt-1">Dự án phản biện</h2>
+          <p class="demo-text-muted text-sm">Quản lý các dự án kiểm định chất lượng ý tưởng khởi nghiệp.</p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <!-- Card 1 -->
+          <div class="demo-surface border rounded-xl p-5 flex flex-col justify-between hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div>
+              <div class="flex justify-between items-start gap-2 mb-3">
+                <div>
+                  <span class="demo-text-subtle text-[10px] font-semibold uppercase tracking-wider">NK-478421</span>
+                  <h3 class="font-heading text-base font-bold mt-0.5">XanhXanh</h3>
+                </div>
+                <div class="flex gap-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">Chờ Triage</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Đã thanh toán</span>
+                </div>
+              </div>
+            </div>
+            <div class="demo-border border-t pt-4 mt-4 grid grid-cols-2 gap-3 text-xs demo-text-muted">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 demo-text-subtle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span class="truncate">Gói Dịch Vụ Ý Tưởng</span>
+              </div>
+              <div class="flex items-center gap-1.5 justify-end">
+                <svg class="w-3.5 h-3.5 demo-text-subtle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>27/06/2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="demo-surface border rounded-xl p-5 flex flex-col justify-between hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div>
+              <div class="flex justify-between items-start gap-2 mb-3">
+                <div>
+                  <span class="demo-text-subtle text-[10px] font-semibold uppercase tracking-wider">NK-26DA7D</span>
+                  <h3 class="font-heading text-base font-bold mt-0.5">ZICZACZAC</h3>
+                </div>
+                <div class="flex gap-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">Chờ Triage</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Đã thanh toán</span>
+                </div>
+              </div>
+            </div>
+            <div class="demo-border border-t pt-4 mt-4 grid grid-cols-2 gap-3 text-xs demo-text-muted">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 demo-text-subtle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span class="truncate">Gói Đồng Hành Vàng</span>
+              </div>
+              <div class="flex items-center gap-1.5 justify-end">
+                <svg class="w-3.5 h-3.5 demo-text-subtle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>27/06/2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="demo-surface border rounded-xl p-5 flex flex-col justify-between hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div>
+              <div class="flex justify-between items-start gap-2 mb-3">
+                <div>
+                  <span class="demo-text-subtle text-[10px] font-semibold uppercase tracking-wider">NK-82AA55</span>
+                  <h3 class="font-heading text-base font-bold mt-0.5">MedTeam</h3>
+                </div>
+                <div class="flex gap-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Đã Phân Công</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Đã thanh toán</span>
+                </div>
+              </div>
+            </div>
+            <div class="demo-border border-t pt-4 mt-4 grid grid-cols-2 gap-3 text-xs demo-text-muted">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 demo-text-subtle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span class="truncate">Gói Đồng Hành Vàng</span>
+              </div>
+              <div class="flex items-center gap-1.5 justify-end">
+                <svg class="w-3.5 h-3.5 demo-text-subtle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>28/06/2026</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Info Details Panel -->
+        <div class="demo-surface-soft rounded-xl p-6 space-y-4">
+          <h3 class="font-heading text-lg font-semibold">Thông số mã màu hiện tại</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="bg-black/10 p-3 rounded-lg border border-black/5 dark:bg-white/5 dark:border-white/5 space-y-1">
+              <div class="font-semibold text-blue-500">--color-bg (Nền web)</div>
+              <div id="val-bg" class="opacity-80">Loading...</div>
+            </div>
+            <div class="bg-black/10 p-3 rounded-lg border border-black/5 dark:bg-white/5 dark:border-white/5 space-y-1">
+              <div class="font-semibold text-blue-500">--color-surface (Nền card)</div>
+              <div id="val-surface" class="opacity-80">Loading...</div>
+            </div>
+            <div class="bg-black/10 p-3 rounded-lg border border-black/5 dark:bg-white/5 dark:border-white/5 space-y-1">
+              <div class="font-semibold text-blue-500">--color-border (Đường viền)</div>
+              <div id="val-border" class="opacity-80">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Recommendations Table -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
+      <h3 class="font-heading text-xl font-bold text-white">So Sánh Tâm Lý Học Màu Sắc</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-900 text-slate-400 font-heading">
+            <tr>
+              <th class="p-3">Tùy Chọn</th>
+              <th class="p-3">Màu Brand Chủ Đạo</th>
+              <th class="p-3">Nền Tối (BG / Card)</th>
+              <th class="p-3">Tác Động Tâm Lý & Cảm Xúc</th>
+              <th class="p-3">Phù Hợp Với</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700">
+            <tr>
+              <td class="p-3 font-semibold text-white">1. Academic Sapphire</td>
+              <td class="p-3 text-blue-400">#2563EB (Xanh Lam Học Thuật)</td>
+              <td class="p-3 text-blue-300">#090E1A / #121B2E</td>
+              <td class="p-3 text-emerald-400">Gợi cảm giác tin cậy, nghiêm túc của các trường đại học lớn (Harvard, Oxford), giảm bớt sự lo lắng của sinh viên, mang tính kiểm định chuyên môn vững vàng.</td>
+              <td class="p-3">Nền tảng kiểm định học thuật, đánh giá dự án chuẩn hóa.</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">2. Editorial Substack</td>
+              <td class="p-3 text-orange-500">#C2410C (Đất Nung)</td>
+              <td class="p-3">#121110 / #1C1A18</td>
+              <td class="p-3 text-emerald-400">Cảm giác thủ công, viết lách, nhân văn và đậm chất trí tuệ. Trông giống một thư viện hoặc tạp chí chuyên sâu, cực kỳ thân thiện và gần gũi.</td>
+              <td class="p-3">Cố vấn ý tưởng khởi nghiệp, viết lách, thảo luận phản biện.</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">3. Deep Forest Green</td>
+              <td class="p-3 text-green-600">#0F5132 (Xanh Đại Ngàn Muted)</td>
+              <td class="p-3">#0D130E / #161F18</td>
+              <td class="p-3 text-emerald-400">Màu xanh lục tự nhiên, tĩnh lặng chứ không phải xanh neon công nghệ. Đem lại cảm giác bền vững, điềm tĩnh, phát triển ý tưởng sinh thái và đời sống thực tế.</td>
+              <td class="p-3">Đồng hành phát triển, ươm mầm dự án.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeTheme = 'sapphire';
+    let activeMode = 'light';
+
+    const hexValues = {
+      sapphire: {
+        light: { bg: '#F8FAFC', surface: '#FFFFFF', border: '#E2E8F0' },
+        dark: { bg: '#090E1A', surface: '#121B2E', border: '#1E294B' }
+      },
+      editorial: {
+        light: { bg: '#FAF9F6', surface: '#FFFFFF', border: '#E6E4DD' },
+        dark: { bg: '#121110', surface: '#1C1A18', border: '#312E2B' }
+      },
+      forest: {
+        light: { bg: '#F4F6F4', surface: '#FFFFFF', border: '#DCE3DC' },
+        dark: { bg: '#0D130E', surface: '#161F18', border: '#2A3C2D' }
+      }
+    };
+
+    function setTheme(themeName) {
+      activeTheme = themeName;
+      updateUI();
+    }
+
+    function setMode(modeName) {
+      activeMode = modeName;
+      updateUI();
+    }
+
+    function updateUI() {
+      const viewport = document.getElementById('demo-viewport');
+      
+      // Clear current classes
+      viewport.className = 'demo-root rounded-2xl border-4 border-slate-800 shadow-2xl overflow-hidden min-h-[500px] flex flex-col';
+      
+      // Add target classes
+      viewport.classList.add(`theme-${activeTheme}-${activeMode}`);
+
+      // Update control buttons selection
+      ['sapphire', 'editorial', 'forest'].forEach(t => {
+        const btn = document.getElementById(`btn-${t}`);
+        if (t === activeTheme) {
+          btn.className = "px-4 py-2 rounded-lg font-heading text-sm font-semibold border-2 border-blue-500 bg-blue-500/10 text-blue-400 transition-all";
+        } else {
+          btn.className = "px-4 py-2 rounded-lg font-heading text-sm font-semibold border-2 border-slate-700 hover:border-slate-600 text-slate-400 transition-all";
+        }
+      });
+
+      // Update Mode buttons
+      const modeLight = document.getElementById('mode-light');
+      const modeDark = document.getElementById('mode-dark');
+      if (activeMode === 'light') {
+        modeLight.className = "px-4 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 transition-all";
+        modeDark.className = "px-4 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition-all";
+      } else {
+        modeLight.className = "px-4 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition-all";
+        modeDark.className = "px-4 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 transition-all";
+      }
+
+      // Update info codes
+      const values = hexValues[activeTheme][activeMode];
+      document.getElementById('val-bg').textContent = values.bg;
+      document.getElementById('val-surface').textContent = values.surface;
+      document.getElementById('val-border').textContent = values.border;
+    }
+
+    // Initialize
+    updateUI();
+  </script>
+</body>
+</html>

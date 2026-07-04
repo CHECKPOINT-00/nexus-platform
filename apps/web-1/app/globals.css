@@ -1,0 +1,167 @@
+@import "tailwindcss";
+@import "@mantine/core/styles.css";
+@import "@mantine/dates/styles.css";
+@import "@mantine/notifications/styles.css";
+@import "@mantine/spotlight/styles.css";
+@import "@mantine/carousel/styles.css";
+@import "@mantine/dropzone/styles.css";
+@import "@mantine/charts/styles.css";
+@import "@mantine/tiptap/styles.css";
+@import "@mantine/nprogress/styles.css";
+
+
+@theme {
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-brand-subtle: var(--color-brand-subtle);
+
+  --color-accent-warm: var(--color-accent-warm);
+  --color-accent-warm-hover: var(--color-accent-warm-hover);
+  --color-accent-warm-soft: var(--color-accent-warm-soft);
+
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+
+  --color-bg-app: var(--color-bg);
+  --color-surface-app: var(--color-surface);
+  --color-surface-soft: var(--color-surface-soft);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-border-app: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-text-app: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+
+  --font-sans: var(--font-google-sans-flex), sans-serif;
+  --font-heading: var(--font-google-sans-flex), sans-serif;
+  --font-body: var(--font-google-sans-flex), sans-serif;
+}
+
+:root {
+  /* Brand — Sapphire Blue */
+  --color-brand: #2563EB;
+  --color-brand-hover: #1D4ED8;
+  --color-brand-soft: #DBEAFE;
+  --color-brand-subtle: #EFF6FF;
+
+  /* Warm Accent — Orange */
+  --color-accent-warm: #F97316;
+  --color-accent-warm-hover: #EA580C;
+  --color-accent-warm-soft: #FFEDD5;
+
+  /* Status */
+  --color-success: #10B981;
+  --color-success-soft: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-soft: #FEF3C7;
+  --color-danger: #EF4444;
+  --color-danger-soft: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-soft: #DBEAFE;
+
+  /* Neutral */
+  --color-bg: #F8FAFC; /* Slate 50 */
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #F1F5F9; /* Slate 100 */
+  --color-surface-muted: #E2E8F0; /* Slate 200 */
+  --color-border: #E2E8F0; /* Slate 200 */
+  --color-border-strong: #CBD5E1; /* Slate 300 */
+  --color-text: #0F172A; /* Slate 900 */
+  --color-text-muted: #475569; /* Slate 600 */
+  --color-text-subtle: #64748B; /* Slate 500 */
+
+  /* 4-sided soft shadows for light mode */
+  --shadow-sm: 0 0 12px 1px rgba(15, 23, 42, 0.04), 0 2px 4px 0 rgba(15, 23, 42, 0.02);
+  --shadow-md: 0 0 18px 2px rgba(15, 23, 42, 0.06), 0 4px 6px -1px rgba(15, 23, 42, 0.03);
+
+  /* Base next-themes backgrounds for compatibility */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+
+  /* Mantine Overrides Light */
+  --mantine-color-body: var(--color-bg) !important;
+  --mantine-color-bg: var(--color-bg) !important;
+}
+
+[data-mantine-color-scheme="dark"] {
+  --color-bg: #090E1A; /* Midnight Slate */
+  --color-surface: #121B2E; /* Deep blue-gray card */
+  --color-surface-soft: #1B2640;
+  --color-surface-muted: #243257;
+  --color-border: #1E294B;
+  --color-border-strong: #2E3D6B;
+  --color-text: #F8FAFC;
+  --color-text-muted: #94A3B8;
+  --color-text-subtle: #64748B;
+
+  --color-brand: #3B82F6;
+  --color-brand-hover: #60A5FA;
+  --color-brand-soft: rgba(59, 130, 246, 0.16);
+  --color-brand-subtle: rgba(59, 130, 246, 0.08);
+
+  /* Status Soft Colors for Dark Theme */
+  --color-success-soft: rgba(16, 185, 129, 0.15);
+  --color-warning-soft: rgba(245, 158, 11, 0.15);
+  --color-danger-soft: rgba(239, 68, 68, 0.15);
+  --color-info-soft: rgba(59, 130, 246, 0.15);
+
+  /* Shadows for dark mode */
+  --shadow-sm: 0 0 12px 1px rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 0 18px 2px rgba(0, 0, 0, 0.35), 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+
+  /* Mantine Overrides Dark */
+  --mantine-color-body: var(--color-bg) !important;
+  --mantine-color-bg: var(--color-bg) !important;
+  --mantine-color-dark-7: var(--color-bg) !important;
+  --mantine-color-dark-6: var(--color-surface) !important;
+  --mantine-color-dark-5: var(--color-surface-soft) !important;
+  --mantine-color-dark-4: var(--color-surface-muted) !important;
+  --mantine-color-dark-border: var(--color-border) !important;
+}
+
+/* Custom global styles */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-google-sans-flex), sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-google-sans-flex), sans-serif;
+  font-weight: 600;
+}
+
+/* Direct layout overrides for Mantine elements to match our color system */
+.mantine-Card-root,
+.mantine-Paper-root,
+.mantine-Menu-dropdown,
+.mantine-Modal-content,
+.mantine-Drawer-content,
+.mantine-Select-dropdown,
+.mantine-Combobox-dropdown,
+.mantine-Popover-dropdown {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Keep table borders clean */
+.mantine-Table-tr,
+.mantine-Table-th,
+.mantine-Table-td {
+  border-color: var(--color-border) !important;
+}
+

@@ -2,19 +2,20 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { streamText } from 'hono/streaming'
-import { serveStatic } from '@hono/node-server/serve-static'
 import './env.js'
 import { auth } from './auth.js'
-import { casesRouter } from './modules/cases/presentation/http/cases.routes.js'
-import { reportsRouter } from './modules/reports/presentation/http/reports.routes.js'
-import { paymentsRouter } from './modules/payments/presentation/http/payments.routes.js'
-import { packagesRouter } from './modules/packages/presentation/http/packages.routes.js'
-import { aiEngineRouter } from './modules/ai-engine/presentation/http/ai-engine.routes.js'
+import { casesRouter } from './modules/cases/http/cases.routes.js'
+import { reportsRouter } from './modules/reports/http/reports.routes.js'
+import { paymentsRouter } from './modules/payments/http/payments.routes.js'
+import { packagesRouter } from './modules/packages/http/packages.routes.js'
+import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
+import { adminRouter } from './modules/admin/http/admin.routes.js'
+import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
+import { prisma } from './db.js'
+
 
 const app = new Hono()
 const port = Number(process.env.PORT ?? 8000)
-
-app.use('/uploads/*', serveStatic({ root: './' }))
 
 app.use(
   '/api/*',
@@ -31,9 +32,35 @@ app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
 
-app.get('/health', (c) => {
-  return c.json({ ok: true })
+app.get('/health', async (c) => {
+  let dbStatus = 'unknown'
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    dbStatus = 'connected'
+  } catch (error) {
+    dbStatus = 'disconnected'
+  }
+
+  const isHealthy = dbStatus === 'connected'
+
+  const healthData = {
+    status: isHealthy ? 'ok' : 'error',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV ?? 'development',
+    checks: {
+      database: dbStatus,
+    },
+    memory: {
+      heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`,
+      rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
+    }
+  }
+
+  return c.json(healthData, isHealthy ? 200 : 503)
 })
+
 
 app.get('/stream', (c) => {
   return streamText(c, async (stream) => {
@@ -61,10 +88,16 @@ app.route('/api/reports', reportsRouter)
 app.route('/api/payments', paymentsRouter)
 app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
+app.route('/api/admin', adminRouter)
+app.route('/api/supporter', supporterRouter)
 
-serve({
-  fetch: app.fetch,
-  port
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+export { app }
+
+if (process.env.NODE_ENV !== 'test') {
+  serve({
+    fetch: app.fetch,
+    port
+  }, (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`)
+  })
+}
