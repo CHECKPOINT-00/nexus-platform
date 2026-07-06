@@ -12,7 +12,7 @@ import TabDiscussionChat from "../../../dashboard/case/[id]/_components/TabDiscu
 import ActivityTimeline from "../../../dashboard/case/[id]/_components/ActivityTimeline";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import SupporterOutputUploadModal from "./_components/SupporterOutputUploadModal";
-import { Alert, Button, Modal, Text, Group, Stack } from "@mantine/core";
+import { Alert, Button, Modal, Text, Group, Stack, Badge } from "@mantine/core";
 import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { useCloseCase } from "./hooks/useCloseCase";
 import type { DocumentCheckpoint } from "@/types/case";
@@ -60,11 +60,29 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
 
   const isCaseClosed = caseData.user_facing_stage === "closed" || caseData.internal_status === "done";
 
-  // Detect if supporter has uploaded at least one output document
-  const hasOutputDocuments =
-    (documentWorkspace?.checkpoints ?? []).some(
-      (cp: DocumentCheckpoint) => (cp.support_flow_documents?.length ?? 0) > 0
-    );
+  // Determine package and required number of supporter-uploaded documents
+  const packageName = caseData.package?.name || "";
+  const isGoi2 = packageName.toLowerCase().includes("gói 2") || packageName.toLowerCase().includes("goi 2");
+  const requiredDocCount = isGoi2 ? 2 : 1;
+
+  // Count documents uploaded by supporter or admin in support_flow_documents
+  const supporterUploadedDocsCount = (documentWorkspace?.checkpoints ?? []).reduce(
+    (total: number, cp: DocumentCheckpoint) => {
+      const countInCp = (cp.support_flow_documents ?? []).reduce((cpTotal: number, unit) => {
+        const supporterFiles = (unit.files ?? []).filter(
+          (file) =>
+            file.uploaded_by_role === "supporter" ||
+            file.uploaded_by_role === "admin" ||
+            (file.doc_type && ["supporter_output", "supporter_attachment"].includes(file.doc_type))
+        );
+        return cpTotal + supporterFiles.length;
+      }, 0);
+      return total + countInCp;
+    },
+    0
+  );
+
+  const hasOutputDocuments = supporterUploadedDocsCount >= requiredDocCount;
 
   // Show the "ready to close" alert only if: case is not closed, payment satisfied, has output docs
   const showReadyToCloseAlert =
@@ -126,6 +144,34 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
               </Alert>
             )}
 
+            {/* Warning alert if supporter has not uploaded enough required documents */}
+            {!isCaseClosed && isPaymentSatisfied(caseData) && !hasOutputDocuments && (
+              <Alert
+                icon={<AlertCircle className="w-4 h-4" />}
+                color="blue"
+                variant="light"
+                radius="md"
+                className="font-body"
+              >
+                <Stack gap={2}>
+                  <Group gap="xs" align="center">
+                    <Text size="sm" fw={600}>Chưa đủ tài liệu hỗ trợ</Text>
+                    <Badge
+                      color={supporterUploadedDocsCount < requiredDocCount ? "red" : "green"}
+                      variant="light"
+                      size="xs"
+                      className="font-semibold"
+                    >
+                      Đã tải: {supporterUploadedDocsCount}/{requiredDocCount}
+                    </Badge>
+                  </Group>
+                  <Text size="xs" c="dimmed">
+                    Cần tải lên tối thiểu <strong>{requiredDocCount}</strong> tài liệu output cho <strong>{packageName}</strong>.
+                  </Text>
+                </Stack>
+              </Alert>
+            )}
+
             {/* Ready to close suggestion alert */}
             {showReadyToCloseAlert && (
               <Alert
@@ -174,15 +220,16 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
                   </Button>
                   {!showReadyToCloseAlert && !isCaseClosed && isPaymentSatisfied(caseData) && (
                     <Button
-                    size="sm"
-                    variant="outline"
-                    color="green"
-                    className="font-semibold cursor-pointer h-8.5 text-xs"
-                    leftSection={<XCircle className="w-3.5 h-3.5" />}
-                    onClick={() => setIsCloseConfirmOpen(true)}
-                  >
-                    Đóng case
-                  </Button>
+                      size="sm"
+                      variant="outline"
+                      color="green"
+                      className={`font-semibold h-8.5 text-xs ${hasOutputDocuments ? "cursor-pointer" : ""}`}
+                      leftSection={<CheckCircle className="w-3.5 h-3.5" />}
+                      onClick={() => setIsCloseConfirmOpen(true)}
+                      disabled={!hasOutputDocuments}
+                    >
+                      Đóng case
+                    </Button>
                   )}
                 </div>
               )}
