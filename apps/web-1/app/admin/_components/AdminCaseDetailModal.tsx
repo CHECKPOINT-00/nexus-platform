@@ -106,7 +106,7 @@ export default function AdminCaseDetailModal({
 
                         if (isPaid) {
                           return (
-                            <Badge color="yellow" variant="light" size="sm">
+                            <Badge color="blue" variant="light" size="sm">
                               Chờ Phân Công
                             </Badge>
                           );

@@ -223,8 +223,8 @@ export default function TabPayment({ caseData }: TabPaymentProps) {
                 </div>
               </div>
             ) : caseData.payment_status === "proof_submitted" || caseData.payment_status === "pending_verification" ? (
-              <div className="bg-warning-soft/30 border border-warning/15 p-6 rounded-2xl flex flex-col items-center justify-center text-center gap-3 shadow-sm py-10">
-                <div className="w-12 h-12 rounded-full bg-warning/10 text-warning flex items-center justify-center">
+              <div className="bg-brand-soft/30 border border-brand/15 p-6 rounded-2xl flex flex-col items-center justify-center text-center gap-3 shadow-sm py-10">
+                <div className="w-12 h-12 rounded-full bg-brand/10 text-brand flex items-center justify-center">
                   <Clock className="w-6 h-6" />
                 </div>
                 <div className="space-y-1 max-w-md">

@@ -148,7 +148,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
             {!isCaseClosed && isPaymentSatisfied(caseData) && !hasOutputDocuments && (
               <Alert
                 icon={<AlertCircle className="w-4 h-4" />}
-                color="blue"
+                color="orange"
                 variant="light"
                 radius="md"
                 className="font-body"

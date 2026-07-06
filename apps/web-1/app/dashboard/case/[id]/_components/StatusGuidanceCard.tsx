@@ -82,7 +82,7 @@ export default function StatusGuidanceCard({
       return (
         <Alert
           variant="light"
-          color="teal"
+          color="blue"
           radius="md"
           title="Hồ sơ đã tiếp nhận — Chờ phân công Supporter"
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
@@ -115,10 +115,10 @@ export default function StatusGuidanceCard({
       return (
         <Alert
           variant="light"
-          color="green"
+          color="orange"
           radius="md"
           title="Báo cáo phản biện đã sẵn sàng"
-          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
+          icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">

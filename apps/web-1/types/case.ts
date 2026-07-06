@@ -299,11 +299,11 @@ export const paymentStatusMap: Record<string, StatusThemeDetails> = {
   },
   pending_verification: {
     label: "Chờ duyệt thanh toán",
-    color: "warning",
+    color: "primary",
   },
   pendingVerification: {
     label: "Chờ duyệt thanh toán",
-    color: "warning",
+    color: "primary",
   },
   paid: {
     label: "Đã thanh toán",

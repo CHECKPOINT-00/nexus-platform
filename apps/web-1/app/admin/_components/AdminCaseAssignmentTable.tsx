@@ -207,7 +207,7 @@ export default function AdminCaseAssignmentTable({
 
                           if (isPaid) {
                             return (
-                              <Badge color="yellow" variant="light" size="sm">
+                              <Badge color="blue" variant="light" size="sm">
                                 Chờ Phân Công
                               </Badge>
                             );

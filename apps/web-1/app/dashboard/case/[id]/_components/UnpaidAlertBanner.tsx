@@ -50,8 +50,8 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
 
   if (payment_status === "proof_submitted" || payment_status === "pending_verification" || payment_status === "pendingVerification") {
     return (
-      <div className="flex items-start gap-3 p-4 rounded-lg bg-warning-soft/40 border border-warning/10">
-        <Clock className="w-5 h-5 text-warning shrink-0 mt-0.5 animate-pulse" />
+      <div className="flex items-start gap-3 p-4 rounded-lg bg-info-soft/40 border border-info/10">
+        <Clock className="w-5 h-5 text-info shrink-0 mt-0.5 animate-pulse" />
         <div className="space-y-0.5">
           <h4 className="font-heading font-semibold text-sm text-text-app">Đang chờ xác thực thanh toán</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">

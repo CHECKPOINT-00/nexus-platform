@@ -29,7 +29,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
   }
 
   let color = "gray";
-  if (statusDetails.color === "success") color = "teal";
+  if (statusDetails.color === "success") color = "green";
   else if (statusDetails.color === "warning") color = "orange";
   else if (statusDetails.color === "danger") color = "red";
   else if (statusDetails.color === "primary") color = "brand";

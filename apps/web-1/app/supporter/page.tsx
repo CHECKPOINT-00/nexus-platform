@@ -47,8 +47,8 @@ const PAYMENT_OPTIONS = [
 
 function getBadgeColor(color: string): string {
   switch (color) {
-    case "success": return "teal";
-    case "warning": return "yellow";
+    case "success": return "green";
+    case "warning": return "orange";
     case "danger": return "red";
     case "primary": return "brand";
     default: return "gray";
