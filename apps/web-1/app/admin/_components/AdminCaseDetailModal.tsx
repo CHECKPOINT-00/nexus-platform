@@ -89,23 +89,62 @@ export default function AdminCaseDetailModal({
                 <div className="space-y-1">
                   <span className="font-bold text-xs text-text-subtle">Trạng thái nội bộ</span>
                   <div className="pt-0.5 font-normal">
-                    <Badge
-                      color={
-                        detailData.case.internal_status === "triage_pending"
-                          ? "gray"
-                          : detailData.case.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
+                    {(() => {
+                      if (detailData.case.internal_status === "triage_pending") {
+                        return (
+                          <Badge color="gray" variant="light" size="sm">
+                            Chờ Duyệt
+                          </Badge>
+                        );
                       }
-                      variant="light"
-                      size="sm"
-                    >
-                      {detailData.case.internal_status === "triage_pending"
-                        ? "Chờ Duyệt"
-                        : detailData.case.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
-                    </Badge>
+
+                      if (detailData.case.internal_status === "accepted_unassigned") {
+                        const isPaid =
+                          detailData.case.payment_status === "paid" ||
+                          detailData.case.payment_status === "not_required" ||
+                          detailData.case.locked_price === 0;
+
+                        if (isPaid) {
+                          return (
+                            <Badge color="yellow" variant="light" size="sm">
+                              Chờ Phân Công
+                            </Badge>
+                          );
+                        }
+
+                        if (
+                          detailData.case.payment_status === "proof_submitted" ||
+                          detailData.case.payment_status === "pending_verification" ||
+                          detailData.case.payment_status === "pendingVerification"
+                        ) {
+                          return (
+                            <Badge color="blue" variant="light" size="sm">
+                              Chờ Duyệt Thanh Toán
+                            </Badge>
+                          );
+                        }
+
+                        if (detailData.case.payment_status === "expired") {
+                          return (
+                            <Badge color="red" variant="light" size="sm">
+                              Hết Hạn Thanh Toán
+                            </Badge>
+                          );
+                        }
+
+                        return (
+                          <Badge color="orange" variant="light" size="sm">
+                            Chờ Thanh Toán
+                          </Badge>
+                        );
+                      }
+
+                      return (
+                        <Badge color="green" variant="light" size="sm">
+                          Đã phân công
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

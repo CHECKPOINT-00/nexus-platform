@@ -9,7 +9,7 @@ interface DocumentWorkspaceProps {
   workspace: DocumentWorkspaceType | null;
 }
 
-type WorkspaceTab = "overview" | "documents" | "external-feedback";
+type WorkspaceTab = "documents" | "external-feedback";
 
 type DocumentRow = {
   key: string;
@@ -26,7 +26,7 @@ type DocumentRow = {
 
 export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps) {
   const [activeCheckpoint, setActiveCheckpoint] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
 
   const selectedCheckpoint = useMemo(() => {
     if (!workspace || workspace.checkpoints.length === 0) return null;
@@ -79,16 +79,11 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
       )}
 
       <Card withBorder padding="lg" radius="md">
-        <Tabs value={activeTab} onChange={(value) => setActiveTab((value ?? "overview") as WorkspaceTab)}>
+        <Tabs value={activeTab} onChange={(value) => setActiveTab((value ?? "documents") as WorkspaceTab)}>
           <Tabs.List>
-            <Tabs.Tab value="overview" leftSection={<FolderOpen className="w-4 h-4" />}>Tổng quan</Tabs.Tab>
             <Tabs.Tab value="documents" leftSection={<FileText className="w-4 h-4" />}>Tài liệu ({documentRows.length})</Tabs.Tab>
             <Tabs.Tab value="external-feedback" leftSection={<CheckCircle className="w-4 h-4" />}>Đánh giá bên ngoài ({feedbackRows.length})</Tabs.Tab>
           </Tabs.List>
-
-          <Tabs.Panel value="overview" pt="md">
-            <CheckpointOverview checkpoint={selectedCheckpoint} />
-          </Tabs.Panel>
 
           <Tabs.Panel value="documents" pt="md">
             <DocumentTable
@@ -113,40 +108,6 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
   );
 }
 
-function CheckpointOverview({ checkpoint }: { checkpoint: DocumentCheckpoint }) {
-  const { overview, version_units, assessment_units } = checkpoint;
-
-  return (
-    <Stack gap="md">
-      <div className="py-2">
-        <Text size="lg" className="font-heading">{checkpoint.checkpoint_code}</Text>
-        <Text c="dimmed">{overview.selected_label}</Text>
-      </div>
-
-      <div className="grid grid-cols-3 border border-border-app bg-surface-app divide-x divide-border-app">
-        <div className="p-6 text-center space-y-1">
-          <Text c="dimmed" size="xs" tt="uppercase" className="tracking-wider">Phiên bản</Text>
-          <Text style={{ fontSize: "28px", fontWeight: 300 }}>{overview.version_count}</Text>
-        </div>
-        <div className="p-6 text-center space-y-1">
-          <Text c="dimmed" size="xs" tt="uppercase" className="tracking-wider">Đánh giá</Text>
-          <Text style={{ fontSize: "28px", fontWeight: 300 }}>{overview.assessment_count}</Text>
-        </div>
-        <div className="p-6 text-center space-y-1">
-          <Text c="dimmed" size="xs" tt="uppercase" className="tracking-wider">Tổng tệp</Text>
-          <Text style={{ fontSize: "28px", fontWeight: 300 }}>{overview.total_files}</Text>
-        </div>
-      </div>
-
-      {version_units.length === 0 && assessment_units.length === 0 && (
-        <div className="border border-border-app bg-surface-app p-8 text-center flex flex-col items-center justify-center gap-3">
-          <FolderOpen className="w-10 h-10 text-text-muted" />
-          <Text c="dimmed" ta="center">Chưa có tài liệu nào trong checkpoint này.</Text>
-        </div>
-      )}
-    </Stack>
-  );
-}
 
 function formatDate(dateStr?: string | null) {
   if (!dateStr) return "—";

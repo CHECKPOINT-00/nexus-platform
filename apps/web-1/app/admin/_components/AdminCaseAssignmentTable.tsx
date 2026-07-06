@@ -191,23 +191,61 @@ export default function AdminCaseAssignmentTable({
                       {item.package_name && item.package_name.length > 30 ? `${item.package_name.slice(0, 30)}...` : item.package_name}
                     </Table.Td>
                     <Table.Td>
-                      <Badge
-                        color={
-                          item.internal_status === "triage_pending"
-                            ? "gray"
-                            : item.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
+                      {(() => {
+                        if (item.internal_status === "triage_pending") {
+                          return (
+                            <Badge color="gray" variant="light" size="sm">
+                              Chờ Duyệt
+                            </Badge>
+                          );
                         }
-                        variant="light"
-                        size="sm"
-                      >
-                        {item.internal_status === "triage_pending"
-                          ? "Chờ Duyệt"
-                          : item.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
-                      </Badge>
+
+                        if (item.internal_status === "accepted_unassigned") {
+                          const isPaid =
+                            item.payment_status === "paid" ||
+                            item.payment_status === "not_required";
+
+                          if (isPaid) {
+                            return (
+                              <Badge color="yellow" variant="light" size="sm">
+                                Chờ Phân Công
+                              </Badge>
+                            );
+                          }
+
+                          if (
+                            item.payment_status === "proof_submitted" ||
+                            item.payment_status === "pending_verification" ||
+                            item.payment_status === "pendingVerification"
+                          ) {
+                            return (
+                              <Badge color="blue" variant="light" size="sm">
+                                Chờ Duyệt Thanh Toán
+                              </Badge>
+                            );
+                          }
+
+                          if (item.payment_status === "expired") {
+                            return (
+                              <Badge color="red" variant="light" size="sm">
+                                Hết Hạn Thanh Toán
+                              </Badge>
+                            );
+                          }
+
+                          return (
+                            <Badge color="orange" variant="light" size="sm">
+                              Chờ Thanh Toán
+                            </Badge>
+                          );
+                        }
+
+                        return (
+                          <Badge color="green" variant="light" size="sm">
+                            Đã phân công
+                          </Badge>
+                        );
+                      })()}
                     </Table.Td>
                     <Table.Td className="text-center">
                       {isCrudMode ? (
