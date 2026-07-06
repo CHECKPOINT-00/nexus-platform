@@ -21,6 +21,7 @@ import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
+import { cancelCaseUseCase } from "../application/cancel-case.usecase.js";
 import { recallRevisionUseCase } from "../application/recall-revision.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
 import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
@@ -63,7 +64,9 @@ export async function createCaseHandler(c: Context) {
 
   try {
     const body = await readJsonBody(c) as CreateCaseRequest;
-    const result = await createCaseUseCase(session.user.id, body);
+    const result = await createCaseUseCase(session.user.id, body, {
+      skipSpamCheck: session.user.role === "admin",
+    });
     return c.json(result, 201);
   } catch (error: any) {
     return handleError(c, error);
@@ -442,6 +445,35 @@ export async function deleteCaseHandler(c: Context) {
       caseId,
     );
     return c.json({ success: true, message: "Đã xóa dự án thành công", data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/cancel — Student cancel case
+// ---------------------------------------------------------------------------
+
+export async function cancelCaseHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const access = await requireCaseAccess(c, caseId, {
+      allowStudent: true,
+      allowSupporter: false,
+      allowAdmin: true,
+    });
+    if (!access.ok) {
+      return access.response;
+    }
+
+    const result = await cancelCaseUseCase(session.user.id, caseId);
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }

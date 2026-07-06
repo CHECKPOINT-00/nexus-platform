@@ -359,9 +359,9 @@ Before production migration, the agent must require a fresh manual backup.
 Acceptable backup examples:
 
 ```bash
-supabase db dump --db-url "$PROD_DATABASE_URL" -f roles.sql --role-only
-supabase db dump --db-url "$PROD_DATABASE_URL" -f schema.sql
-supabase db dump --db-url "$PROD_DATABASE_URL" -f data.sql --use-copy --data-only
+npx supabase db dump --db-url "$PROD_DATABASE_URL" -f roles.sql --role-only
+npx supabase db dump --db-url "$PROD_DATABASE_URL" -f schema.sql
+npx supabase db dump --db-url "$PROD_DATABASE_URL" -f data.sql --use-copy --data-only
 ```
 
 or a `pg_dump` backup.
@@ -481,11 +481,11 @@ Template:
 
 ### Step 1: Backup (REQUIRED)
 Run these commands in your terminal:
-​```bash
-supabase db dump --db-url "$PROD_DATABASE_URL" -f backup_roles_YYYYMMDD.sql --role-only
-supabase db dump --db-url "$PROD_DATABASE_URL" -f backup_schema_YYYYMMDD.sql
-supabase db dump --db-url "$PROD_DATABASE_URL" -f backup_data_YYYYMMDD.sql --use-copy --data-only
-​```
+```bash
+npx supabase db dump --db-url "$PROD_DATABASE_URL" -f backup_roles_YYYYMMDD.sql --role-only
+npx supabase db dump --db-url "$PROD_DATABASE_URL" -f backup_schema_YYYYMMDD.sql
+npx supabase db dump --db-url "$PROD_DATABASE_URL" -f backup_data_YYYYMMDD.sql --use-copy --data-only
+```
 - [ ] Verify backup files exist and are non-empty
 - [ ] (Recommended) Test restore on a local database
 

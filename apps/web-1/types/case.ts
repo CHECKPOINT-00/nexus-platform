@@ -14,10 +14,17 @@ export interface Case {
   package_id?: string | null;
   locked_price?: number | null;
   assigned_supporter_auth_user_id?: string | null;
-  user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
+  user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | "triage_accepted" | string;
   internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;
-  payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
+  payment_status: "unpaid" | "not_required" | "awaiting_confirmation" | "pending" | "proof_submitted" | "paid" | "rejected" | "expired" | "refunded" | string;
   deadline?: string | null;
+  triage_accepted_at?: string | null;
+  package_confirmed_at?: string | null;
+  payment_window_expires_at?: string | null;
+  expired_at?: string | null;
+  proposed_package_id?: string | null;
+  proposed_locked_price?: number | null;
+  package_change_reason?: string | null;
   created_at: string;
   updated_at: string;
 
@@ -291,5 +298,33 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
   cancelled: {
     label: "Đã hủy",
     color: "danger",
+  },
+  triage_accepted: {
+    label: "Đã tiếp nhận — chờ xác nhận gói",
+    color: "primary",
+  },
+  awaiting_confirmation: {
+    label: "Chờ xác nhận gói dịch vụ",
+    color: "warning",
+  },
+  pending: {
+    label: "Chờ thanh toán",
+    color: "warning",
+  },
+  proof_submitted: {
+    label: "Đang xác minh thanh toán",
+    color: "primary",
+  },
+  expired: {
+    label: "Hết hạn thanh toán",
+    color: "danger",
+  },
+  refunded: {
+    label: "Đã hoàn tiền",
+    color: "default",
+  },
+  not_required: {
+    label: "Miễn phí",
+    color: "success",
   },
 };

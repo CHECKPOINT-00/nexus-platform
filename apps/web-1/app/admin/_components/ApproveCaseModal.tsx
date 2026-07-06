@@ -1,35 +1,56 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Modal, Button } from "@mantine/core";
+import { Modal, Button, Select, Textarea } from "@mantine/core";
 import { CheckCircle, Loader2 } from "lucide-react";
+import { usePackages } from "@/hooks/usePackages";
 
 interface ApproveCaseModalProps {
   caseId: string | null;
   onClose: () => void;
-  onApprove: (caseId: string) => Promise<void>;
+  onApprove: (caseId: string, proposed_package_id?: string, package_change_reason?: string) => Promise<void>;
+  currentPackageId?: string;
 }
 
 export default function ApproveCaseModal({
   caseId,
   onClose,
   onApprove,
+  currentPackageId,
 }: ApproveCaseModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { data: packages, isLoading: isLoadingPackages } = usePackages();
+  const [proposedPackageId, setProposedPackageId] = useState<string | null>(null);
+  const [packageChangeReason, setPackageChangeReason] = useState<string>("");
+
   useEffect(() => {
     if (!caseId) {
       setError(null);
+      setProposedPackageId(null);
+      setPackageChangeReason("");
+    } else if (currentPackageId) {
+      setProposedPackageId(currentPackageId);
     }
-  }, [caseId]);
+  }, [caseId, currentPackageId]);
+
+  const hasProposedChange = proposedPackageId && proposedPackageId !== currentPackageId;
 
   const handleSubmit = async () => {
     if (!caseId) return;
+    if (hasProposedChange && !packageChangeReason.trim()) {
+      setError("Vui lòng nhập lý do thay đổi gói dịch vụ.");
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
     try {
-      await onApprove(caseId);
+      await onApprove(
+        caseId,
+        hasProposedChange ? proposedPackageId : undefined,
+        hasProposedChange ? packageChangeReason : undefined
+      );
       onClose();
     } catch (e: any) {
       setError(e?.response?.data?.error || e?.message || "Đã xảy ra lỗi khi duyệt hồ sơ.");
@@ -58,9 +79,45 @@ export default function ApproveCaseModal({
         )}
 
         <p className="text-sm leading-relaxed">
-          Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện? Hồ sơ sẽ được chuyển sang trạng thái <strong>Chờ Phân Công</strong>.
+          Xác nhận duyệt hồ sơ này là hợp lệ để tiến hành phản biện? Hồ sơ sẽ được chuyển sang trạng thái <strong>Chờ Xác Nhận Gói / Chờ Thanh Toán</strong>.
         </p>
         
+        <hr className="border-border-app" />
+
+        <div className="space-y-3">
+          <Select
+            label="Đề xuất gói dịch vụ khác (Tùy chọn)"
+            placeholder="Giữ nguyên gói dịch vụ của học sinh"
+            value={proposedPackageId}
+            onChange={(val) => {
+              setProposedPackageId(val);
+              if (val === currentPackageId) {
+                setPackageChangeReason("");
+              }
+            }}
+            data={
+              packages?.map((pkg) => ({
+                value: pkg.id,
+                label: `${pkg.name} (${pkg.price.toLocaleString("vi-VN")}đ)`,
+              })) || []
+            }
+            disabled={isLoadingPackages || isSubmitting}
+            clearable
+          />
+
+          {hasProposedChange && (
+            <Textarea
+              label="Lý do thay đổi gói dịch vụ"
+              placeholder="Nhập lý do đổi gói..."
+              value={packageChangeReason}
+              onChange={(e) => setPackageChangeReason(e.currentTarget.value)}
+              required
+              rows={3}
+              disabled={isSubmitting}
+            />
+          )}
+        </div>
+
         <div className="flex gap-3 pt-4 border-t border-border-app">
           <Button
             onClick={onClose}

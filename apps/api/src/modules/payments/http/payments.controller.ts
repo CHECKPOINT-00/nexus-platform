@@ -8,6 +8,10 @@ import { requireCaseAccess } from "../../../shared/infrastructure/authorization.
 import { listPaymentsUseCase } from "../application/list-payments.usecase.js";
 import { uploadPaymentProofUseCase } from "../application/upload-payment-proof.usecase.js";
 import { verifyPaymentUseCase } from "../application/verify-payment.usecase.js";
+import { confirmPackageUseCase } from "../application/confirm-package.usecase.js";
+import { reactivatePaymentUseCase } from "../application/reactivate-payment.usecase.js";
+import { expireOverduePaymentsUseCase } from "../application/expire-overdue-payments.usecase.js";
+import { requestRefundUseCase } from "../application/request-refund.usecase.js";
 import type { VerifyPaymentRequest } from "../application/payments.dto.js";
 
 // ---------------------------------------------------------------------------
@@ -87,6 +91,117 @@ export async function verifyPaymentHandler(c: Context) {
       rejection_reason,
     );
     return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/payments/cases/:id/confirm-package — Confirm package (Student/Admin)
+// ---------------------------------------------------------------------------
+
+export async function confirmPackageHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { acceptProposed?: boolean } | null;
+    const acceptProposed = body?.acceptProposed ?? false;
+
+    const access = await requireCaseAccess(c, caseId, {
+      allowStudent: true,
+      allowSupporter: false,
+      allowAdmin: true,
+    });
+    if (!access.ok) {
+      return access.response;
+    }
+
+    const result = await confirmPackageUseCase(session.user.id, caseId, acceptProposed);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/payments/cases/:id/reactivate — Reactivate expired payment
+// ---------------------------------------------------------------------------
+
+export async function reactivatePaymentHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const access = await requireCaseAccess(c, caseId, {
+      allowStudent: true,
+      allowSupporter: false,
+      allowAdmin: true,
+    });
+    if (!access.ok) {
+      return access.response;
+    }
+
+    const result = await reactivatePaymentUseCase(session.user.id, caseId);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/payments/expire-overdue — Trigger sweep of overdue payments
+// ---------------------------------------------------------------------------
+
+export async function expireOverduePaymentsHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session || session.user.role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Không có quyền quản trị" }, 403);
+  }
+
+  try {
+    const result = await expireOverduePaymentsUseCase(session.user.id);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/payments/cases/:id/refund — Student request refund
+// ---------------------------------------------------------------------------
+
+export async function requestRefundHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { reason?: string } | null;
+    const reason = body?.reason || "";
+
+    const access = await requireCaseAccess(c, caseId, {
+      allowStudent: true,
+      allowSupporter: false,
+      allowAdmin: false,
+    });
+    if (!access.ok) {
+      return access.response;
+    }
+
+    const result = await requestRefundUseCase(session.user.id, caseId, reason);
+    return c.json(result, 201);
   } catch (error: any) {
     return handleError(c, error);
   }

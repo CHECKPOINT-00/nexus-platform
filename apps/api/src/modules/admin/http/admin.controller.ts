@@ -13,6 +13,8 @@ import type { ListAdminCasesRequest } from "../application/admin.dto.js";
 import { listAdminPackagesUseCase } from "../application/list-admin-packages.usecase.js";
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
+import { listRefunds } from "../../payments/infrastructure/persistence/refund.repository.js";
+import { processRefundUseCase } from "../../payments/application/process-refund.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -81,7 +83,11 @@ export async function acceptCaseHandler(c: Context) {
   const caseId = c.req.param("id") || "";
 
   try {
-    const result = await acceptCaseUseCase(session.user.id, caseId);
+    const body = await readJsonBody(c) as { proposed_package_id?: string; package_change_reason?: string } | null;
+    const result = await acceptCaseUseCase(session.user.id, caseId, {
+      proposedPackageId: body?.proposed_package_id,
+      packageChangeReason: body?.package_change_reason,
+    });
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
@@ -257,6 +263,70 @@ export async function updatePackageStatusHandler(c: Context) {
     }
 
     const result = await updatePackageStatusUseCase(packageId, body.is_active, adminId);
+    return c.json({ ok: true, data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/refunds — List all refund requests
+// ---------------------------------------------------------------------------
+
+export async function listAdminRefundsHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const result = await listRefunds();
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/refunds/:id/process — Process refund request (Admin only)
+// ---------------------------------------------------------------------------
+
+export async function processRefundHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const adminId = authResult.session.user.id;
+  const refundId = c.req.param("id") || "";
+
+  try {
+    let decision: "approve" | "reject" | "complete" = "approve";
+    let rejectionReason: string | undefined;
+    let bankTransferRef: string | undefined;
+    let proofFile: any | undefined;
+
+    const contentType = c.req.header("content-type") || "";
+    if (contentType.includes("multipart/form-data")) {
+      const form = await c.req.parseBody();
+      decision = (form["decision"] as any) || "approve";
+      rejectionReason = (form["rejection_reason"] as any) || undefined;
+      bankTransferRef = (form["bank_transfer_ref"] as any) || undefined;
+      proofFile = form["proofFile"] || form["file"];
+    } else {
+      const body = await readJsonBody(c) || {};
+      decision = body.decision || "approve";
+      rejectionReason = body.rejection_reason;
+      bankTransferRef = body.bank_transfer_ref;
+    }
+
+    const result = await processRefundUseCase(adminId, refundId, {
+      decision,
+      rejectionReason,
+      bankTransferRef,
+      proofFile,
+    });
+
     return c.json({ ok: true, data: result });
   } catch (error: any) {
     return handleError(c, error);

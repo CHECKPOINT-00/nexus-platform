@@ -12,14 +12,44 @@ export function getCaseEffectivePrice(caseData?: {
   return caseData?.locked_price ?? caseData?.package?.price ?? 0;
 }
 
-/**
- * Determines whether a case requires a payment to be made.
- * A case requires payment if its effective price is greater than 0
- * and its payment status is not "paid".
- */
 export function caseRequiresPayment(caseData: Case): boolean {
   const price = getCaseEffectivePrice(caseData);
-  return price > 0 && caseData.payment_status !== "paid";
+  return price > 0 && !["paid", "not_required", "refunded"].includes(caseData.payment_status || "");
+}
+
+export function canConfirmPackage(caseData: Case): boolean {
+  return caseData.payment_status === "awaiting_confirmation";
+}
+
+export function canUploadProof(caseData: Case): boolean {
+  return caseData.payment_status === "pending" || caseData.payment_status === "rejected";
+}
+
+export function isPaymentExpired(caseData: Case): boolean {
+  return caseData.payment_status === "expired";
+}
+
+export function canReactivatePayment(caseData: Case): boolean {
+  if (caseData.payment_status !== "expired" || !caseData.expired_at) {
+    return false;
+  }
+  const expiredTime = new Date(caseData.expired_at).getTime();
+  const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+  return Date.now() - expiredTime <= sevenDaysInMs;
+}
+
+export function paymentWindowRemaining(caseData: Case): number {
+  if (!caseData.payment_window_expires_at) return 0;
+  const expiryTime = new Date(caseData.payment_window_expires_at).getTime();
+  return Math.max(0, expiryTime - Date.now());
+}
+
+export function canRequestRefund(caseData: Case): boolean {
+  return caseData.payment_status === "paid" && !caseData.assigned_supporter_auth_user_id;
+}
+
+export function isPaymentSatisfied(caseData: Case): boolean {
+  return ["paid", "not_required"].includes(caseData.payment_status || "");
 }
 
 /**

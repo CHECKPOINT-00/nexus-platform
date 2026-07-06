@@ -45,6 +45,9 @@ export async function assignSupporterUseCase(
 
   let supporterName = "";
   if (!unassign) {
+    const { assertPaymentSatisfied } = await import("../../payments/domain/payment-gating.js");
+    assertPaymentSatisfied(existingCase);
+
     const supporterUser = await findSupporterById(supporterId);
 
     if (

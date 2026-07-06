@@ -69,6 +69,11 @@ export async function updateCaseStatusUseCase(
     );
   }
 
+  if (nextStage === "under_review") {
+    const { assertPaymentSatisfied } = await import("../../payments/domain/payment-gating.js");
+    assertPaymentSatisfied(caseObj);
+  }
+
   const updatedCase = await updateCaseStatus(
     caseId,
     userId,

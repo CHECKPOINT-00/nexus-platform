@@ -4,7 +4,7 @@ import React, { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useCaseDetails } from "../../../dashboard/case/[id]/hooks/useCaseDetails";
-import { caseRequiresPayment } from "@/lib/pricing";
+import { caseRequiresPayment, isPaymentSatisfied } from "@/lib/pricing";
 import CaseStatusHeader from "../../../dashboard/case/[id]/_components/CaseStatusHeader";
 import WorkspaceSidebar from "../../../dashboard/case/[id]/_components/WorkspaceSidebar";
 import DocumentWorkspace from "../../../dashboard/case/[id]/_components/documents/DocumentWorkspace";
@@ -68,7 +68,11 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
         <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
 
-        {caseRequiresPayment(caseData) && (
+        {!isPaymentSatisfied(caseData) ? (
+          <div className="p-4 rounded-xl bg-danger-soft border border-danger/15 text-danger font-body text-xs flex items-center gap-2 shrink-0">
+            <span>⚠️ Hồ sơ chưa thanh toán — không thể tải lên báo cáo hoặc thực hiện các thao tác chuyên môn lúc này.</span>
+          </div>
+        ) : caseRequiresPayment(caseData) && (
           <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
             <span>⚠️ Nhóm sinh viên chưa hoàn tất thanh toán hồ sơ này. Lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
           </div>
@@ -83,6 +87,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
                   color="brand"
                   className="font-semibold cursor-pointer h-8.5 text-xs"
                   onClick={() => setIsOutputUploadOpen(true)}
+                  disabled={!isPaymentSatisfied(caseData)}
                 >
                   Tải output hỗ trợ
                 </Button>

@@ -17,7 +17,10 @@ import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadMod
 import { Button, Alert, Modal } from "@mantine/core";
 import { useRecallRevision } from "./hooks/useRecallRevision";
 import { notifications } from "@mantine/notifications";
-import { getCaseEffectivePrice, caseRequiresPayment } from "@/lib/pricing";
+import { getCaseEffectivePrice, caseRequiresPayment, canConfirmPackage, isPaymentExpired, canUploadProof } from "@/lib/pricing";
+import PackageConfirmationCard from "./_components/PackageConfirmationCard";
+import ExpiredPaymentNotice from "./_components/ExpiredPaymentNotice";
+import RefundRequestButton from "./_components/RefundRequestButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -85,10 +88,20 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           <>
             <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
 
-            <UnpaidAlertBanner
-              caseData={caseData}
-              onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
-            />
+            {canConfirmPackage(caseData) && (
+              <PackageConfirmationCard caseData={caseData} />
+            )}
+
+            {isPaymentExpired(caseData) && (
+              <ExpiredPaymentNotice caseData={caseData} />
+            )}
+
+            {(canUploadProof(caseData) || caseData.payment_status === "proof_submitted" || caseData.payment_status === "pending_verification" || caseData.payment_status === "pendingVerification") && (
+              <UnpaidAlertBanner
+                caseData={caseData}
+                onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
+              />
+            )}
 
             {!caseRequiresPayment(caseData) && (
               <StatusGuidanceCard
@@ -107,6 +120,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">
+                <RefundRequestButton caseData={caseData} />
                 {(caseData.user_facing_stage === "report_ready" ||
                   caseData.user_facing_stage === "waiting_for_revision" ||
                   caseData.user_facing_stage === "need_more_information") &&

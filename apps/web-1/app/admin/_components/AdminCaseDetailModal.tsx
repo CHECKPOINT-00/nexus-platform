@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Modal, Button, Badge, Loader } from "@mantine/core";
+import { Modal, Button, Badge, Loader, Tooltip } from "@mantine/core";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
 
 interface AdminCaseDetailModalProps {
@@ -277,19 +277,37 @@ export default function AdminCaseDetailModal({
               </>
             )}
 
-            {detailData?.case && (detailData.case.internal_status === "accepted_unassigned" || detailData.case.internal_status === "assigned") && (
-              <Button
-                onClick={() => {
-                  if (detailData) {
-                    onAssign(detailData.case.id);
-                  }
-                }}
-                color="brand"
-                className="font-semibold cursor-pointer"
-              >
-                {detailData.case.internal_status === "assigned" ? "Phân công lại" : "Phân công Supporter"}
-              </Button>
-            )}
+            {detailData?.case && (detailData.case.internal_status === "accepted_unassigned" || detailData.case.internal_status === "assigned") && (() => {
+              const isPaymentSatisfied =
+                detailData.case.payment_status === "paid" ||
+                detailData.case.payment_status === "not_required" ||
+                detailData.case.locked_price === 0;
+
+              const buttonEl = (
+                <Button
+                  onClick={() => {
+                    if (detailData) {
+                      onAssign(detailData.case.id);
+                    }
+                  }}
+                  color="brand"
+                  className="font-semibold cursor-pointer"
+                  disabled={!isPaymentSatisfied}
+                >
+                  {detailData.case.internal_status === "assigned" ? "Phân công lại" : "Phân công Supporter"}
+                </Button>
+              );
+
+              if (!isPaymentSatisfied) {
+                return (
+                  <Tooltip label="Cần thanh toán trước khi phân công chuyên gia." position="top" withArrow>
+                    <span>{buttonEl}</span>
+                  </Tooltip>
+                );
+              }
+
+              return buttonEl;
+            })()}
           </div>
         </div>
       </div>

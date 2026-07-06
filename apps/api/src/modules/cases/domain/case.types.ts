@@ -1,5 +1,6 @@
 export const VALID_CASE_STAGES = [
   "submitted",
+  "triage_accepted",
   "need_more_information",
   "under_review",
   "report_ready",
@@ -50,7 +51,8 @@ export function isValidStageTransition(from: string, to: string): boolean {
   if (isFinalCaseStage(from)) return false;
 
   const allowed: Record<string, string[]> = {
-    submitted: ["need_more_information", "under_review", "rejected", "closed"],
+    submitted: ["triage_accepted", "need_more_information", "under_review", "rejected", "closed"],
+    triage_accepted: ["under_review", "closed"],
     need_more_information: ["revision_submitted", "closed"],
     under_review: ["report_ready", "need_more_information", "closed"],
     report_ready: ["waiting_for_revision", "completed", "closed"],

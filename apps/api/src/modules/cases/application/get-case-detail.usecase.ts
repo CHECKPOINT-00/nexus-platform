@@ -84,6 +84,13 @@ function extendWithInternalFields(baseResponse: any, caseDetails: any) {
 }
 
 export async function getCaseDetailUseCase(userId: string, userRole: string, caseId: string) {
+  try {
+    const { expireOverduePaymentsUseCase } = await import("../../payments/application/expire-overdue-payments.usecase.js");
+    await expireOverduePaymentsUseCase();
+  } catch (err) {
+    console.error("Lazy expiry check failed:", err);
+  }
+
   const caseDetails = await findCaseByIdWithAllRelations(caseId);
 
   if (!caseDetails) {

@@ -14,6 +14,9 @@ export async function createDraftReportUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
   }
 
+  const { assertPaymentSatisfied } = await import("../../payments/domain/payment-gating.js");
+  assertPaymentSatisfied(caseRecord);
+
   if (isFinalCaseStage(caseRecord.user_facing_stage)) {
     throw new AppError(
       409,

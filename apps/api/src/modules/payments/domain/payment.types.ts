@@ -20,6 +20,41 @@ export function normalizePaymentStatus(status: string): string {
   return status === "verified" ? "paid" : status;
 }
 
+export const VALID_PAYMENT_STATUSES = [
+  "unpaid",
+  "not_required",
+  "awaiting_confirmation",
+  "pending",
+  "proof_submitted",
+  "paid",
+  "rejected",
+  "expired",
+  "refunded"
+] as const;
+
+export type PaymentStatus = (typeof VALID_PAYMENT_STATUSES)[number];
+
+export function isPaymentSatisfied(status?: string | null): boolean {
+  if (status === undefined) return true;
+  return status === "paid" || status === "not_required";
+}
+
+export function canUploadProof(status?: string | null): boolean {
+  return status === "pending" || status === "rejected";
+}
+
+export function canConfirmPackage(status?: string | null): boolean {
+  return status === "awaiting_confirmation";
+}
+
+export function canReactivatePayment(status?: string | null): boolean {
+  return status === "expired";
+}
+
+export function isActivePaymentWindow(status?: string | null): boolean {
+  return status !== undefined && status !== null && ["awaiting_confirmation", "pending", "proof_submitted"].includes(status);
+}
+
 export function isFinalPaymentStatus(status?: string | null): boolean {
-  return status === "paid" || status === "verified" || status === "rejected";
+  return status === "paid" || status === "not_required" || status === "expired" || status === "refunded";
 }

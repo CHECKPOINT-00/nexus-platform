@@ -1,7 +1,7 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { fileStorageService } from "../infrastructure/file-storage.service.js";
 import { createPaymentProof } from "../infrastructure/persistence/payment.repository.js";
-import { normalizePaymentStatus } from "../domain/payment.types.js";
+import { normalizePaymentStatus, canUploadProof } from "../domain/payment.types.js";
 import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
 import { isValidPrice } from "../../cases/domain/case.types.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
@@ -53,15 +53,11 @@ export async function uploadPaymentProofUseCase(
     throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
   }
 
-  if (
-    caseObj.payment_status &&
-    caseObj.payment_status !== "unpaid" &&
-    caseObj.payment_status !== "rejected"
-  ) {
+  if (!canUploadProof(caseObj.payment_status)) {
     throw new AppError(
       409,
       "INVALID_PAYMENT_STATUS",
-      "Dự án đã có trạng thái thanh toán khác, không thể tạo minh chứng mới",
+      "Chỉ có thể tải minh chứng khi hồ sơ ở trạng thái chờ thanh toán hoặc bị từ chối",
     );
   }
 

@@ -11,3 +11,7 @@ export interface VerifyPaymentRequest {
   status: "paid" | "rejected";
   rejection_reason?: string;
 }
+
+export interface ConfirmPackageRequest {
+  acceptProposed: boolean;
+}

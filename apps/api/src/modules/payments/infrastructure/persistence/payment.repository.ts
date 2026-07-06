@@ -45,7 +45,7 @@ export async function createPaymentProof(data: {
     await tx.case.update({
       where: { id: caseId },
       data: {
-        payment_status: "pending_verification",
+        payment_status: "proof_submitted",
       },
     });
 
@@ -81,11 +81,17 @@ export async function verifyPayment(data: {
       },
     });
 
+    const caseUpdates: any = {
+      payment_status: status,
+    };
+    if (status === "paid") {
+      caseUpdates.user_facing_stage = "under_review";
+      caseUpdates.internal_status = "accepted_unassigned";
+    }
+
     await tx.case.update({
       where: { id: caseId },
-      data: {
-        payment_status: status === "paid" ? "paid" : "unpaid",
-      },
+      data: caseUpdates,
     });
 
     await tx.caseEvent.create({
@@ -98,5 +104,57 @@ export async function verifyPayment(data: {
     });
 
     return updatedPayment;
+  });
+}
+
+export async function confirmPackage(
+  caseId: string,
+  userId: string,
+  data: {
+    acceptProposed: boolean;
+    proposedPackageId: string | null;
+    proposedLockedPrice: number | null;
+  }
+) {
+  const { acceptProposed, proposedPackageId, proposedLockedPrice } = data;
+  return await prisma.$transaction(async (tx: any) => {
+    const existingCase = await tx.case.findUnique({
+      where: { id: caseId }
+    });
+
+    if (!existingCase) {
+      throw new Error(`Case not found: ${caseId}`);
+    }
+
+    const updates: any = {
+      payment_status: "pending",
+      package_confirmed_at: new Date(),
+      payment_window_expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000)
+    };
+
+    if (acceptProposed && proposedPackageId) {
+      updates.package_id = proposedPackageId;
+      updates.locked_price = proposedLockedPrice;
+    }
+
+    const updatedCase = await tx.case.update({
+      where: { id: caseId },
+      data: updates
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: "package_confirmed",
+        actor_auth_user_id: userId,
+        metadata_json: {
+          package_id: updatedCase.package_id,
+          locked_price: updatedCase.locked_price,
+          accept_proposed: acceptProposed
+        }
+      }
+    });
+
+    return updatedCase;
   });
 }

@@ -17,7 +17,7 @@ interface AdminCaseAssignmentTableProps {
   supporters: User[];
   onAssign: (caseId: string, supporterId: string) => Promise<void>;
   isAssigning?: boolean;
-  onAccept: (caseId: string) => Promise<void>;
+  onAccept: (caseId: string, proposed_package_id?: string, package_change_reason?: string) => Promise<void>;
   onReject: (caseId: string, reason: string) => Promise<void>;
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
   isCrudMode?: boolean;
@@ -301,6 +301,7 @@ export default function AdminCaseAssignmentTable({
         caseId={acceptingCaseId}
         onClose={() => setAcceptingCaseId(null)}
         onApprove={onAccept}
+        currentPackageId={cases.find((c) => c.id === acceptingCaseId)?.package_id}
       />
     </div>
   );

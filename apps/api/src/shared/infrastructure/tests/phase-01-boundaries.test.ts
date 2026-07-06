@@ -61,7 +61,7 @@ test("Phase 01 - Backend boundaries & contracts", async (t) => {
     assert.ok(isValidPaymentDecision("rejected"));
     assert.ok(!isValidPaymentDecision("invalid"));
     assert.ok(isFinalPaymentStatus("paid"));
-    assert.ok(isFinalPaymentStatus("rejected"));
+    assert.ok(!isFinalPaymentStatus("rejected"));
     assert.ok(!isFinalPaymentStatus("pending_verification"));
   });
 

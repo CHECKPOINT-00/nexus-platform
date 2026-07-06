@@ -14,7 +14,7 @@ test("Phase 02 - Case lifecycle & admin triage", async (t) => {
 
   await t.test("admin accept - idempotent no-op", async () => {
     const { acceptCaseUseCase } = await import("../../../modules/admin/application/accept-case.usecase.js");
-    const result = await acceptCaseUseCase("admin-1", "case-1", {
+    const result = await acceptCaseUseCase("admin-1", "case-1", undefined, {
       findCaseById: async () => ({ id: "case-1", user_facing_stage: "under_review", internal_status: "accepted_unassigned" } as any),
     });
     assert.strictEqual(result.user_facing_stage, "under_review");

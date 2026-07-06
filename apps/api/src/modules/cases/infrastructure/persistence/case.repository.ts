@@ -1,5 +1,6 @@
 import { prisma } from "../../../../db.js";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
+import { AppError } from "../../../../shared/domain/app-error.js";
 
 
 export async function findManyCasesByRole(userId: string, role: string) {
@@ -135,19 +136,24 @@ export async function findCaseByCode(case_code: string) {
   });
 }
 
-export async function createCaseWithCheckpointAndIntake(data: {
-  caseCode: string;
-  userId: string;
-  teamName: string | null;
-  school: string | null;
-  courseContext: string | null;
-  groupNo: string | null;
-  packageId: string;
-  lockedPrice: number;
-  deadline: Date | null;
-  isFree: boolean;
-  rawBody: any;
-}) {
+export async function createCaseWithCheckpointAndIntake(
+  data: {
+    caseCode: string;
+    userId: string;
+    teamName: string | null;
+    school: string | null;
+    courseContext: string | null;
+    groupNo: string | null;
+    packageId: string;
+    lockedPrice: number;
+    deadline: Date | null;
+    isFree: boolean;
+    rawBody: any;
+  },
+  options?: {
+    skipSpamCheck?: boolean;
+  }
+) {
   const {
     caseCode,
     userId,
@@ -163,6 +169,17 @@ export async function createCaseWithCheckpointAndIntake(data: {
   } = data;
 
   return await prisma.$transaction(async (tx: any) => {
+    if (!isFree && !options?.skipSpamCheck) {
+      const activeCount = await countActivePaymentCases(userId, tx);
+      if (activeCount >= 1) {
+        throw new AppError(
+          409,
+          "ACTIVE_PAYMENT_CASE_EXISTS",
+          "Bạn đang có một hồ sơ chờ thanh toán. Hoàn tất, hủy, hoặc chờ hết hạn 72h trước khi gửi hồ sơ mới."
+        );
+      }
+    }
+
     const newCase = await tx.case.create({
       data: {
         case_code: caseCode,
@@ -176,7 +193,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
         deadline,
         user_facing_stage: "submitted",
         internal_status: "triage_pending",
-        payment_status: isFree ? "paid" : "unpaid",
+        payment_status: isFree ? "not_required" : "unpaid",
         current_checkpoint: "CP1",
       },
     });
@@ -224,17 +241,69 @@ export async function createCaseWithCheckpointAndIntake(data: {
       },
     });
 
+    if (!isFree && !options?.skipSpamCheck) {
+      const activeCountAfter = await countActivePaymentCases(userId, tx);
+      if (activeCountAfter > 1) {
+        throw new AppError(
+          409,
+          "ACTIVE_PAYMENT_CASE_EXISTS",
+          "Bạn đang có một hồ sơ chờ thanh toán. Hoàn tất, hủy, hoặc chờ hết hạn 72h trước khi gửi hồ sơ mới."
+        );
+      }
+    }
+
     return newCase;
   });
 }
 
-export async function acceptCase(caseId: string, adminId: string) {
+export async function acceptCase(
+  caseId: string,
+  adminId: string,
+  options?: {
+    proposedPackageId?: string;
+    proposedLockedPrice?: number;
+    packageChangeReason?: string;
+  }
+) {
   return await prisma.$transaction(async (tx: any) => {
+    const existingCase = await tx.case.findUnique({
+      where: { id: caseId },
+      include: { package: true }
+    });
+
+    if (!existingCase) {
+      throw new Error(`Case not found: ${caseId}`);
+    }
+
+    const isFree = existingCase.locked_price === 0;
+
+    let userFacingStage = "triage_accepted";
+    let paymentStatus = "awaiting_confirmation";
+    let proposedPackageId: string | null = null;
+    let proposedLockedPrice: number | null = null;
+    let packageChangeReason: string | null = null;
+
+    if (isFree) {
+      userFacingStage = "under_review";
+      paymentStatus = "not_required";
+    } else {
+      if (options?.proposedPackageId && options.proposedPackageId !== existingCase.package_id) {
+        proposedPackageId = options.proposedPackageId;
+        proposedLockedPrice = options.proposedLockedPrice ?? 0;
+        packageChangeReason = options.packageChangeReason ?? "";
+      }
+    }
+
     const updated = await tx.case.update({
       where: { id: caseId },
       data: {
-        user_facing_stage: "under_review",
+        user_facing_stage: userFacingStage,
         internal_status: "accepted_unassigned",
+        payment_status: paymentStatus,
+        triage_accepted_at: new Date(),
+        proposed_package_id: proposedPackageId,
+        proposed_locked_price: proposedLockedPrice,
+        package_change_reason: packageChangeReason,
       },
     });
 
@@ -243,6 +312,10 @@ export async function acceptCase(caseId: string, adminId: string) {
         case_id: caseId,
         event_type: "case_accepted",
         actor_auth_user_id: adminId,
+        metadata_json: {
+          proposed_package_id: proposedPackageId,
+          package_change_reason: packageChangeReason,
+        },
       },
     });
 
@@ -304,6 +377,17 @@ export async function requestCaseMoreInfo(caseId: string, actorId: string, event
 
 export async function assignCaseSupporter(caseId: string, adminId: string, supporterId: string | null, nextStatus: string, supporterName?: string) {
   return await prisma.$transaction(async (tx: any) => {
+    const existingCase = await tx.case.findUnique({
+      where: { id: caseId }
+    });
+    if (!existingCase) {
+      throw new Error(`Case not found: ${caseId}`);
+    }
+    if (supporterId !== null) {
+      const { assertPaymentSatisfied } = await import("../../../payments/domain/payment-gating.js");
+      assertPaymentSatisfied(existingCase);
+    }
+
     const updated = await tx.case.update({
       where: { id: caseId },
       data: {
@@ -726,4 +810,26 @@ export async function listAllSupporters() {
       email: true,
     },
   });
+}
+
+export async function countActivePaymentCases(userId: string, tx?: any) {
+  const db = tx || prisma;
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const activeCases = await db.case.findMany({
+    where: {
+      owner_auth_user_id: userId,
+      payment_status: {
+        in: ["awaiting_confirmation", "pending", "proof_submitted", "rejected", "expired"]
+      }
+    }
+  });
+
+  const filtered = activeCases.filter((c: any) => {
+    if (c.payment_status === "expired") {
+      return c.expired_at && c.expired_at > sevenDaysAgo;
+    }
+    return true;
+  });
+
+  return filtered.length;
 }

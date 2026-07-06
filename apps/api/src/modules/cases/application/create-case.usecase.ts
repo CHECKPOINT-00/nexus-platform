@@ -43,12 +43,21 @@ function normalizeCreateCaseBody(body: CreateCaseRequest): CreateCaseRequest {
 export async function createCaseUseCase(
   userId: string,
   body: CreateCaseRequest,
+  optionsOrDeps?: { skipSpamCheck?: boolean } | CreateCaseDeps,
   deps: CreateCaseDeps = {},
 ) {
-  const { findCaseByCode, findPackageById, createCaseWithCheckpointAndIntake } = {
-    ...defaultDeps,
-    ...deps,
-  };
+  let options: { skipSpamCheck?: boolean } | undefined;
+  let actualDeps = { ...defaultDeps, ...deps };
+
+  if (optionsOrDeps) {
+    if ("findCaseByCode" in optionsOrDeps || "findPackageById" in optionsOrDeps || "createCaseWithCheckpointAndIntake" in optionsOrDeps) {
+      actualDeps = { ...defaultDeps, ...optionsOrDeps as CreateCaseDeps };
+    } else {
+      options = optionsOrDeps as { skipSpamCheck?: boolean };
+    }
+  }
+
+  const { findCaseByCode, findPackageById, createCaseWithCheckpointAndIntake } = actualDeps;
 
   const normalizedBody = normalizeCreateCaseBody(body);
   const validationErrors = validateCp1Intake(normalizedBody);
@@ -126,5 +135,7 @@ export async function createCaseUseCase(
     deadline: parsedDeadline,
     isFree,
     rawBody: normalizedBody,
+  }, {
+    skipSpamCheck: options?.skipSpamCheck,
   });
 }

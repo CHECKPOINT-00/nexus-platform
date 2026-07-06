@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useReportReview } from "./hooks/useReportReview";
 import { useCaseDetails } from "../../../../dashboard/case/[id]/hooks/useCaseDetails";
+import { isPaymentSatisfied } from "@/lib/pricing";
 import DisclaimerBanner from "./_components/DisclaimerBanner";
 import FindingCard from "./_components/FindingCard";
 import ReviewActionsPanel from "./_components/ReviewActionsPanel";
@@ -57,6 +58,18 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
     approveReport,
     isApproving,
   } = useReportReview(caseId);
+
+  // 1b. Payment Guard
+  useEffect(() => {
+    if (caseData && !isPaymentSatisfied(caseData)) {
+      notifications.show({
+        title: "Chưa thanh toán",
+        message: "Hồ sơ chưa hoàn tất thanh toán — không thể thực hiện xử lý chuyên môn.",
+        color: "red",
+      });
+      router.push(`/supporter/case/${caseId}`);
+    }
+  }, [caseData, caseId, router]);
 
   // Local state for editable findings list
   const [findings, setFindings] = useState<Finding[]>([]);

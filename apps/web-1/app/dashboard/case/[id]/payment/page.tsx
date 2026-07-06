@@ -15,11 +15,12 @@ import {
   ArrowLeft, 
   CreditCard, 
   X, 
-  QrCode 
+  QrCode,
+  Clock
 } from "lucide-react";
-import { Button } from "@mantine/core";
+import { Button, Badge, Group, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { getCaseEffectivePrice, caseRequiresPayment, formatPrice, validatePaymentProof } from "@/lib/pricing";
+import { getCaseEffectivePrice, caseRequiresPayment, formatPrice, validatePaymentProof, canUploadProof, paymentWindowRemaining } from "@/lib/pricing";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -41,7 +42,7 @@ export default function CasePaymentPage({ params }: PageProps) {
   const { caseData, isLoading: isCaseLoading, error: caseError } = useCaseDetails(caseId);
 
   useEffect(() => {
-    if (caseData && !caseRequiresPayment(caseData)) {
+    if (caseData && !canUploadProof(caseData)) {
       router.push(`/dashboard/case/${caseId}`);
     }
   }, [caseData, caseId, router]);
@@ -52,6 +53,30 @@ export default function CasePaymentPage({ params }: PageProps) {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  useEffect(() => {
+    if (!caseData || !caseData.payment_window_expires_at) return;
+    
+    const updateTimer = () => {
+      const remaining = paymentWindowRemaining(caseData);
+      setTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [caseData]);
+
+  const formatCountdown = (ms: number) => {
+    if (ms <= 0) return "Đã hết hạn";
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
 
 
 
@@ -145,7 +170,14 @@ export default function CasePaymentPage({ params }: PageProps) {
         </Button>
         <div>
           <h2 className="font-heading text-lg font-bold text-text-app">Thanh toán &amp; Xác minh giao dịch</h2>
-          <p className="text-xs text-text-muted">Mã hồ sơ: {caseData.case_code}</p>
+          <Group gap="xs" mt={2}>
+            <Text size="xs" c="dimmed">Mã hồ sơ: {caseData.case_code}</Text>
+            {caseData.payment_window_expires_at && (
+              <Badge color="red" leftSection={<Clock className="w-3.5 h-3.5" />} className="font-semibold font-mono text-[10px] h-5">
+                Thời gian còn lại: {formatCountdown(timeLeft)}
+              </Badge>
+            )}
+          </Group>
         </div>
       </div>
 
@@ -187,8 +219,10 @@ export default function CasePaymentPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="p-3 bg-brand-subtle/20 border border-brand/10 rounded-lg text-[11px] text-brand leading-relaxed">
-              <strong>Lưu ý quan trọng:</strong> Vui lòng quét mã QR hoặc ghi chính xác nội dung chuyển khoản ở trên để hệ thống tự động nhận diện giao dịch nhanh hơn.
+            <div className="p-3 bg-brand-subtle/20 border border-brand/10 rounded-lg text-[11px] text-brand leading-relaxed space-y-1">
+              <p><strong>Lưu ý quan trọng:</strong> Vui lòng quét mã QR hoặc ghi chính xác nội dung chuyển khoản ở trên để hệ thống tự động nhận diện giao dịch nhanh hơn.</p>
+              <hr className="border-brand/10 my-1" />
+              <p><strong>Chính sách hoàn tiền (Refund Policy):</strong> Bạn được phép hủy hồ sơ và nhận lại 100% tiền phí đã thanh toán khi chuyên gia chưa được phân công quản lý dự án này.</p>
             </div>
           </div>
         </div>

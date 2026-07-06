@@ -36,11 +36,25 @@ export function useAdminPayments() {
     },
   });
 
+  const sweepOverdueMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post("/payments/expire-overdue");
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+      queryClient.invalidateQueries({ queryKey: ["case"] });
+    },
+  });
+
   return {
     payments: paymentsQuery.data || [],
     isLoading: paymentsQuery.isLoading,
     error: paymentsQuery.error,
     verifyPayment: verifyPaymentMutation.mutateAsync,
     isVerifying: verifyPaymentMutation.isPending,
+    sweepOverdue: sweepOverdueMutation.mutateAsync,
+    isSweeping: sweepOverdueMutation.isPending,
   };
 }

@@ -22,8 +22,11 @@ export function useAdminCases() {
   });
 
   const acceptCaseMutation = useMutation({
-    mutationFn: async (caseId: string) => {
-      const response = await apiClient.post(`/admin/cases/${caseId}/accept`);
+    mutationFn: async ({ caseId, proposed_package_id, package_change_reason }: { caseId: string; proposed_package_id?: string; package_change_reason?: string }) => {
+      const response = await apiClient.post(`/admin/cases/${caseId}/accept`, {
+        proposed_package_id,
+        package_change_reason,
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -84,7 +87,8 @@ export function useAdminCases() {
     casesError: casesQuery.error,
     supporters: supportersQuery.data || [],
     isSupportersLoading: supportersQuery.isLoading,
-    acceptCase: acceptCaseMutation.mutateAsync,
+    acceptCase: (caseId: string, proposed_package_id?: string, package_change_reason?: string) =>
+      acceptCaseMutation.mutateAsync({ caseId, proposed_package_id, package_change_reason }),
     isAccepting: acceptCaseMutation.isPending,
     rejectCase: rejectCaseMutation.mutateAsync,
     isRejecting: rejectCaseMutation.isPending,

@@ -114,7 +114,7 @@ test("backend demo regression coverage", async (t) => {
           package_id: "pkg-1",
           package: { price: 199000 },
           locked_price: 199000,
-          payment_status: "unpaid",
+          payment_status: "pending",
         } as any),
         saveProofFile: async () => ({
           fileUrl: "https://res.cloudinary.com/demo/image/upload/v1/proof.pdf",

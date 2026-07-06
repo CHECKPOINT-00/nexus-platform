@@ -9,6 +9,7 @@ import { Button, Tooltip } from "@mantine/core";
 import { ServicePackage } from "@/types";
 import { ArrowLeft, ArrowRight, Bot, HelpCircle, Send } from "lucide-react";
 import { formatPrice } from "@/lib/pricing";
+import { notifications } from "@mantine/notifications";
 
 // Import step components
 import SituationStep from "./Steps/SituationStep";
@@ -116,6 +117,18 @@ export default function IntakeChatFlow({
   const { data: packages, isLoading: isLoadingPackages } = usePackages();
 
   const values = useStore(form.store, (state: any) => state.values);
+
+  useEffect(() => {
+    if (error) {
+      notifications.show({
+        title: "Không thể nộp hồ sơ",
+        message: error,
+        color: "red",
+        autoClose: 10000,
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [error]);
 
   useEffect(() => {
     if (!packages || !values.package_id) return;

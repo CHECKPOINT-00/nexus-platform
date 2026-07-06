@@ -126,6 +126,7 @@ export default function CaseStatusHeader({
             </h2>
             <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold font-body shadow-xs border ${badgeClass}`}>
               {(caseData.user_facing_stage === "submitted" || 
+                caseData.user_facing_stage === "triage_accepted" || 
                 caseData.user_facing_stage === "under_review" || 
                 caseData.user_facing_stage === "revision_submitted" ||
                 caseData.user_facing_stage === "need_more_information") && (

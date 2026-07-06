@@ -31,6 +31,10 @@ export async function adminAssignSupporterUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
   }
 
+  // Enforce payment gating
+  const { assertPaymentSatisfied } = await import("../../payments/domain/payment-gating.js");
+  assertPaymentSatisfied(caseItem);
+
   if (caseItem.assigned_supporter_auth_user_id === supporterId) {
     return caseItem;
   }

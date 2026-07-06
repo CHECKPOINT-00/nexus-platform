@@ -4,7 +4,7 @@ import React from "react";
 import { Case } from "@/types";
 import { AlertCircle, CreditCard, Clock, XCircle } from "lucide-react";
 import { Button } from "@mantine/core";
-import { getCaseEffectivePrice } from "@/lib/pricing";
+import { getCaseEffectivePrice, canUploadProof } from "@/lib/pricing";
 
 interface UnpaidAlertBannerProps {
   caseData: Case;
@@ -24,7 +24,7 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
     ? [...payments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
     : null;
 
-  if (payment_status === "unpaid") {
+  if (payment_status === "pending") {
     return (
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-warning-soft border border-warning/20 animate-fade-in">
         <div className="flex items-start gap-3">
@@ -48,14 +48,14 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
     );
   }
 
-  if (payment_status === "pending_verification") {
+  if (payment_status === "proof_submitted" || payment_status === "pending_verification" || payment_status === "pendingVerification") {
     return (
       <div className="flex items-start gap-3 p-4 rounded-lg bg-warning-soft/40 border border-warning/10">
         <Clock className="w-5 h-5 text-warning shrink-0 mt-0.5 animate-pulse" />
         <div className="space-y-0.5">
           <h4 className="font-heading font-semibold text-sm text-text-app">Đang chờ xác thực thanh toán</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Hệ thống đã nhận được minh chứng thanh toán của bạn. Quản trị viên đang tiến hành kiểm tra giao dịch và sẽ duyệt trong thời gian sớm nhất.
+            Hệ thống đã nhận được minh chứng thanh toán của bạn. Quản trị viên đang tiến hành kiểm tra giao dịch và sẽ duyệt trong thời gian sớm nhất (trong vòng 4 giờ làm việc).
           </p>
         </div>
       </div>

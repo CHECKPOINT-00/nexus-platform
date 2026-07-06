@@ -10,6 +10,14 @@ export async function approveReportUseCase(userId: string, reportId: string) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy báo cáo");
   }
 
+  const { findCaseById } = await import("../../cases/infrastructure/persistence/case.repository.js");
+  const caseRecord = await findCaseById(report.case_id);
+  if (!caseRecord) {
+    throw new AppError(404, "NOT_FOUND", "Không tìm thấy case liên quan");
+  }
+  const { assertPaymentSatisfied } = await import("../../payments/domain/payment-gating.js");
+  assertPaymentSatisfied(caseRecord);
+
   if (report.status !== "draft") {
     auditLogger.warn({
       operation: "report.approve",

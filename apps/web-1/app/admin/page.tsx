@@ -5,14 +5,16 @@ import { useAdminPayments } from "./hooks/useAdminPayments";
 import { useAdminCases } from "./hooks/useAdminCases";
 import { useAdminDocuments } from "./hooks/useAdminDocuments";
 import { useAdminPackages } from "./hooks/useAdminPackages";
+import { useAdminRefunds } from "./hooks/useAdminRefunds";
 import AdminPaymentVerificationTable from "./_components/AdminPaymentVerificationTable";
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
+import AdminRefundTable from "./_components/AdminRefundTable";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings } from "lucide-react";
-import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, RotateCcw } from "lucide-react";
+import { Tooltip, UnstyledButton, Title, Text, Badge, Divider, Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
 
@@ -22,6 +24,8 @@ export default function AdminHubPage() {
     isLoading: isPaymentsLoading,
     verifyPayment,
     isVerifying,
+    sweepOverdue,
+    isSweeping,
   } = useAdminPayments();
 
   const {
@@ -53,9 +57,16 @@ export default function AdminHubPage() {
     isUpdatingStatus,
   } = useAdminPackages();
 
+  const {
+    refunds,
+    isLoading: isRefundsLoading,
+    processRefund,
+    isProcessing: isProcessingRefund,
+  } = useAdminRefunds();
+
   // Rejection modal control
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages">("payments");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "refunds">("payments");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
@@ -105,6 +116,23 @@ export default function AdminHubPage() {
     }
   };
 
+  const handleSweepOverdue = async () => {
+    try {
+      const result = await sweepOverdue();
+      notifications.show({
+        title: "Quét hết hạn thành công",
+        message: `Đã tự động chuyển trạng thái ${result.expired_count || 0} hồ sơ quá hạn sang Expired.`,
+        color: "green",
+      });
+    } catch (e: any) {
+      notifications.show({
+        title: "Lỗi",
+        message: e?.message || "Không thể quét hết hạn overdue lúc này.",
+        color: "red",
+      });
+    }
+  };
+
   const handleAssignSupporter = async (caseId: string, supporterId: string) => {
     try {
       await assignSupporter({ caseId, supporterId });
@@ -122,9 +150,9 @@ export default function AdminHubPage() {
     }
   };
 
-  const handleAcceptCase = async (caseId: string) => {
+  const handleAcceptCase = async (caseId: string, proposed_package_id?: string, package_change_reason?: string) => {
     try {
-      await acceptCase(caseId);
+      await acceptCase(caseId, proposed_package_id, package_change_reason);
       notifications.show({
         title: "Duyệt hồ sơ thành công",
         message: "Đã duyệt hồ sơ và chuyển sang hàng chờ phân công.",
@@ -299,13 +327,23 @@ export default function AdminHubPage() {
                 <Settings className="w-5 h-5" />
               </UnstyledButton>
             </Tooltip>
+
+            <Tooltip label="Quản lý hoàn tiền" position="right" withArrow>
+              <UnstyledButton
+                onClick={() => setActiveSection("refunds")}
+                className={classes.mainLink}
+                data-active={activeSection === "refunds" || undefined}
+              >
+                <RotateCcw className="w-5 h-5" />
+              </UnstyledButton>
+            </Tooltip>
           </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={6} className={classes.title}>
-                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói" }
+                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "refunds" ? "Hoàn tiền" : "Cấu hình gói" }
               </Title>
               <Text size="xs" c="dimmed" className="font-body text-[11px]">
                 {activeSection === "payments"
@@ -314,6 +352,8 @@ export default function AdminHubPage() {
                   ? "Phân loại ý tưởng & phân công."
                   : activeSection === "documents"
                   ? "Danh mục tài liệu trên hệ thống."
+                  : activeSection === "refunds"
+                  ? "Xử lý yêu cầu hoàn tiền."
                   : "Cấu hình đơn giá gói dịch vụ."}
               </Text>
             </div>
@@ -399,6 +439,15 @@ export default function AdminHubPage() {
                   <span>Tất cả tài liệu</span>
                 </UnstyledButton>
               </div>
+            ) : activeSection === "refunds" ? (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Yêu cầu hoàn tiền</span>
+                </UnstyledButton>
+              </div>
             ) : (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
@@ -436,9 +485,21 @@ export default function AdminHubPage() {
           <div className="flex-grow min-h-0">
             {activeSection === "payments" ? (
               <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Duyệt minh chứng thanh toán</h3>
-                  <p className="text-[10px] text-text-muted">Kiểm tra thông tin giao dịch chuyển khoản và ảnh đối chiếu từ học viên.</p>
+                <div className="pb-1.5 border-b border-border-app/55 shrink-0 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-heading font-bold text-sm text-text-app">Duyệt minh chứng thanh toán</h3>
+                    <p className="text-[10px] text-text-muted">Kiểm tra thông tin giao dịch chuyển khoản và ảnh đối chiếu từ học viên.</p>
+                  </div>
+                  <Button
+                    onClick={handleSweepOverdue}
+                    loading={isSweeping}
+                    color="red"
+                    variant="light"
+                    size="xs"
+                    className="font-semibold cursor-pointer"
+                  >
+                    Quét hết hạn overdue
+                  </Button>
                 </div>
                 <AdminPaymentVerificationTable
                   payments={filteredPayments}
@@ -475,6 +536,22 @@ export default function AdminHubPage() {
                   onDelete={handleDeleteDocument}
                   isDeleting={isDeletingDoc}
                 />
+              </div>
+            ) : activeSection === "refunds" ? (
+              <div className="space-y-3">
+                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
+                  <h3 className="font-heading font-bold text-sm text-text-app">Quản lý hoàn tiền</h3>
+                  <p className="text-[10px] text-text-muted">Đối chiếu chính sách và duyệt hoặc từ chối các yêu cầu hoàn trả học phí.</p>
+                </div>
+                {isRefundsLoading ? (
+                  <LoadingSkeleton variant="table-row" count={3} />
+                ) : (
+                  <AdminRefundTable
+                    refunds={refunds}
+                    onProcess={processRefund}
+                    isProcessing={isProcessingRefund}
+                  />
+                )}
               </div>
             ) : (
               <div className="space-y-3">

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Drawer, Button } from "@mantine/core";
+import React, { useState, useRef, useEffect } from "react";
+import { Drawer, Button, Badge, Group, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { usePaymentUpload } from "../hooks/usePaymentUpload";
 import { Case } from "@/types";
-import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
-import { getCaseEffectivePrice, formatPrice, validatePaymentProof } from "@/lib/pricing";
+import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X, Clock } from "lucide-react";
+import { getCaseEffectivePrice, formatPrice, validatePaymentProof, canUploadProof, paymentWindowRemaining } from "@/lib/pricing";
 
 interface PaymentDrawerProps {
   isOpen: boolean;
@@ -20,6 +20,34 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const effectivePrice = getCaseEffectivePrice(caseData);
+
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  useEffect(() => {
+    if (!caseData || !caseData.payment_window_expires_at) return;
+    
+    const updateTimer = () => {
+      setTimeLeft(paymentWindowRemaining(caseData));
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [caseData, isOpen]);
+
+  const formatCountdown = (ms: number) => {
+    if (ms <= 0) return "Đã hết hạn";
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
+  if (!canUploadProof(caseData)) {
+    return null;
+  }
   const showLockedPriceNote =
     caseData.locked_price !== null &&
     caseData.locked_price !== undefined &&
@@ -90,7 +118,14 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
       onClose={handleClose}
       title={
         <div>
-          <h3 className="font-heading text-lg font-bold text-text-app">Thanh toán &amp; Xác minh</h3>
+          <Group gap="xs" align="center">
+            <h3 className="font-heading text-lg font-bold text-text-app">Thanh toán &amp; Xác minh</h3>
+            {caseData.payment_window_expires_at && (
+              <Badge color="red" leftSection={<Clock className="w-3 h-3" />} className="font-semibold font-mono text-[10px] h-5">
+                {formatCountdown(timeLeft)}
+              </Badge>
+            )}
+          </Group>
           <p className="font-body text-xs text-text-muted mt-0.5">
             Thực hiện chuyển khoản và tải lên minh chứng để kích hoạt hồ sơ.
           </p>
@@ -141,9 +176,11 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
             </div>
           </div>
           
-          <p className="font-body text-[11px] text-text-muted leading-relaxed italic text-center pt-2">
-            Lưu ý: Vui lòng ghi chính xác nội dung chuyển khoản để hệ thống tự động nhận diện giao dịch nhanh hơn.
-          </p>
+          <div className="space-y-1 text-center pt-2 font-body text-[11px] text-text-muted leading-relaxed">
+            <p>Lưu ý: Vui lòng ghi chính xác nội dung chuyển khoản để hệ thống tự động nhận diện giao dịch nhanh hơn.</p>
+            <hr className="border-brand/5 my-1" />
+            <p><strong>Chính sách hoàn tiền:</strong> Hoàn tiền 100% khi chưa phân công supporter (Tier-1).</p>
+          </div>
         </div>
 
         {/* Upload Dropzone */}

@@ -53,7 +53,11 @@ export default function AdminPaymentVerificationTable({
     }
 
     if (selectedStatus && selectedStatus !== "all") {
-      result = result.filter((p) => p.status === selectedStatus);
+      if (selectedStatus === "pending_verification") {
+        result = result.filter((p) => p.status === "pending_verification" || p.status === "pendingVerification" || p.status === "proof_submitted");
+      } else {
+        result = result.filter((p) => p.status === selectedStatus);
+      }
     }
 
     result.sort((a, b) => {
@@ -199,7 +203,7 @@ export default function AdminPaymentVerificationTable({
                     )}
                   </Table.Td>
                   <Table.Td className="text-center">
-                    {payment.status === "pending_verification" ? (
+                    {payment.status === "pending_verification" || payment.status === "pendingVerification" || payment.status === "proof_submitted" ? (
                       <Menu shadow="md" width={160} position="bottom-end">
                         <Menu.Target>
                           <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
