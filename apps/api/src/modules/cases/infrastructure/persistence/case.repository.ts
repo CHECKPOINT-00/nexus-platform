@@ -282,15 +282,21 @@ export async function acceptCase(
     let proposedPackageId: string | null = null;
     let proposedLockedPrice: number | null = null;
     let packageChangeReason: string | null = null;
+    let packageConfirmedAt: Date | null = null;
+    let paymentWindowExpiresAt: Date | null = null;
 
     if (isFree) {
-      userFacingStage = "under_review";
+      userFacingStage = "triage_accepted";
       paymentStatus = "not_required";
     } else {
       if (options?.proposedPackageId && options.proposedPackageId !== existingCase.package_id) {
         proposedPackageId = options.proposedPackageId;
         proposedLockedPrice = options.proposedLockedPrice ?? 0;
         packageChangeReason = options.packageChangeReason ?? "";
+      } else {
+        paymentStatus = "pending";
+        packageConfirmedAt = new Date();
+        paymentWindowExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
       }
     }
 
@@ -304,6 +310,8 @@ export async function acceptCase(
         proposed_package_id: proposedPackageId,
         proposed_locked_price: proposedLockedPrice,
         package_change_reason: packageChangeReason,
+        package_confirmed_at: packageConfirmedAt,
+        payment_window_expires_at: paymentWindowExpiresAt,
       },
     });
 
@@ -388,12 +396,19 @@ export async function assignCaseSupporter(caseId: string, adminId: string, suppo
       assertPaymentSatisfied(existingCase);
     }
 
+    const caseUpdates: any = {
+      assigned_supporter_auth_user_id: supporterId,
+      internal_status: nextStatus,
+    };
+    if (supporterId) {
+      caseUpdates.user_facing_stage = "under_review";
+    } else {
+      caseUpdates.user_facing_stage = "triage_accepted";
+    }
+
     const updated = await tx.case.update({
       where: { id: caseId },
-      data: {
-        assigned_supporter_auth_user_id: supporterId,
-        internal_status: nextStatus,
-      },
+      data: caseUpdates,
     });
 
     await tx.caseEvent.create({

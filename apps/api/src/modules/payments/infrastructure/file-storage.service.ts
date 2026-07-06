@@ -47,7 +47,7 @@ export class FileStorageService {
       throw new AppError(
         400,
         "INVALID_FILE_TYPE",
-        "Chỉ hỗ trợ tải lên các tệp ảnh .jpg, .jpeg, .png hoặc .pdf",
+        "Chỉ hỗ trợ tải lên các tệp ảnh .jpg, .jpeg, .png, .webp, .heic hoặc .heif",
       );
     }
 

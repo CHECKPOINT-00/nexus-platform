@@ -91,7 +91,7 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
   const handleUpload = async () => {
     if (!selectedFile) return;
     try {
-      await uploadProof(selectedFile);
+      await uploadProof({ file: selectedFile, transferContent: `${caseData.case_code} thanh toan` });
       setSelectedFile(null);
       setTimeout(() => {
         onClose();

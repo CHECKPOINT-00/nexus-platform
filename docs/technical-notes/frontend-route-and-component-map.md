@@ -144,7 +144,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | Component | Trạng thái | Dùng ở đâu | Hành động |
 | --- | --- | --- | --- |
 | `DashboardEmptyState` | Existing | `/dashboard` | Adapt để bám `case` thay vì `dự án` chung |
-| `CaseCard` | Existing | `/dashboard`, `/supporter` | Adapt nhãn stage/status |
+| `CaseCard` | Existing | `/dashboard`, `/supporter` | Hiển thị 1 nhãn tiến trình (ví dụ: "Phản biện · 3/6 ▸"), tích hợp biểu tượng cảnh báo thanh toán ⚠️ |
 | `useCasesList` | Existing | dashboard/supporter queue | Reuse, nhưng cần filter đúng theo role |
 | `IntakeProgressStepper` | Existing | `/dashboard/intake` | Reuse nếu hợp wizard mới |
 | `IntakeChatFlow` | Existing | `/dashboard/intake` | Replace hoặc refactor mạnh |
@@ -157,7 +157,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 
 | Component | Vai trò mới trong MVP |
 | --- | --- |
-| `CaseStatusHeader` | Giữ, nhưng phải map sang user-facing stage mới |
+| `CaseStatusHeader` | Nhúng `CasePipelineStepper` hiển thị tiến trình chuyên môn, tích hợp bộ đếm ngược SLA và thông tin nhóm |
 | `ActivityTimeline` | Giữ làm timeline lịch sử |
 | `TabIdeaContent` | Có thể đổi thành panel `Tài liệu nhóm đã gửi` |
 | `TabReportFindings` | Giữ làm lõi của latest report view |
@@ -177,6 +177,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 
 | Component đề xuất | Vai trò |
 | --- | --- |
+| `CasePipelineStepper` | Hiển thị tiến trình 6 bước (Gửi hồ sơ -> Tiếp nhận -> Phản biện -> Báo cáo -> Sửa bài -> Hoàn thành), hỗ trợ Responsive Mobile (xổ dọc trong Drawer) và hiển thị số vòng sửa bài. |
 | `CaseWorkspaceHeader` | Header ngắn gọn cho case workspace nếu không muốn nhồi quá nhiều vào `CaseStatusHeader` |
 | `NextActionCard` | Luôn chỉ ra việc user cần làm tiếp |
 | `LatestReportPanel` | Hiển thị report mới nhất trực tiếp trong workspace |

@@ -9,6 +9,7 @@ export interface Payment {
   amount: number;
   status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
   proof_file_url?: string | null;
+  transfer_content?: string | null;
   rejection_reason?: string | null;
   verified_by_auth_user_id?: string | null;
   verified_at?: string | null;

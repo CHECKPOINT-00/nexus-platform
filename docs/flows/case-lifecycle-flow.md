@@ -30,43 +30,46 @@ Cho user, admin, và supporter một mô hình nhất quán để biết case đ
 10. Supporter review round mới và publish report mới.
 11. Case hoàn tất khi gói hỗ trợ đã xong hoặc được đóng có chủ đích.
 
-## User-facing stage đề xuất
+## Trạng thái và Nhãn Hiển thị (Finalized Status Mapping)
 
-- `submitted`
-- `under_review`
-- `need_more_information`
-- `assigned`
-- `audit_in_progress`
-- `report_ready`
-- `waiting_for_revision`
-- `revision_submitted`
-- `completed`
-- `rejected`
-- `closed`
+Hệ thống phân tách rõ ràng thành 3 chiều trạng thái độc lập để phục vụ các vai trò và ngữ cảnh khác nhau:
 
-## User-facing label phase 1
+### 1. Trạng thái chuyên môn hiển thị cho Học viên (`user_facing_stage` / `studentStatusMap`)
+Được dùng để định vị bước hiện tại trên Case Stepper:
+- `submitted`: "Chờ xét duyệt"
+- `triage_accepted`: "Đã tiếp nhận"
+- `need_more_information`: "Cần bổ sung thông tin"
+- `under_review`: "Đang phản biện"
+- `report_ready`: "Báo cáo phản biện sẵn sàng"
+- `waiting_for_revision`: "Chờ bản sửa từ nhóm"
+- `revision_submitted`: "Đã nộp bản sửa"
+- `completed`: "Hoàn thành"
+- `rejected`: "Bị từ chối"
+- `closed`: "Hoàn tất — Đã đóng"
 
-- `Nexus da nhan case`
-- `Can bo sung thong tin`
-- `Dang duoc xem xet`
-- `Da co report moi`
-- `Cho nhom cap nhat`
-- `Nexus da nhan ban sua`
-- `Da hoan tat`
-- `Case chua duoc nhan`
-- `Da dong`
+### 2. Trạng thái nghiệp vụ nội bộ (`internal_status` / `supporterStatusMap`)
+Chỉ hiển thị trong màn hình của Admin và Supporter để theo dõi tiến độ công việc:
+- `triage_pending`: "Chờ duyệt"
+- `accepted_unassigned`: "Chờ phân công Supporter"
+- `assigned`: "Đã phân công"
+- `waiting_user`: "Chờ phản hồi từ học viên"
+- `supporter_working`: "Supporter đang xử lý"
+- `report_ready_to_publish`: "Báo cáo chờ gửi"
+- `done`: "Hoàn thành"
+- `cancelled`: "Đã hủy"
 
-## Internal status đề xuất
+### 3. Trạng thái thanh toán (`payment_status` / `paymentStatusMap`)
+Được quản lý song song để hiển thị cảnh báo tài chính độc lập:
+- `unpaid` / `pending`: "Chưa thanh toán" / "Chờ thanh toán"
+- `awaiting_confirmation`: "Chờ xác nhận gói dịch vụ"
+- `proof_submitted`: "Đang xác minh thanh toán"
+- `pending_verification` / `pendingVerification`: "Chờ duyệt thanh toán"
+- `paid`: "Đã thanh toán"
+- `rejected`: "Thanh toán bị từ chối"
+- `expired`: "Hết hạn thanh toán"
+- `refunded`: "Đã hoàn tiền"
+- `not_required`: "Miễn phí"
 
-- `new`
-- `triage_pending`
-- `accepted_unassigned`
-- `assigned`
-- `waiting_user`
-- `supporter_working`
-- `report_ready_to_publish`
-- `done`
-- `cancelled`
 
 ## Artifact model trong case
 

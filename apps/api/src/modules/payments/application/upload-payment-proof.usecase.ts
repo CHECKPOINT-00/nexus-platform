@@ -30,6 +30,7 @@ export async function uploadPaymentProofUseCase(
   userId: string,
   caseId: string,
   file: UploadPaymentProofRequest["file"],
+  transferContent?: string,
   deps: UploadPaymentProofDeps = {},
 ) {
   const {
@@ -88,6 +89,7 @@ export async function uploadPaymentProofUseCase(
       amount,
       proofFileUrl: proofFile.fileUrl,
       userId,
+      transferContent,
     });
 
     return {

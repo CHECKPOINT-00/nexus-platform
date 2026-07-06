@@ -46,6 +46,7 @@ export async function uploadPaymentProofHandler(c: Context) {
     const body = await c.req.parseBody();
     const file = body["file"] as any;
     const caseId = ((body["case_id"] || body["caseId"]) as string) || "";
+    const transferContent = (body["transfer_content"] || body["transferContent"]) as string | undefined;
 
     if (!file || !caseId) {
       return c.json({ code: "VALIDATION_ERROR", message: "Thiếu tệp minh chứng hoặc ID dự án" }, 400);
@@ -60,7 +61,7 @@ export async function uploadPaymentProofHandler(c: Context) {
       return access.response;
     }
 
-    const result = await uploadPaymentProofUseCase(session.user.id, caseId, file);
+    const result = await uploadPaymentProofUseCase(session.user.id, caseId, file, transferContent);
     return c.json(result, 201);
   } catch (error: any) {
     return handleError(c, error);

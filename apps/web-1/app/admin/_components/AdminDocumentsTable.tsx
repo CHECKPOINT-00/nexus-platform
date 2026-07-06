@@ -20,6 +20,7 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
 
 interface DocumentRecordDto {
   id: string;
@@ -155,9 +156,20 @@ export default function AdminDocumentsTable({
   }, [searchQuery, selectedExtension, selectedDocType, sortBy]);
 
   const handleDeleteClick = (id: string, name: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa tài liệu "${name}"?\nHành động này sẽ xóa file khỏi Cloudinary và gỡ hoàn toàn khỏi cơ sở dữ liệu.`)) {
-      onDelete(id);
-    }
+    modals.openConfirmModal({
+      title: <Text className="font-heading font-bold text-sm text-danger">Xóa tài liệu</Text>,
+      children: (
+        <Text size="sm" className="font-body text-text-muted">
+          Bạn có chắc chắn muốn xóa tài liệu "{name}"? Hành động này sẽ xóa file khỏi Cloudinary và gỡ hoàn toàn khỏi cơ sở dữ liệu.
+        </Text>
+      ),
+      labels: { confirm: "Xác nhận Xóa", cancel: "Hủy bỏ" },
+      confirmProps: { color: "red", className: "font-semibold text-xs h-9 cursor-pointer" },
+      cancelProps: { variant: "default", className: "font-semibold text-xs h-9 cursor-pointer" },
+      onConfirm: () => {
+        onDelete(id);
+      },
+    });
   };
 
   if (documents.length === 0) {

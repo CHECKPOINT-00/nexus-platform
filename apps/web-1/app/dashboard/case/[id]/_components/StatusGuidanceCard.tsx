@@ -78,6 +78,22 @@ export default function StatusGuidanceCard({
         </Alert>
       );
 
+    case "triage_accepted":
+      return (
+        <Alert
+          variant="light"
+          color="teal"
+          radius="md"
+          title="Hồ sơ đã tiếp nhận — Chờ phân công Supporter"
+          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <p className="text-text-muted text-xs leading-relaxed">
+            Hồ sơ đã được tiếp nhận thành công. Ban tổ chức đang tiến hành phân công Supporter chuyên môn phụ trách dự án (thường mất 12–24 giờ). Bạn không cần thực hiện thêm bước nào lúc này.
+          </p>
+        </Alert>
+      );
+
     case "under_review":
       return (
         <Alert

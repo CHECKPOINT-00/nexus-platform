@@ -325,6 +325,7 @@ model Payment {
   amount                   Int
   status                   String    @default("pending_verification")
   proof_file_url           String?
+  transfer_content         String?
   rejection_reason         String?
   verified_by_auth_user_id String?
   verified_at              DateTime?

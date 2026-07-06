@@ -7,14 +7,18 @@ export function usePaymentUpload(caseId: string) {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, transferContent }: { file: File; transferContent?: string }) => {
       const formData = new FormData();
       formData.append("case_id", caseId);
       formData.append("file", file);
+      if (transferContent) {
+        formData.append("transfer_content", transferContent);
+      }
 
       setUploadProgress(0);
 
-      const response = await apiClient.post("/payments/proof", formData, {        onUploadProgress: (progressEvent) => {
+      const response = await apiClient.post("/payments/proof", formData, {
+        onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(progress);

@@ -14,7 +14,8 @@ import {
   Clock,
   UserCheck,
   MessageSquare,
-  Trash2
+  Trash2,
+  Lock
 } from "lucide-react";
 
 interface ActivityTimelineProps {
@@ -164,6 +165,13 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
           desc: "Tài liệu đã được gỡ bỏ khỏi hệ thống bởi quản trị viên.",
           icon: Trash2,
           colorClass: "bg-danger-soft text-danger border-danger/20",
+        };
+      case "case_closed":
+        return {
+          label: "Hoàn tất & Đóng case",
+          desc: "Supporter đã xác nhận hoàn tất công việc hỗ trợ và đóng case.",
+          icon: Lock,
+          colorClass: "bg-success-soft text-success border-success/20",
         };
       default:
         return {

@@ -11,8 +11,9 @@ import FindingCard from "./_components/FindingCard";
 import ReviewActionsPanel from "./_components/ReviewActionsPanel";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Sparkles, ArrowLeft, Bot, AlertTriangle, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@mantine/core";
+import { Button, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { modals } from "@mantine/modals";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -99,11 +100,22 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
   };
 
   const handleDeleteFinding = (index: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa khía cạnh phản biện này?")) {
-      const updated = findings.filter((_, idx) => idx !== index);
-      setFindings(updated);
-      setHasUnsavedChanges(true);
-    }
+    modals.openConfirmModal({
+      title: <Text className="font-heading font-bold text-sm text-danger">Xóa khía cạnh phản biện</Text>,
+      children: (
+        <Text size="sm" className="font-body text-text-muted">
+          Bạn có chắc chắn muốn xóa khía cạnh phản biện này không?
+        </Text>
+      ),
+      labels: { confirm: "Xác nhận Xóa", cancel: "Hủy bỏ" },
+      confirmProps: { color: "red", className: "font-semibold text-xs h-9 cursor-pointer" },
+      cancelProps: { variant: "default", className: "font-semibold text-xs h-9 cursor-pointer" },
+      onConfirm: () => {
+        const updated = findings.filter((_, idx) => idx !== index);
+        setFindings(updated);
+        setHasUnsavedChanges(true);
+      },
+    });
   };
 
   const handleAddFinding = () => {
@@ -151,33 +163,40 @@ export default function SupporterReportReviewPage({ params }: PageProps) {
       return;
     }
     
-    if (
-      window.confirm(
-        "Xác nhận phê duyệt? Báo cáo sẽ được chuyển sang trạng thái APPROVED và gửi trực tiếp tới sinh viên."
-      )
-    ) {
-      try {
-        // Save current findings first to ensure no edits are lost
-        const contentMd = JSON.stringify({ findings });
-        await updateDraft({ reportId: draftReport.id, contentMd });
-        
-        // Call approve
-        await approveReport(draftReport.id);
-        setHasUnsavedChanges(false);
-        notifications.show({
-          title: "Phê duyệt thành công",
-          message: "Đã duyệt và gửi báo cáo phản biện thành công!",
-          color: "green",
-        });
-        router.push(`/dashboard/case/${caseId}`);
-      } catch (e) {
-        notifications.show({
-          title: "Lỗi",
-          message: "Lỗi khi phê duyệt báo cáo.",
-          color: "red",
-        });
-      }
-    }
+    modals.openConfirmModal({
+      title: <Text className="font-heading font-bold text-sm text-text-app">Phê duyệt báo cáo phản biện</Text>,
+      children: (
+        <Text size="sm" className="font-body text-text-muted">
+          Xác nhận phê duyệt? Báo cáo sẽ được chuyển sang trạng thái APPROVED và gửi trực tiếp tới sinh viên.
+        </Text>
+      ),
+      labels: { confirm: "Xác nhận Phê duyệt", cancel: "Hủy bỏ" },
+      confirmProps: { color: "blue", className: "font-semibold text-xs h-9 cursor-pointer" },
+      cancelProps: { variant: "default", className: "font-semibold text-xs h-9 cursor-pointer" },
+      onConfirm: async () => {
+        try {
+          // Save current findings first to ensure no edits are lost
+          const contentMd = JSON.stringify({ findings });
+          await updateDraft({ reportId: draftReport.id, contentMd });
+          
+          // Call approve
+          await approveReport(draftReport.id);
+          setHasUnsavedChanges(false);
+          notifications.show({
+            title: "Phê duyệt thành công",
+            message: "Đã duyệt và gửi báo cáo phản biện thành công!",
+            color: "green",
+          });
+          router.push(`/dashboard/case/${caseId}`);
+        } catch (e) {
+          notifications.show({
+            title: "Lỗi",
+            message: "Lỗi khi phê duyệt báo cáo.",
+            color: "red",
+          });
+        }
+      },
+    });
   };
 
   if (isAuthPending || isCaseLoading || isDraftLoading) {

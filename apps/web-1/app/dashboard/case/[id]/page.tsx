@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, use } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, use, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
@@ -11,6 +11,7 @@ import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
+import TabPayment from "./_components/TabPayment";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import RevisionSubmitModal from "./_components/RevisionSubmitModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
@@ -39,10 +40,19 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     error,
   } = useCaseDetails(id);
 
-  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
+  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings" | "payment">("documents");
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isRecallConfirmOpen, setIsRecallConfirmOpen] = useState(false);
+
+  const searchParams = useSearchParams();
+  const queryTab = searchParams.get("tab");
+
+  useEffect(() => {
+    if (queryTab === "payment" && caseData && getCaseEffectivePrice(caseData) > 0) {
+      setActiveTab("payment");
+    }
+  }, [queryTab, caseData]);
 
   const { recallRevision, isRecalling } = useRecallRevision(id);
 
@@ -81,6 +91,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         messageCount={caseData.messages?.length}
+        hidePayment={getCaseEffectivePrice(caseData) === 0}
       />
 
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
@@ -99,7 +110,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             {(canUploadProof(caseData) || caseData.payment_status === "proof_submitted" || caseData.payment_status === "pending_verification" || caseData.payment_status === "pendingVerification") && (
               <UnpaidAlertBanner
                 caseData={caseData}
-                onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
+                onOpenPayment={() => setActiveTab("payment")}
               />
             )}
 
@@ -153,6 +164,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
 
           {activeTab === "settings" && <TabCaseSettings caseData={caseData} />}
+
+          {activeTab === "payment" && <TabPayment caseData={caseData} />}
         </div>
       </div>
 

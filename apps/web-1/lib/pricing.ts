@@ -57,11 +57,10 @@ export function isPaymentSatisfied(caseData: Case): boolean {
  */
 export function formatPrice(price: number): string {
   if (price === 0) return "Miễn phí";
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
+  const formatted = new Intl.NumberFormat("vi-VN", {
     maximumFractionDigits: 0,
   }).format(price);
+  return `${formatted} VND`;
 }
 
 /**
@@ -80,12 +79,12 @@ export function validatePaymentProof(file: File): boolean {
     return false;
   }
   
-  // Validate type (image or pdf)
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+  // Validate type (image only - including iOS HEIC/HEIF)
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
   if (!allowedTypes.includes(file.type)) {
     notifications.show({
       title: "Định dạng không hợp lệ",
-      message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP) hoặc PDF.",
+      message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP, HEIC, HEIF).",
       color: "red",
     });
     return false;

@@ -16,6 +16,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, RotateCcw } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider, Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { modals } from "@mantine/modals";
 import classes from "../../components/layout/DoubleNavbar.module.css";
 
 export default function AdminHubPage() {
@@ -70,23 +71,34 @@ export default function AdminHubPage() {
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
-  const handleApprovePayment = async (paymentId: string) => {
-    if (window.confirm("Xác nhận đã nhận đủ số tiền thanh toán cho giao dịch này?")) {
-      try {
-        await verifyPayment({ paymentId, status: "paid" });
-        notifications.show({
-          title: "Duyệt thanh toán thành công",
-          message: "Đã duyệt thanh toán thành công!",
-          color: "green",
-        });
-      } catch (e) {
-        notifications.show({
-          title: "Lỗi",
-          message: "Gặp lỗi khi duyệt thanh toán.",
-          color: "red",
-        });
-      }
-    }
+  const handleApprovePayment = (paymentId: string) => {
+    modals.openConfirmModal({
+      title: <Text className="font-heading font-bold text-sm text-text-app">Duyệt giao dịch thanh toán</Text>,
+      children: (
+        <Text size="sm" className="font-body text-text-muted">
+          Xác nhận đã nhận đủ số tiền thanh toán cho giao dịch này? Hành động này sẽ kích hoạt dịch vụ cho học viên.
+        </Text>
+      ),
+      labels: { confirm: "Xác nhận Duyệt", cancel: "Hủy bỏ" },
+      confirmProps: { color: "blue", className: "font-semibold text-xs h-9 cursor-pointer" },
+      cancelProps: { variant: "default", className: "font-semibold text-xs h-9 cursor-pointer" },
+      onConfirm: async () => {
+        try {
+          await verifyPayment({ paymentId, status: "paid" });
+          notifications.show({
+            title: "Duyệt thanh toán thành công",
+            message: "Đã duyệt thanh toán thành công!",
+            color: "green",
+          });
+        } catch (e) {
+          notifications.show({
+            title: "Lỗi",
+            message: "Gặp lỗi khi duyệt thanh toán.",
+            color: "red",
+          });
+        }
+      },
+    });
   };
 
   const handleRejectClick = (paymentId: string) => {
@@ -202,22 +214,33 @@ export default function AdminHubPage() {
   };
 
   const handleDeleteCase = async (caseId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa hồ sơ đề tài này không? Hành động này không thể hoàn tác.")) {
-      try {
-        await deleteCase(caseId);
-        notifications.show({
-          title: "Xóa hồ sơ thành công",
-          message: "Đã xóa hồ sơ khỏi hệ thống.",
-          color: "green",
-        });
-      } catch (e) {
-        notifications.show({
-          title: "Lỗi",
-          message: "Gặp lỗi khi thực hiện xóa hồ sơ.",
-          color: "red",
-        });
-      }
-    }
+    modals.openConfirmModal({
+      title: <Text className="font-heading font-bold text-sm text-danger">Xóa hồ sơ đề tài</Text>,
+      children: (
+        <Text size="sm" className="font-body text-text-muted">
+          Bạn có chắc chắn muốn xóa hồ sơ đề tài này không? Hành động này không thể hoàn tác.
+        </Text>
+      ),
+      labels: { confirm: "Xác nhận Xóa", cancel: "Hủy bỏ" },
+      confirmProps: { color: "red", className: "font-semibold text-xs h-9 cursor-pointer" },
+      cancelProps: { variant: "default", className: "font-semibold text-xs h-9 cursor-pointer" },
+      onConfirm: async () => {
+        try {
+          await deleteCase(caseId);
+          notifications.show({
+            title: "Xóa hồ sơ thành công",
+            message: "Đã xóa hồ sơ khỏi hệ thống.",
+            color: "green",
+          });
+        } catch (e) {
+          notifications.show({
+            title: "Lỗi",
+            message: "Gặp lỗi khi thực hiện xóa hồ sơ.",
+            color: "red",
+          });
+        }
+      },
+    });
   };
 
   const handleDeleteDocument = async (id: string) => {

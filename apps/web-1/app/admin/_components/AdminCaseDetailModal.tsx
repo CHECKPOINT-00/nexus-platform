@@ -63,7 +63,7 @@ export default function AdminCaseDetailModal({
           <div className="space-y-6">
             <div>
               <h4 className="font-heading font-bold text-sm text-text-app mb-3">Thông tin chung</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl">
                 <div className="space-y-1">
                   <span className="font-bold text-xs text-text-subtle">Tên nhóm / Đề tài</span>
                   <p className="text-sm text-text-app font-normal">{detailData.case.team_name || "Chưa đặt tên"}</p>
@@ -114,7 +114,7 @@ export default function AdminCaseDetailModal({
             {detailData.intake_snapshot?.contact && (
               <div>
                 <h4 className="font-heading font-bold text-sm text-text-app mb-3">Người liên hệ chính (Đại diện nhóm)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-surface-app p-5 rounded-xl">
                   <div className="space-y-1">
                     <span className="font-bold text-xs text-text-subtle">Họ tên</span>
                     <p className="text-sm text-text-app font-normal">{detailData.intake_snapshot.contact.full_name || "N/A"}</p>
@@ -146,7 +146,7 @@ export default function AdminCaseDetailModal({
 
             <div>
               <h4 className="font-heading font-bold text-sm text-text-app mb-3">Yêu cầu hiện tại</h4>
-              <div className="space-y-4 bg-surface-app p-5 rounded-xl border border-border-app shadow-sm">
+              <div className="space-y-4 bg-surface-app p-5 rounded-xl">
                 {detailData.intake_snapshot?.current_blocker && (
                   <div className="space-y-1">
                     <span className="font-bold text-xs text-text-subtle">Điểm kẹt hiện tại</span>
@@ -206,7 +206,7 @@ export default function AdminCaseDetailModal({
             {detailData.intake_snapshot?.documents && detailData.intake_snapshot.documents.length > 0 && (
               <div>
                 <h4 className="font-heading font-bold text-sm text-text-app mb-3">Tài liệu minh chứng hồ sơ</h4>
-                <div className="bg-surface-app p-5 rounded-xl border border-border-app shadow-sm divide-y divide-border-app/40 space-y-3">
+                <div className="bg-surface-app p-5 rounded-xl divide-y divide-border-app/40 space-y-3">
                   {detailData.intake_snapshot.documents.map((doc: any, idx: number) => (
                     <div key={idx} className="py-3 first:pt-0 last:pb-0 flex flex-col gap-1.5">
                       <span className="font-bold text-xs text-text-subtle">{doc.document_type || "Tài liệu đính kèm"}</span>

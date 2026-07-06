@@ -8,6 +8,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
+import { ModalsProvider } from "@mantine/modals";
 
 const theme = createTheme({
   primaryColor: "brand",
@@ -31,6 +32,8 @@ const theme = createTheme({
   },
 });
 
+const tanstackDevtoolsPlugins = [formDevtoolsPlugin()];
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   // Use React.useState to ensure that QueryClient is created once per session
   const [queryClient] = React.useState(
@@ -50,11 +53,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <NextThemesProvider attribute="data-mantine-color-scheme" defaultTheme="light" enableSystem>
         <MantineProvider theme={theme} defaultColorScheme="light">
           <Notifications position="top-right" zIndex={1000} />
-          {children}
+          <ModalsProvider>
+            {children}
+          </ModalsProvider>
         </MantineProvider>
       </NextThemesProvider>
       <ReactQueryDevtools initialIsOpen={false} />
-      <TanStackDevtools plugins={[formDevtoolsPlugin()]} />
+      <TanStackDevtools plugins={tanstackDevtoolsPlugins} />
     </QueryClientProvider>
   );
 }

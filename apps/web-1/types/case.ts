@@ -198,13 +198,17 @@ export interface StatusThemeDetails {
   color: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
 }
 
-export const statusThemeMap: Record<string, StatusThemeDetails> = {
+export const studentStatusMap: Record<string, StatusThemeDetails> = {
   submitted: {
-    label: "Hồ sơ đã gửi — chờ xét duyệt",
+    label: "Chờ xét duyệt",
+    color: "primary",
+  },
+  triage_accepted: {
+    label: "Đã tiếp nhận",
     color: "primary",
   },
   need_more_information: {
-    label: "Cần bổ sung tài liệu",
+    label: "Cần bổ sung thông tin",
     color: "warning",
   },
   under_review: {
@@ -232,8 +236,8 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     color: "danger",
   },
   closed: {
-    label: "Đã đóng",
-    color: "default",
+    label: "Hoàn tất — Đã đóng",
+    color: "success",
   },
   draft: {
     label: "Bản nháp",
@@ -251,22 +255,9 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     label: "Đã gửi báo cáo",
     color: "success",
   },
-  unpaid: {
-    label: "Chưa thanh toán",
-    color: "warning",
-  },
-  pending_verification: {
-    label: "Chờ duyệt thanh toán",
-    color: "warning",
-  },
-  pendingVerification: {
-    label: "Chờ duyệt thanh toán",
-    color: "warning",
-  },
-  paid: {
-    label: "Đã thanh toán",
-    color: "success",
-  },
+};
+
+export const supporterStatusMap: Record<string, StatusThemeDetails> = {
   triage_pending: {
     label: "Chờ duyệt",
     color: "default",
@@ -280,7 +271,7 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     color: "primary",
   },
   waiting_user: {
-    label: "Chờ phản hồi",
+    label: "Chờ phản hồi từ học viên",
     color: "warning",
   },
   supporter_working: {
@@ -299,9 +290,24 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     label: "Đã hủy",
     color: "danger",
   },
-  triage_accepted: {
-    label: "Đã tiếp nhận — chờ xác nhận gói",
-    color: "primary",
+};
+
+export const paymentStatusMap: Record<string, StatusThemeDetails> = {
+  unpaid: {
+    label: "Chưa thanh toán",
+    color: "warning",
+  },
+  pending_verification: {
+    label: "Chờ duyệt thanh toán",
+    color: "warning",
+  },
+  pendingVerification: {
+    label: "Chờ duyệt thanh toán",
+    color: "warning",
+  },
+  paid: {
+    label: "Đã thanh toán",
+    color: "success",
   },
   awaiting_confirmation: {
     label: "Chờ xác nhận gói dịch vụ",
@@ -327,4 +333,78 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     label: "Miễn phí",
     color: "success",
   },
+  rejected: {
+    label: "Thanh toán bị từ chối",
+    color: "danger",
+  },
 };
+
+// For backward compatibility and general lookup
+export const statusThemeMap: Record<string, StatusThemeDetails> = {
+  ...studentStatusMap,
+  ...supporterStatusMap,
+  ...paymentStatusMap,
+  submitted: {
+    label: "Hồ sơ đã gửi — chờ xét duyệt",
+    color: "primary",
+  },
+  need_more_information: {
+    label: "Cần bổ sung tài liệu",
+    color: "warning",
+  },
+  waiting_user: {
+    label: "Chờ phản hồi",
+    color: "warning",
+  },
+};
+
+export type PipelineStepKey = "intake" | "confirm" | "review" | "report" | "revision" | "done" | "rejected";
+
+export interface PipelineStage {
+  key: "intake" | "confirm" | "review" | "report" | "revision" | "done";
+  label: string;
+}
+
+export const PIPELINE_STAGES: readonly PipelineStage[] = [
+  { key: "intake", label: "Gửi hồ sơ" },
+  { key: "confirm", label: "Tiếp nhận" },
+  { key: "review", label: "Phản biện" },
+  { key: "report", label: "Báo cáo" },
+  { key: "revision", label: "Sửa bài" },
+  { key: "done", label: "Hoàn thành" },
+] as const;
+
+export function getPipelineStep(stage: string, versionNo?: number): { stepKey: PipelineStepKey; stepIndex: number } {
+  const version = versionNo ?? 1;
+
+  if (["completed", "closed"].includes(stage)) {
+    return { stepKey: "done", stepIndex: 5 };
+  }
+  if (stage === "rejected") {
+    return { stepKey: "rejected", stepIndex: -1 };
+  }
+
+  // Revision Loop: stay at revision step during cycles if version >= 2
+  if (version >= 2) {
+    if (["under_review", "report_ready", "waiting_for_revision", "revision_submitted", "need_more_information"].includes(stage)) {
+      return { stepKey: "revision", stepIndex: 4 };
+    }
+  }
+
+  switch (stage) {
+    case "submitted":
+      return { stepKey: "intake", stepIndex: 0 };
+    case "triage_accepted":
+      return { stepKey: "confirm", stepIndex: 1 };
+    case "under_review":
+    case "need_more_information":
+      return { stepKey: "review", stepIndex: 2 };
+    case "report_ready":
+      return { stepKey: "report", stepIndex: 3 };
+    case "waiting_for_revision":
+    case "revision_submitted":
+      return { stepKey: "revision", stepIndex: 4 };
+    default:
+      return { stepKey: "intake", stepIndex: 0 };
+  }
+}

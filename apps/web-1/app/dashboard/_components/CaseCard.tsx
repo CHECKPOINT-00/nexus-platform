@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Case } from "@/types";
-import { statusThemeMap } from "@/types";
+import { studentStatusMap, getPipelineStep, PIPELINE_STAGES } from "@/types";
 import { Card, Badge } from "@mantine/core";
-import { Calendar, User, BookOpen } from "lucide-react";
+import { Calendar, User, BookOpen, AlertCircle } from "lucide-react";
+import { isPaymentSatisfied } from "@/lib/pricing";
 
 interface CaseCardProps {
   item: Case;
@@ -12,20 +13,28 @@ interface CaseCardProps {
 }
 
 export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseCardProps) {
-  const getBadgeProps = (status: string) => {
-    const mapped = statusThemeMap[status] || { label: status, color: "default" as const };
-    let color = "gray";
-    
-    if (mapped.color === "success") color = "teal";
-    else if (mapped.color === "warning") color = "yellow";
-    else if (mapped.color === "danger") color = "red";
-    else if (mapped.color === "primary") color = "brand";
-    
-    return { label: mapped.label, color };
-  };
+  const version = item.checkpoints?.[0]?.latest_version_no || 1;
+  const { stepKey, stepIndex } = getPipelineStep(item.user_facing_stage, version);
+  const isRejected = stepKey === "rejected";
 
-  const paymentBadge = getBadgeProps(item.payment_status);
-  const userFacingStatusBadge = getBadgeProps(item.user_facing_stage);
+  const statusDetails = studentStatusMap[item.user_facing_stage] || { label: item.user_facing_stage, color: "default" as const };
+  
+  let label = statusDetails.label;
+  if (!isRejected && stepIndex >= 0) {
+    const stepName = stepKey === "revision" && version >= 2 
+      ? `Sửa bài (Vòng ${version})` 
+      : PIPELINE_STAGES[stepIndex]?.label || statusDetails.label;
+    
+    label = `${stepName} · ${stepIndex + 1}/${PIPELINE_STAGES.length} ▸`;
+  }
+
+  let color = "gray";
+  if (statusDetails.color === "success") color = "teal";
+  else if (statusDetails.color === "warning") color = "orange";
+  else if (statusDetails.color === "danger") color = "red";
+  else if (statusDetails.color === "primary") color = "brand";
+
+  const showPaymentWarning = !isPaymentSatisfied(item) && item.payment_status !== "refunded";
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("vi-VN", {
@@ -47,12 +56,14 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
               {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
             </h3>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Badge size="sm" variant="light" color={userFacingStatusBadge.color} className="font-body text-[10px]">
-              {userFacingStatusBadge.label}
-            </Badge>
-            <Badge size="sm" variant="light" color={paymentBadge.color} className="font-body text-[10px]">
-              {paymentBadge.label}
+          <div className="flex items-center gap-1.5">
+            {showPaymentWarning && (
+              <span className="text-sm" title="Chưa hoàn tất thanh toán" style={{ color: "var(--mantine-color-orange-filled)" }}>
+                ⚠️
+              </span>
+            )}
+            <Badge size="sm" variant="light" color={color} className="font-body text-[10px]">
+              {label}
             </Badge>
           </div>
         </div>

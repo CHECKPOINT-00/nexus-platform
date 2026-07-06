@@ -29,6 +29,7 @@ export default function AdminPaymentVerificationTable({
     return new Date(dateStr).toLocaleString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -48,7 +49,8 @@ export default function AdminPaymentVerificationTable({
       result = result.filter(
         (p) =>
           p.case?.case_code?.toLowerCase().includes(query) ||
-          p.package?.name?.toLowerCase().includes(query)
+          p.package?.name?.toLowerCase().includes(query) ||
+          p.transfer_content?.toLowerCase().includes(query)
       );
     }
 
@@ -150,6 +152,7 @@ export default function AdminPaymentVerificationTable({
               <Table.Th className="text-left">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Số tiền</Table.Th>
+              <Table.Th className="text-left">Nội dung chuyển khoản</Table.Th>
               <Table.Th className="text-left">Thời gian gửi</Table.Th>
               <Table.Th className="text-left">Biên lai giao dịch</Table.Th>
               <Table.Th className="text-center w-28">Thao tác</Table.Th>
@@ -158,7 +161,7 @@ export default function AdminPaymentVerificationTable({
           <Table.Tbody>
             {filteredAndSortedPayments.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={6} className="text-center py-8 text-text-muted font-body text-xs">
+                <Table.Td colSpan={7} className="text-center py-8 text-text-muted font-body text-xs">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -173,6 +176,15 @@ export default function AdminPaymentVerificationTable({
                   </Table.Td>
                   <Table.Td className="font-heading font-semibold text-brand text-xs">
                     {formatPrice(payment.amount)}
+                  </Table.Td>
+                  <Table.Td>
+                    {payment.transfer_content ? (
+                      <span className="font-mono text-xs uppercase font-bold px-2 py-0.5 bg-brand-soft/40 border border-brand/10 rounded text-brand">
+                        {payment.transfer_content}
+                      </span>
+                    ) : (
+                      <span className="text-text-muted italic font-normal">-</span>
+                    )}
                   </Table.Td>
                   <Table.Td className="text-text-subtle">
                     {formatDate(payment.created_at)}

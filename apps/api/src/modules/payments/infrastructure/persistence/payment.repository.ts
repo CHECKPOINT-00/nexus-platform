@@ -3,6 +3,7 @@ import { prisma } from "../../../../db.js";
 export async function findManyPaymentsWithCase() {
   return await prisma.payment.findMany({
     include: {
+      package: true,
       case: {
         select: {
           case_code: true,
@@ -29,8 +30,9 @@ export async function createPaymentProof(data: {
   amount: number;
   proofFileUrl: string;
   userId: string;
+  transferContent?: string;
 }) {
-  const { caseId, packageId, amount, proofFileUrl, userId } = data;
+  const { caseId, packageId, amount, proofFileUrl, userId, transferContent } = data;
   return await prisma.$transaction(async (tx: any) => {
     const payment = await tx.payment.create({
       data: {
@@ -39,6 +41,7 @@ export async function createPaymentProof(data: {
         amount,
         status: "pending_verification",
         proof_file_url: proofFileUrl,
+        transfer_content: transferContent,
       },
     });
 
@@ -85,7 +88,7 @@ export async function verifyPayment(data: {
       payment_status: status,
     };
     if (status === "paid") {
-      caseUpdates.user_facing_stage = "under_review";
+      caseUpdates.user_facing_stage = "triage_accepted";
       caseUpdates.internal_status = "accepted_unassigned";
     }
 
