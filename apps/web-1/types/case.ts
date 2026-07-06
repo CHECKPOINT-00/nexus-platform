@@ -358,27 +358,28 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
   },
 };
 
-export type PipelineStepKey = "intake" | "confirm" | "review" | "report" | "revision" | "done" | "rejected";
+export type PipelineStepKey = "intake" | "confirm" | "payment" | "review" | "report" | "revision" | "done" | "rejected";
 
 export interface PipelineStage {
-  key: "intake" | "confirm" | "review" | "report" | "revision" | "done";
+  key: "intake" | "confirm" | "payment" | "review" | "report" | "revision" | "done";
   label: string;
 }
 
 export const PIPELINE_STAGES: readonly PipelineStage[] = [
   { key: "intake", label: "Gửi hồ sơ" },
   { key: "confirm", label: "Tiếp nhận" },
+  { key: "payment", label: "Thanh toán" },
   { key: "review", label: "Phản biện" },
   { key: "report", label: "Báo cáo" },
   { key: "revision", label: "Sửa bài" },
   { key: "done", label: "Hoàn thành" },
 ] as const;
 
-export function getPipelineStep(stage: string, versionNo?: number): { stepKey: PipelineStepKey; stepIndex: number } {
+export function getPipelineStep(stage: string, versionNo?: number, paymentStatus?: string): { stepKey: PipelineStepKey; stepIndex: number } {
   const version = versionNo ?? 1;
 
   if (["completed", "closed"].includes(stage)) {
-    return { stepKey: "done", stepIndex: 5 };
+    return { stepKey: "done", stepIndex: 6 };
   }
   if (stage === "rejected") {
     return { stepKey: "rejected", stepIndex: -1 };
@@ -387,23 +388,28 @@ export function getPipelineStep(stage: string, versionNo?: number): { stepKey: P
   // Revision Loop: stay at revision step during cycles if version >= 2
   if (version >= 2) {
     if (["under_review", "report_ready", "waiting_for_revision", "revision_submitted", "need_more_information"].includes(stage)) {
-      return { stepKey: "revision", stepIndex: 4 };
+      return { stepKey: "revision", stepIndex: 5 };
     }
   }
 
   switch (stage) {
     case "submitted":
-      return { stepKey: "intake", stepIndex: 0 };
-    case "triage_accepted":
       return { stepKey: "confirm", stepIndex: 1 };
+    case "triage_accepted":
+      // triage_accepted + payment not yet paid = payment step
+      if (!paymentStatus || paymentStatus !== "paid") {
+        return { stepKey: "payment", stepIndex: 2 };
+      }
+      // triage_accepted + paid but not yet under_review = payment done
+      return { stepKey: "payment", stepIndex: 2 };
     case "under_review":
     case "need_more_information":
-      return { stepKey: "review", stepIndex: 2 };
+      return { stepKey: "review", stepIndex: 3 };
     case "report_ready":
-      return { stepKey: "report", stepIndex: 3 };
+      return { stepKey: "report", stepIndex: 4 };
     case "waiting_for_revision":
     case "revision_submitted":
-      return { stepKey: "revision", stepIndex: 4 };
+      return { stepKey: "revision", stepIndex: 5 };
     default:
       return { stepKey: "intake", stepIndex: 0 };
   }

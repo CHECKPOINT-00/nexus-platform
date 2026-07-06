@@ -97,7 +97,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
         {activeTab !== "discussion" && (
           <>
-            <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
+            <CaseStatusHeader caseData={caseData} versions={roundHistory ?? []} selectedVersion={0} onVersionChange={() => {}} />
 
             {canConfirmPackage(caseData) && (
               <PackageConfirmationCard caseData={caseData} />
@@ -114,7 +114,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               />
             )}
 
-            {!caseRequiresPayment(caseData) && (
+            {(!caseRequiresPayment(caseData) || caseData.payment_status === "unpaid") && (
               <StatusGuidanceCard
                 caseData={caseData}
                 openRequestsForMoreInfo={openRequestsForMoreInfo}

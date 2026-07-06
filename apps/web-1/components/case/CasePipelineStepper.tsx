@@ -11,7 +11,8 @@ import {
   PenTool, 
   CheckCircle2, 
   XCircle, 
-  ChevronRight 
+  ChevronRight,
+  CreditCard
 } from "lucide-react";
 
 interface CasePipelineStepperProps {
@@ -25,7 +26,7 @@ export default function CasePipelineStepper({ caseData, versionNo }: CasePipelin
   const stage = caseData.user_facing_stage;
   const version = versionNo ?? caseData.checkpoints?.[0]?.latest_version_no ?? 1;
 
-  const { stepKey, stepIndex } = getPipelineStep(stage, version);
+  const { stepKey, stepIndex } = getPipelineStep(stage, version, caseData.payment_status);
   const isRejected = stepKey === "rejected";
   const isCompleted = ["completed", "closed"].includes(stage);
   
@@ -53,6 +54,9 @@ export default function CasePipelineStepper({ caseData, versionNo }: CasePipelin
         break;
       case "confirm":
         icon = isRejected && isActive ? <XCircle size={size} /> : <ClipboardCheck size={size} />;
+        break;
+      case "payment":
+        icon = <CreditCard size={size} />;
         break;
       case "review":
         icon = <Activity size={size} />;
