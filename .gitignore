@@ -49,3 +49,7 @@ data/system-prompts/
 docs/case-documents/
 docker-example
 prisma/backup
+
+# Temp notes and docs
+note.txt
+*CHECKPOINT 3.md
