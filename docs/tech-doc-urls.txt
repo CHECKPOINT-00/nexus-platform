@@ -17,6 +17,7 @@ https://mantine.dev/theming/mantine-provider/
 https://mantine.dev/theming/theme-object/
 https://mantine.dev/theming/colors/
 https://mantine.dev/styles/postcss-preset/
+https://mantine.dev/core/timeline/
 https://ui.mantine.dev/category/navbars/
 https://ui.mantine.dev/category/headers/
 https://ui.mantine.dev/category/footers/

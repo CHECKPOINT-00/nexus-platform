@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Case } from "@/types";
+import { Timeline, Text } from "@mantine/core";
 import { 
   FolderPlus, 
   Upload, 
@@ -13,179 +14,216 @@ import {
   Circle,
   Clock,
   UserCheck,
-  MessageSquare,
   Trash2,
-  Lock
+  Lock,
+  LucideIcon
 } from "lucide-react";
 
 interface ActivityTimelineProps {
   caseData: Case;
 }
 
+interface EventConfig {
+  label: string;
+  desc: string;
+  icon: LucideIcon;
+  colorClass: string;
+}
+
+const EVENT_CONFIGS: Record<string, EventConfig> = {
+  case_created: {
+    label: "Khởi tạo hồ sơ",
+    desc: "Hồ sơ phản biện đã được khởi tạo trên hệ thống.",
+    icon: FolderPlus,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  case_created_event: {
+    label: "Khởi tạo hồ sơ",
+    desc: "Hồ sơ phản biện đã được khởi tạo trên hệ thống.",
+    icon: FolderPlus,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  case_submitted: {
+    label: "Hồ sơ đã nộp",
+    desc: "Hồ sơ phản biện đã được gửi lên hệ thống thành công và đang chờ xét duyệt.",
+    icon: Upload,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  case_accepted: {
+    label: "Hồ sơ được duyệt",
+    desc: "Hồ sơ đã được quản trị viên duyệt và chấp nhận.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  case_rejected: {
+    label: "Hồ sơ bị từ chối",
+    desc: "Hồ sơ không được chấp nhận phê duyệt.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  case_cancelled_by_student: {
+    label: "Hồ sơ đã hủy",
+    desc: "Hồ sơ đã bị hủy bởi sinh viên.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  supporter_assigned: {
+    label: "Đã phân công người hỗ trợ",
+    desc: "Người hỗ trợ đã được phân công để đánh giá và phản biện hồ sơ.",
+    icon: UserCheck,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  more_info_requested: {
+    label: "Yêu cầu bổ sung thông tin",
+    desc: "Yêu cầu cập nhật hoặc làm rõ thêm thông tin hồ sơ.",
+    icon: HelpCircle,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  request_more_info: {
+    label: "Yêu cầu bổ sung thông tin",
+    desc: "Yêu cầu cập nhật hoặc làm rõ thêm thông tin hồ sơ.",
+    icon: HelpCircle,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  clarification_requested: {
+    label: "Yêu cầu làm rõ",
+    desc: "Người hỗ trợ yêu cầu nhóm bổ sung hoặc giải trình về nội dung hồ sơ.",
+    icon: HelpCircle,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  need_clarification: {
+    label: "Yêu cầu làm rõ",
+    desc: "Người hỗ trợ yêu cầu nhóm bổ sung hoặc giải trình về nội dung hồ sơ.",
+    icon: HelpCircle,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  revision_submitted: {
+    label: "Đã nộp bản sửa đổi",
+    desc: "Bản sửa đổi hồ sơ đã được nộp thành công.",
+    icon: Upload,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  revision_recalled: {
+    label: "Bản sửa đổi đã được thu hồi",
+    desc: "Bản sửa đổi đã được thu hồi và không còn hiệu lực.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  payment_submitted: {
+    label: "Nộp minh chứng thanh toán",
+    desc: "Minh chứng chuyển khoản ngân hàng được tải lên hệ thống.",
+    icon: Upload,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  payment_proof_uploaded: {
+    label: "Nộp minh chứng thanh toán",
+    desc: "Minh chứng chuyển khoản ngân hàng được tải lên hệ thống.",
+    icon: Upload,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  payment_approved: {
+    label: "Thanh toán thành công",
+    desc: "Giao dịch thanh toán được xác nhận hợp lệ bởi quản trị viên.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  payment_verified: {
+    label: "Thanh toán thành công",
+    desc: "Giao dịch thanh toán được xác nhận hợp lệ bởi quản trị viên.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  payment_rejected: {
+    label: "Thanh toán bị từ chối",
+    desc: "Minh chứng giao dịch bị từ chối do thông tin không khớp.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  payment_expired: {
+    label: "Thanh toán quá hạn",
+    desc: "Hạn thanh toán cho hồ sơ đã kết thúc.",
+    icon: Clock,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  payment_reactivated: {
+    label: "Mở lại thanh toán",
+    desc: "Cổng thanh toán đã được mở lại cho hồ sơ.",
+    icon: Clock,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  package_confirmed: {
+    label: "Xác nhận gói dịch vụ",
+    desc: "Gói dịch vụ đã được xác nhận thành công.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  supporter_output_uploaded: {
+    label: "Tải lên tài liệu hỗ trợ",
+    desc: "Tài liệu đầu ra hỗ trợ (supporter output) đã được tải lên.",
+    icon: FileCheck,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  external_feedback_uploaded: {
+    label: "Đánh giá bên ngoài",
+    desc: "Tài liệu đánh giá của chuyên gia/giảng viên bên ngoài đã được tải lên.",
+    icon: Upload,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  document_deleted: {
+    label: "Xóa tài liệu",
+    desc: "Tài liệu đã được gỡ bỏ khỏi hệ thống.",
+    icon: Trash2,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  case_closed: {
+    label: "Hoàn tất & Đóng case",
+    desc: "Người hỗ trợ đã xác nhận hoàn tất công việc hỗ trợ và đóng case.",
+    icon: Lock,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  refund_requested: {
+    label: "Yêu cầu hoàn tiền",
+    desc: "Yêu cầu hoàn tiền đã được gửi lên hệ thống.",
+    icon: Clock,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  refund_approved: {
+    label: "Duyệt hoàn tiền",
+    desc: "Yêu cầu hoàn tiền đã được quản trị viên duyệt.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  refund_rejected: {
+    label: "Từ chối hoàn tiền",
+    desc: "Yêu cầu hoàn tiền đã bị từ chối.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  refund_completed: {
+    label: "Hoàn tiền thành công",
+    desc: "Giao dịch hoàn tiền đã được hoàn tất.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+};
+
 export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
   const events = caseData.events || [];
 
-  // Filter out message_sent events to avoid cluttering the timeline with chat messages
-  const filteredEvents = events.filter(event => event.event_type !== "message_sent");
-
-  // Sort events chronologically (oldest first)
-  const sortedEvents = [...filteredEvents].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
-
-  const getEventDetails = (type: string) => {
-    switch (type) {
-      case "case_created":
-      case "case_created_event":
-        return {
-          label: "Khởi tạo hồ sơ",
-          desc: "Hồ sơ phản biện đã được khởi tạo trên hệ thống.",
-          icon: FolderPlus,
-          colorClass: "bg-brand-soft text-brand border-brand/20",
-        };
-      case "case_submitted":
-        return {
-          label: "Hồ sơ đã nộp",
-          desc: "Hồ sơ phản biện đã được gửi lên hệ thống thành công và đang chờ xét duyệt.",
-          icon: Upload,
-          colorClass: "bg-brand-soft text-brand border-brand/20",
-        };
-      case "case_accepted":
-        return {
-          label: "Hồ sơ được duyệt",
-          desc: "Hồ sơ đã được quản trị viên duyệt và chấp nhận.",
-          icon: CheckCircle,
-          colorClass: "bg-success-soft text-success border-success/20",
-        };
-      case "case_rejected":
-        return {
-          label: "Hồ sơ bị từ chối",
-          desc: "Hồ sơ không được chấp nhận phê duyệt.",
-          icon: XCircle,
-          colorClass: "bg-danger-soft text-danger border-danger/20",
-        };
-      case "supporter_assigned":
-        return {
-          label: "Đã phân công người hỗ trợ",
-          desc: "Người hỗ trợ đã được phân công để đánh giá và phản biện hồ sơ.",
-          icon: UserCheck,
-          colorClass: "bg-info-soft text-info border-info/20",
-        };
-      case "more_info_requested":
-        return {
-          label: "Yêu cầu bổ sung thông tin",
-          desc: "Yêu cầu cập nhật hoặc làm rõ thêm thông tin hồ sơ.",
-          icon: HelpCircle,
-          colorClass: "bg-warning-soft text-warning border-warning/20",
-        };
-      case "revision_submitted":
-        return {
-          label: "Đã nộp bản sửa đổi",
-          desc: "Bản sửa đổi hồ sơ đã được nộp thành công.",
-          icon: Upload,
-          colorClass: "bg-info-soft text-info border-info/20",
-        };
-      case "revision_recalled":
-        return {
-          label: "Bản sửa đổi đã được thu hồi",
-          desc: "Bản sửa đổi đã được thu hồi và không còn hiệu lực.",
-          icon: XCircle,
-          colorClass: "bg-danger-soft text-danger border-danger/20",
-        };
-      case "message_sent":
-        return {
-          label: "Tin nhắn mới",
-          desc: "Tin nhắn trao đổi mới đã được gửi trong phần thảo luận.",
-          icon: MessageSquare,
-          colorClass: "bg-surface-soft text-text-muted border-border-app",
-        };
-      case "payment_submitted":
-      case "payment_proof_uploaded":
-        return {
-          label: "Nộp minh chứng thanh toán",
-          desc: "Minh chứng chuyển khoản ngân hàng được tải lên hệ thống.",
-          icon: Upload,
-          colorClass: "bg-warning-soft text-warning border-warning/20",
-        };
-      case "payment_approved":
-      case "payment_verified":
-        return {
-          label: "Thanh toán thành công",
-          desc: "Giao dịch thanh toán được xác nhận hợp lệ bởi quản trị viên.",
-          icon: CheckCircle,
-          colorClass: "bg-success-soft text-success border-success/20",
-        };
-      case "payment_rejected":
-        return {
-          label: "Thanh toán bị từ chối",
-          desc: "Minh chứng giao dịch bị từ chối do thông tin không khớp.",
-          icon: XCircle,
-          colorClass: "bg-danger-soft text-danger border-danger/20",
-        };
-      case "report_draft_created":
-        return {
-          label: "Tạo bản nháp phản biện AI",
-          desc: "Bản thảo báo cáo phản biện AI được tạo lập tự động.",
-          icon: FileEdit,
-          colorClass: "bg-info-soft text-info border-info/20",
-        };
-      case "report_approved":
-      case "report_sent":
-        return {
-          label: "Báo cáo chính thức",
-          desc: "Báo cáo phản biện được kiểm duyệt và gửi tới sinh viên.",
-          icon: FileCheck,
-          colorClass: "bg-success-soft text-success border-success/20",
-        };
-      case "clarification_requested":
-      case "need_clarification":
-        return {
-          label: "Yêu cầu làm rõ",
-          desc: "Supporter yêu cầu nhóm bổ sung hoặc giải trình về nội dung hồ sơ.",
-          icon: HelpCircle,
-          colorClass: "bg-warning-soft text-warning border-warning/20",
-        };
-      case "supporter_output_uploaded":
-        return {
-          label: "Tải lên tài liệu hỗ trợ",
-          desc: "Tài liệu đầu ra hỗ trợ (supporter output) đã được tải lên.",
-          icon: FileCheck,
-          colorClass: "bg-success-soft text-success border-success/20",
-        };
-      case "external_feedback_uploaded":
-        return {
-          label: "Đánh giá bên ngoài",
-          desc: "Tài liệu đánh giá của chuyên gia/giảng viên bên ngoài đã được tải lên.",
-          icon: Upload,
-          colorClass: "bg-info-soft text-info border-info/20",
-        };
-      case "document_deleted":
-        return {
-          label: "Xóa tài liệu",
-          desc: "Tài liệu đã được gỡ bỏ khỏi hệ thống bởi quản trị viên.",
-          icon: Trash2,
-          colorClass: "bg-danger-soft text-danger border-danger/20",
-        };
-      case "case_closed":
-        return {
-          label: "Hoàn tất & Đóng case",
-          desc: "Supporter đã xác nhận hoàn tất công việc hỗ trợ và đóng case.",
-          icon: Lock,
-          colorClass: "bg-success-soft text-success border-success/20",
-        };
-      default:
-        return {
-          label: type.replace(/_/g, " "),
-          desc: "Sự kiện hệ thống ghi nhận.",
-          icon: Circle,
-          colorClass: "bg-surface-soft text-text-muted border-border-app",
-        };
-    }
-  };
+  const sortedEvents = useMemo(() => {
+    const filtered = events.filter(event => event.event_type !== "message_sent");
+    return [...filtered].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  }, [events]);
 
   const formatDateTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + " ngày " + d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return (
+      d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) +
+      " ngày " +
+      d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+    );
   };
 
   if (sortedEvents.length === 0) {
@@ -199,40 +237,69 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
 
   return (
     <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-6 animate-fade-in">
-      <div className="relative pl-6 border-l-2 border-border-app space-y-8 py-2 ml-4">
+      <Timeline 
+        bulletSize={32} 
+        lineWidth={2} 
+        active={-1}
+        styles={{
+          itemBullet: {
+            backgroundColor: "transparent",
+            border: "none",
+            boxShadow: "none",
+          }
+        }}
+      >
         {sortedEvents.map((event) => {
-          const { label, desc, icon: Icon, colorClass } = getEventDetails(event.event_type);
+          const config = EVENT_CONFIGS[event.event_type] || {
+            label: event.event_type.replace(/_/g, " "),
+            desc: "Sự kiện hệ thống ghi nhận.",
+            icon: Circle,
+            colorClass: "bg-surface-soft text-text-muted border-border-app",
+          };
+
+          const { label, desc, icon: Icon, colorClass } = config;
 
           return (
-            <div key={event.id} className="relative group">
-              {/* Timeline Marker Point */}
-              <div className={`absolute -left-[38px] top-0 w-8 h-8 rounded-full flex items-center justify-center border ${colorClass} shadow-sm transition-transform group-hover:scale-110 z-10 bg-surface-app`}>
-                <Icon className="w-4 h-4" />
-              </div>
-
-              {/* Event Content card */}
-              <div className="space-y-1.5 font-body">
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <h4 className="font-heading font-bold text-xs text-text-app">
+            <Timeline.Item
+              key={event.id}
+              bullet={
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${colorClass} shadow-sm bg-surface-app transition-transform hover:scale-110`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              }
+              title={
+                <div className="flex flex-wrap items-baseline gap-2 font-heading">
+                  <span className="font-bold text-xs text-text-app">
                     {label}
-                  </h4>
+                  </span>
                   <span className="text-[10px] text-text-subtle">
                     {formatDateTime(event.created_at)}
                   </span>
                 </div>
-                <p className="text-xs text-text-muted leading-relaxed">
+              }
+              classNames={{
+                itemBullet: "bg-transparent border-0 p-0",
+                item: "before:border-border-app",
+              }}
+            >
+              <div className="space-y-1 font-body mt-1">
+                <Text size="xs" className="text-text-muted leading-relaxed">
                   {desc}
-                </p>
+                </Text>
                 {event.actor && (
-                  <p className="text-[10px] text-text-subtle">
-                    Thực hiện bởi: <strong className="text-text-muted">{event.actor.name}</strong> ({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})
-                  </p>
+                  <Text size="10px" className="text-text-subtle">
+                    Thực hiện bởi: <strong className="text-text-muted">{event.actor.name}</strong> ({
+                      event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"
+                    })
+                  </Text>
                 )}
               </div>
-            </div>
+            </Timeline.Item>
           );
         })}
-      </div>
+      </Timeline>
     </div>
   );
 }
+
+
