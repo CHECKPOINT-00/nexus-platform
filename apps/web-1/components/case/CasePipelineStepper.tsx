@@ -27,9 +27,21 @@ export default function CasePipelineStepper({ caseData, versionNo }: CasePipelin
 
   const { stepKey, stepIndex } = getPipelineStep(stage, version);
   const isRejected = stepKey === "rejected";
+  const isCompleted = ["completed", "closed"].includes(stage);
   
-  // If rejected, default active visual step to 1 (Confirm)
-  const activeStepIndex = isRejected ? 1 : stepIndex;
+  // For Stepper component: if completed, set to length so all steps are marked as completed (ticked & filled)
+  const activeStepIndex = isRejected 
+    ? 1 
+    : isCompleted 
+      ? PIPELINE_STAGES.length 
+      : stepIndex;
+
+  // For text labels: cap at the final index (done)
+  const displayStepIndex = isRejected 
+    ? 1 
+    : isCompleted 
+      ? PIPELINE_STAGES.length - 1 
+      : stepIndex;
 
   const getStepIcon = (key: string, isActive: boolean, isCompleted: boolean) => {
     const size = 16;
@@ -78,8 +90,8 @@ export default function CasePipelineStepper({ caseData, versionNo }: CasePipelin
   const currentStageLabel = isRejected 
     ? "Bị từ chối" 
     : getStepLabel(
-        PIPELINE_STAGES[activeStepIndex]?.key || "intake", 
-        PIPELINE_STAGES[activeStepIndex]?.label || "Gửi hồ sơ"
+        PIPELINE_STAGES[displayStepIndex]?.key || "intake", 
+        PIPELINE_STAGES[displayStepIndex]?.label || "Gửi hồ sơ"
       );
 
   const stepperColor = isRejected ? "red" : "brand";
@@ -137,7 +149,7 @@ export default function CasePipelineStepper({ caseData, versionNo }: CasePipelin
             <span className="text-xs font-semibold text-text-app">
               {isRejected 
                 ? "Hồ sơ bị từ chối" 
-                : `Giai đoạn ${activeStepIndex + 1}/${PIPELINE_STAGES.length}: ${currentStageLabel}`
+                : `Giai đoạn ${displayStepIndex + 1}/${PIPELINE_STAGES.length}: ${currentStageLabel}`
               }
             </span>
           </div>
