@@ -4,6 +4,8 @@ import React from "react";
 import { IntakeStep } from "../_types/intake.types";
 import { Check } from "lucide-react";
 
+import { Stepper } from "@mantine/core";
+
 interface IntakeProgressStepperProps {
   currentStep: IntakeStep;
   onStepClick?: (step: IntakeStep) => void;
@@ -29,47 +31,75 @@ export default function IntakeProgressStepper({
 }: IntakeProgressStepperProps) {
   return (
     <>
-      <div className="hidden lg:flex flex-col gap-2 w-full">
-        {steps.map((s, idx) => {
-          const isActive = s.step === currentStep;
-          const isCompleted = s.step < currentStep;
-          const isSelectable = selectableSteps.includes(s.step);
+      <div className="hidden lg:flex flex-col w-full bg-surface-app border border-border-app rounded-2xl p-5 shadow-sm">
+        <Stepper
+          active={currentStep}
+          onStepClick={(index) => {
+            const s = steps[index];
+            if (s && selectableSteps.includes(s.step)) {
+              onStepClick?.(s.step);
+            }
+          }}
+          color="brand"
+          orientation="vertical"
+          size="sm"
+          completedIcon={<Check className="w-3.5 h-3.5 stroke-[3]" />}
+          classNames={{
+            root: "w-full",
+            steps: "gap-0",
+            step: "group py-2.5 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed hover:bg-transparent focus:outline-none",
+            stepIcon: "border-border-app bg-surface-app text-text-subtle font-semibold transition-all duration-200 data-[progress]:ring-4 data-[progress]:ring-brand-soft/30",
+            stepCompletedIcon: "text-white",
+            separator: "bg-border-app",
+            verticalSeparator: "bg-border-app w-[2px]",
+          }}
+        >
+          {steps.map((s, idx) => {
+            const isActive = s.step === currentStep;
+            const isCompleted = s.step < currentStep;
+            const isSelectable = selectableSteps.includes(s.step);
 
-          return (
-            <button
-              key={idx}
-              onClick={() => isSelectable && onStepClick?.(s.step)}
-              disabled={!isSelectable}
-              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left w-full transition-all duration-200 ${
-                isActive
-                  ? "bg-brand text-white border-brand shadow-sm font-semibold"
-                  : isCompleted
-                  ? "bg-brand-soft/20 hover:bg-brand-soft/40 border-brand/10 text-brand cursor-pointer"
-                  : isSelectable
-                  ? "bg-surface-app border-border-app hover:border-brand/40 hover:bg-surface-soft cursor-pointer text-text-app"
-                  : "bg-surface-app/40 border-border-app/40 text-text-subtle opacity-65 cursor-not-allowed"
-              }`}
-            >
-              <span
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
-                  isActive
-                    ? "bg-white text-brand"
-                    : isCompleted
-                    ? "bg-brand text-white"
-                    : "bg-surface-muted text-text-subtle border border-border-app"
-                }`}
-              >
-                {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs font-heading font-bold leading-tight block">{s.label}</span>
-                <span className={`text-[10px] leading-none mt-0.5 ${isActive ? "text-white/80" : "text-text-muted"}`}>
-                  {isActive ? "Đang thực hiện" : isCompleted ? "Đã hoàn thành" : isSelectable ? "Sẵn sàng" : "Chưa mở khóa"}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+            return (
+              <Stepper.Step
+                key={idx}
+                allowStepClick={isSelectable}
+                allowStepSelect={isSelectable}
+                label={
+                  <span
+                    className={`font-heading text-xs font-bold leading-tight transition-colors duration-200 ${
+                      isActive
+                        ? "text-brand font-bold"
+                        : isSelectable
+                        ? "text-text-app group-hover:text-brand"
+                        : "text-text-subtle/60"
+                    }`}
+                  >
+                    {s.label}
+                  </span>
+                }
+                description={
+                  <span
+                    className={`text-[10px] leading-none mt-1 block transition-colors duration-200 ${
+                      isActive
+                        ? "text-brand/85 font-medium"
+                        : isCompleted
+                        ? "text-brand/60"
+                        : "text-text-muted/70"
+                    }`}
+                  >
+                    {isActive
+                      ? "Đang thực hiện"
+                      : isCompleted
+                      ? "Đã hoàn thành"
+                      : isSelectable
+                      ? "Sẵn sàng"
+                      : "Chưa mở khóa"}
+                  </span>
+                }
+              />
+            );
+          })}
+        </Stepper>
       </div>
 
       <div className="lg:hidden w-full py-3 border-b border-border-app bg-surface-app px-4 mb-4">
