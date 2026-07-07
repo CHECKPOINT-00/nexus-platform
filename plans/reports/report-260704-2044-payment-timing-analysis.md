@@ -1,6 +1,6 @@
 # Phân Tích Payment Timing & Trust Model cho Nexus
 
-**Dựa trên:** [report-260704-1930-payment-timing-trust-model.md](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/plans/reports/report-260704-1930-payment-timing-trust-model.md)
+**Dựa trên:** [report-260704-1930-payment-timing-trust-model.md](report-260704-1930-payment-timing-trust-model.md)
 **Ngày phân tích:** 2026-07-04
 **Version:** 2.0 — đã sửa theo review feedback
 **Status:** Đề xuất — chờ duyệt

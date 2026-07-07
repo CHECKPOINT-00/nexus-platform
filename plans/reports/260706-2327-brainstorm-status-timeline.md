@@ -4,7 +4,7 @@
 
 ### 1A. CaseCard hiển thị 2 badge song song — gây rối
 
-**Hiện trạng**: [CaseCard.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/_components/CaseCard.tsx#L50-L57)
+**Hiện trạng**: [CaseCard.tsx](../../apps/web-1/app/dashboard/_components/CaseCard.tsx#L50-L57)
 
 ```
 [Hồ sơ đã gửi — chờ xét duyệt]  [Chưa thanh toán]
@@ -18,13 +18,13 @@
 ### 1B. Không có progress stepper cho lifecycle
 
 - **ActivityTimeline** chỉ là log sự kiện (quá khứ → hiện tại), không phải roadmap (hiện tại → tương lai)
-- [CaseStatusHeader](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/%5Bid%5D/_components/CaseStatusHeader.tsx) chỉ show 1 badge + SLA timer
+- [CaseStatusHeader](../../apps/web-1/app/dashboard/case/%5Bid%5D/_components/CaseStatusHeader.tsx) chỉ show 1 badge + SLA timer
 - Code đã reference `intake`, `payment`, `checkpoint_1-3` trong `getStageLabel()` (L84-99) nhưng **chưa dùng** cho stepper UI nào
 - User vào case workspace: không biết mình đang ở đâu, còn bao nhiêu bước
 
 ### 1C. statusThemeMap gộp chung 3 chiều status
 
-[statusThemeMap](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/types/case.ts#L196-L330) — 29 entry trộn lẫn `user_facing_stage` + `internal_status` + `payment_status` vào 1 flat map. Khó maintain, dễ conflict key.
+[statusThemeMap](../../apps/web-1/types/case.ts#L196-L330) — 29 entry trộn lẫn `user_facing_stage` + `internal_status` + `payment_status` vào 1 flat map. Khó maintain, dễ conflict key.
 
 ### 1D. DB schema đã tách 3 field nhưng UX chưa phản ánh đúng
 

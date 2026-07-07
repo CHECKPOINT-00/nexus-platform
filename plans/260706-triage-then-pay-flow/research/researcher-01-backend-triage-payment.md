@@ -4,7 +4,7 @@
 Analysis of database models, backend logic changes, state transitions, anti-spam mechanisms, refund mechanics, and database migration safety constraints.
 
 ## 1. Database Schema & State Transitions
-- **Additive Schema Modifications:** We will introduce 7 new optional fields to the `Case` model in [schema.prisma](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/prisma/schema.prisma) and define the new `Refund` model representing tier-based manual refunds.
+- **Additive Schema Modifications:** We will introduce 7 new optional fields to the `Case` model in [schema.prisma](../../../prisma/schema.prisma) and define the new `Refund` model representing tier-based manual refunds.
 - **Index Optimization:** A composite index `@@index([owner_auth_user_id, payment_status])` will speed up anti-spam validations.
 - **State Machine Transitions:**
   - Case moves from `submitted` to `triage_accepted` (with `payment_status = awaiting_confirmation` for paid packages).
@@ -15,8 +15,8 @@ Analysis of database models, backend logic changes, state transitions, anti-spam
   - If 72h window passes without payment, case becomes `expired`. Student can re-activate within 7 days, returning to `pending`.
 
 ## 2. Gating & Invariants
-- **Supporter Assignment Gate:** In [assign-supporter.usecase.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/cases/application/assign-supporter.usecase.ts), we must assert that `isPaymentSatisfied` (`paid` or `not_required`) before permitting supporter assignment.
-- **Proof Upload Gate:** In [upload-payment-proof.usecase.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/payments/application/upload-payment-proof.usecase.ts), proof upload is only allowed when `payment_status` is `pending` or `rejected`.
+- **Supporter Assignment Gate:** In [assign-supporter.usecase.ts](../../../apps/api/src/modules/cases/application/assign-supporter.usecase.ts), we must assert that `isPaymentSatisfied` (`paid` or `not_required`) before permitting supporter assignment.
+- **Proof Upload Gate:** In [upload-payment-proof.usecase.ts](../../../apps/api/src/modules/payments/application/upload-payment-proof.usecase.ts), proof upload is only allowed when `payment_status` is `pending` or `rejected`.
 
 ## 3. Anti-Spam & Concurrent Race Conditions
 - **Constraint:** A student can have at most 1 case in `awaiting_confirmation`, `pending`, `proof_submitted`, `rejected`, or `expired` (within 7-day window) status.

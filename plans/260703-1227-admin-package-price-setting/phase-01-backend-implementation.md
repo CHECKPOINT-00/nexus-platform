@@ -3,7 +3,7 @@
 ## Tasks
 
 ### 1. Database Repository Update `[completed]`
-- **File:** `[package.repository.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/packages/infrastructure/persistence/package.repository.ts)`
+- **File:** `[package.repository.ts](../../apps/api/src/modules/packages/infrastructure/persistence/package.repository.ts)`
 - **Goal:** Add an `updatePackagePrice` function to handle updating a package's price in the database.
 - **Code Outline:**
   ```typescript
@@ -16,7 +16,7 @@
   ```
 
 ### 2. Create Use Case `[completed]`
-- **File:** `[update-package-price.usecase.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/admin/application/update-package-price.usecase.ts)`
+- **File:** `[update-package-price.usecase.ts](../../apps/api/src/modules/admin/application/update-package-price.usecase.ts)`
 - **Goal:** Define a usecase to validate parameters (e.g., checking that the price is a positive integer) and call the database repository.
 - **Code Outline:**
   ```typescript
@@ -38,7 +38,7 @@
   ```
 
 ### 3. Implement Controller Handler `[completed]`
-- **File:** `[admin.controller.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/admin/http/admin.controller.ts)`
+- **File:** `[admin.controller.ts](../../apps/api/src/modules/admin/http/admin.controller.ts)`
 - **Goal:** Export an `updatePackagePriceHandler` that authenticates the user as admin, reads request body, and calls the usecase.
 - **Code Outline:**
   ```typescript
@@ -65,7 +65,7 @@
   ```
 
 ### 4. Register Route in Admin Router `[completed]`
-- **File:** `[admin.routes.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/admin/http/admin.routes.ts)`
+- **File:** `[admin.routes.ts](../../apps/api/src/modules/admin/http/admin.routes.ts)`
 - **Goal:** Map `PUT /api/admin/packages/:id/price` to `updatePackagePriceHandler`.
 - **Code Outline:**
   ```typescript

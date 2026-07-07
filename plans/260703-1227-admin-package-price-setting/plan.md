@@ -7,9 +7,9 @@ Currently, the service packages and their corresponding pricing details are stor
 Implement a secure, admin-only endpoint and UI component to update package prices using Mantine UI components.
 
 ## Phases
-- **[Phase 01: Backend implementation](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/plans/260703-1227-admin-package-price-setting/phase-01-backend-implementation.md)** - `[completed]`
-- **[Phase 02: Frontend implementation](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/plans/260703-1227-admin-package-price-setting/phase-02-frontend-implementation.md)** - `[completed]`
-- **[Phase 03: Verification and testing](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/plans/260703-1227-admin-package-price-setting/phase-03-verification-and-testing.md)** - `[completed]`
+- **[Phase 01: Backend implementation](phase-01-backend-implementation.md)** - `[completed]`
+- **[Phase 02: Frontend implementation](phase-02-frontend-implementation.md)** - `[completed]`
+- **[Phase 03: Verification and testing](phase-03-verification-and-testing.md)** - `[completed]`
 
 ## Key Constraints & Dependencies
 1. **Access Authorization:** Only users with `role: "admin"` should be permitted to call the backend endpoint.
@@ -18,12 +18,12 @@ Implement a secure, admin-only endpoint and UI component to update package price
 
 ## Main Touch Areas
 - Database Layer:
-  - `[package.repository.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/packages/infrastructure/persistence/package.repository.ts)`
+  - `[package.repository.ts](../../apps/api/src/modules/packages/infrastructure/persistence/package.repository.ts)`
 - Business/Application Layer:
-  - `[update-package-price.usecase.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/admin/application/update-package-price.usecase.ts)`
+  - `[update-package-price.usecase.ts](../../apps/api/src/modules/admin/application/update-package-price.usecase.ts)`
 - HTTP Layer:
-  - `[admin.controller.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/admin/http/admin.controller.ts)`
-  - `[admin.routes.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/admin/http/admin.routes.ts)`
+  - `[admin.controller.ts](../../apps/api/src/modules/admin/http/admin.controller.ts)`
+  - `[admin.routes.ts](../../apps/api/src/modules/admin/http/admin.routes.ts)`
 - Web Frontend Client Layer:
-  - `[useAdminPackages.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/admin/hooks/useAdminPackages.ts)`
-  - `[page.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/admin/page.tsx)`
+  - `[useAdminPackages.ts](../../apps/web-1/app/admin/hooks/useAdminPackages.ts)`
+  - `[page.tsx](../../apps/web-1/app/admin/page.tsx)`

@@ -3,7 +3,7 @@
 ## Tasks
 
 ### 1. Implement `useAdminPackages.ts` Hook `[completed]`
-- **File:** `[useAdminPackages.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/admin/hooks/useAdminPackages.ts)`
+- **File:** `[useAdminPackages.ts](../../apps/web-1/app/admin/hooks/useAdminPackages.ts)`
 - **Goal:** Create a custom react hook using `@tanstack/react-query` to fetch packages and perform price update mutation.
 - **Code Outline:**
   ```typescript
@@ -51,7 +51,7 @@
   ```
 
 ### 2. Update Admin Page Layout and Sidebar `[completed]`
-- **File:** `[page.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/admin/page.tsx)`
+- **File:** `[page.tsx](../../apps/web-1/app/admin/page.tsx)`
 - **Goal:** Update the `activeSection` state definition, add a Settings/Packages option to the navbar, and render a Package Price configuration panel when the section is active.
 - **Modifications Checklist:**
   - Add `"packages"` to the `activeSection` state type definition.
