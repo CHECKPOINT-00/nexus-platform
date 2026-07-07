@@ -5,10 +5,125 @@
   - [`../requirements/case-workspace-and-status.md`](../requirements/case-workspace-and-status.md)
   - [`../requirements/revision-rounds-and-history.md`](../requirements/revision-rounds-and-history.md)
 - Trạng thái: đang làm việc
-
 ## Mục tiêu
 
 Cho user, admin, và supporter một mô hình nhất quán để biết case đang ở đâu, report nào đang có hiệu lực, và round hiện tại của case là gì.
+
+## Sơ đồ Quy trình (Flowchart)
+
+```mermaid
+flowchart TD
+  subgraph Phase1 ["Khởi tạo & Xét duyệt hồ sơ (Intake & Triage)"]
+    A([Sinh viên điền thông tin & chọn gói dịch vụ])
+    B[Trạng thái: Chờ xét duyệt hồ sơ]
+    C{Admin duyệt hồ sơ}
+    D[Trạng thái: Yêu cầu bổ sung thông tin]
+    E[Trạng thái: Từ chối hồ sơ]
+    F[Trạng thái: Hủy bỏ / Đóng hồ sơ]
+    G[Tiếp nhận hồ sơ thành công]
+    H[Sinh viên cập nhật hồ sơ]
+    I[Trạng thái: Đã nộp bản cập nhật]
+  end
+
+  subgraph Phase2 ["Chọn gói & Thanh toán (Pricing & Payment)"]
+    J{Gói dịch vụ đã chọn là miễn phí?}
+    K[Thanh toán: Miễn phí]
+    
+    L{Admin có đề xuất đổi gói dịch vụ?}
+    M[Thanh toán: Chờ học viên xác nhận gói]
+    N[Sinh viên chọn: Đồng ý gói mới / Giữ gói cũ]
+    
+    O[Thanh toán: Chờ thanh toán - Hạn 72h]
+    P[Sinh viên chuyển khoản & gửi minh chứng]
+    Q[Thanh toán: Đang xác minh giao dịch]
+    R{Admin kiểm duyệt giao dịch}
+    S[Thanh toán: Đã thanh toán]
+  end
+
+  subgraph Phase3 ["Đánh giá & Phản biện Vòng 1 (Review Round 1)"]
+    T[Trạng thái: Đang phản biện Vòng 1]
+    U[Supporter đánh giá hồ sơ & viết báo cáo]
+    W[Supporter xuất bản báo cáo]
+    X[Trạng thái: Báo cáo Vòng 1 sẵn sàng]
+  end
+
+  subgraph Phase4 ["Sửa bài & Phản biện Vòng 2 (Revision & Round 2)"]
+    Y{Gói dịch vụ đang áp dụng?}
+    Z[Đóng hồ sơ chuyên môn]
+    AA[Trạng thái: Chờ bản sửa đổi từ Sinh viên]
+    AB[Sinh viên sửa bài & nộp bản mới]
+    AC[Trạng thái: Đã nộp bản sửa đổi Vòng 2]
+    AD[Trạng thái: Đang phản biện Vòng 2]
+    AE[Supporter đánh giá bản sửa đổi Vòng 2]
+    AF[Supporter xuất bản báo cáo cuối cùng]
+    AG[Trạng thái: Báo cáo Vòng 2 sẵn sàng]
+  end
+
+  subgraph Phase5 ["Trạng thái kết thúc"]
+    AH[Trạng thái: Hoàn thành dịch vụ]
+    AI([Kết thúc])
+  end
+
+  %% Links
+  A --> B
+  B --> C
+  C -->|Cần bổ sung| D
+  C -->|Từ chối| E
+  C -->|Hủy bỏ| F
+  C -->|Tiếp nhận| G
+
+  D --> H
+  H --> I
+  I --> C
+
+  G --> J
+  J -->|Có - Gói 0| K
+  J -->|Không - Gói 1 hoặc Gói 2| L
+  
+  L -->|Có đề xuất đổi| M
+  M --> N
+  N --> O
+  
+  L -->|Không đề xuất đổi| O
+  O --> P
+  P --> Q
+  Q --> R
+  R -->|Giao dịch sai| O
+  R -->|Xác nhận đúng| S
+
+  K --> T
+  S --> T
+  T --> U
+  U --> W
+  W --> X
+
+  X --> Y
+  Y -->|Gói 0 hoặc Gói 1| Z
+  Y -->|Gói 2| AA
+  AA --> AB
+  AB --> AC
+  AC --> AD
+  AD --> AE
+  AE --> AF
+  AF --> AG
+  AG --> Z
+
+  Z --> AH
+  AH --> AI
+  E --> AI
+  F --> AI
+
+  %% Style Definitions
+  classDef startEnd fill:#e6f4ea,stroke:#137333,stroke-width:2px,color:#137333;
+  classDef stage fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#1a73e8;
+  classDef decision fill:#fef7e0,stroke:#f9ab00,stroke-width:2px,color:#b06000;
+  classDef action fill:#fce8e6,stroke:#d93025,stroke-width:2px,color:#a51d24;
+
+  %% Apply styles
+  class A,AI startEnd;
+  class B,D,E,F,I,K,M,O,Q,S,T,X,AA,AC,AD,AG,AH stage;
+  class C,J,L,R,Y decision;
+```
 
 ## Quyết định UX phase 1
 
