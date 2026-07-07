@@ -56,27 +56,23 @@ flowchart TD
     E --> Y["Sinh viên nộp bản sửa đổi"]
     X --> Y
     Y --> Z["Đã nộp bản sửa — Chờ thẩm định"]
+    
     Z --> AA["Sinh viên thu hồi bản nộp"]
-    AA -.->|Supporter chưa bắt đầu thẩm định| X
-    Z -->|Supporter tiếp nhận bản sửa| R
+    AA -.->|Thu hồi| X
+    AA -.->|Thu hồi| E
+
+    Z --> Z_DECISION{"Đã phân công Supporter?"}
+    Z_DECISION -->|Chưa - Trở về Khởi tạo| C
+    Z_DECISION -->|Rồi - Tiếp tục Phản biện| R
   end
 
   subgraph P5 ["Kết thúc"]
-    V -->|Đã qua đủ vòng phản biện| W["Hoàn thành dịch vụ"]
-    W --> END_NODE(["Kết thúc"])
+    V -->|Đã qua đủ vòng phản biện| AB["Supporter tải tài liệu hỗ trợ (theo yêu cầu gói)"]
+    AB --> AC["Supporter chủ động đóng hồ sơ"]
+    AC --> AD["Hoàn thành dịch vụ — Hồ sơ đã đóng"]
+    AD --> END_NODE(["Kết thúc"])
     F --> END_NODE
-    AD --> END_NODE
   end
-
-  AB["Supporter chủ động đóng hồ sơ sớm"] --> AD["Hồ sơ đã đóng sớm"]
-
-  B -.->|Đóng sớm| AB
-  D -.->|Đóng sớm| AB
-  E -.->|Đóng sớm| AB
-  R -.->|Đóng sớm| AB
-  V -.->|Đóng sớm| AB
-  X -.->|Đóng sớm| AB
-  Z -.->|Đóng sớm| AB
 
   classDef startEnd fill:#e6f4ea,stroke:#137333,stroke-width:2px,color:#137333
   classDef status fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#1a73e8
@@ -85,10 +81,10 @@ flowchart TD
   classDef terminal fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#c62828
 
   class A,END_NODE startEnd
-  class B,D,E,G,H,I,M,O,R,V,X,Z status
-  class J,K,S,T,U,Q,Y,AA,AB action
-  class C,N decision
-  class W,F,AD,L,P terminal
+  class B,D,E,G,H,I,M,O,R,V,X,Z,AD status
+  class J,K,S,T,U,Q,Y,AA,AB,AC action
+  class C,N,Z_DECISION decision
+  class F,L,P terminal
 ```
 
 ## Bảng chuyển trạng thái (`isValidStageTransition`)
