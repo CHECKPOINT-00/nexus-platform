@@ -16,12 +16,12 @@ export default function LandingHero() {
         <div className={classes.inner}>
           <div className={classes.content}>
             <Title className={classes.title}>
-              Kiểm định Ý tưởng & Đánh giá <br />
-              <span className={classes.highlight}>Checkpoint 1</span>
+              Dự án khởi nghiệp của bạn<br />
+              <span className={classes.highlight}>đã sẵn sàng chưa?</span>
             </Title>
             
             <Text c="dimmed" mt="md" className="font-body leading-relaxed">
-              Nexus giúp các nhóm sinh viên kiểm định nội dung Checkpoint 1 (CP1) theo đúng tiêu chí chấm điểm học thuật, phát hiện lỗi logic lập luận bằng AI và nhận phản biện thực tế từ Supporter giàu kinh nghiệm.
+              Nexus phản biện tài liệu ý tưởng theo đúng tiêu chí đánh giá, chỉ ra lỗi lập luận bằng AI, rồi có Supporter thực chiến xem xét lại trước khi bạn lên bảo vệ.
             </Text>
 
             <List
@@ -36,13 +36,13 @@ export default function LandingHero() {
               className="font-body text-text-muted"
             >
               <List.Item>
-                <b>Đánh giá tiêu chí Checkpoint</b> – Báo cáo chi tiết chỉ ra lỗ hổng lập luận và lỗi logic.
+                <b>Chỉ đúng điểm yếu</b> – AI đọc tài liệu và báo cáo rõ từng lỗ hổng theo tiêu chí đánh giá.
               </List.Item>
               <List.Item>
-                <b>Minh chứng thuyết phục</b> – Định vị bằng chứng cụ thể trong slide/tài liệu của bạn.
+                <b>Supporter xem xét lại</b> – Mentor thực chiến bổ sung nhận xét trước khi bạn nhận kết quả.
               </List.Item>
               <List.Item>
-                <b>Đồng hành cùng Supporter</b> – Báo cáo được chỉnh sửa, hoàn thiện bởi giảng viên/mentor.
+                <b>Sửa rồi nộp lại được</b> – Hệ thống lưu lịch sử từng phiên bản, dễ theo dõi tiến trình.
               </List.Item>
             </List>
 

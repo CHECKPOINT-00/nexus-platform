@@ -4,35 +4,40 @@ import { Accordion } from "@mantine/core";
 
 const faqItems = [
   {
-    question: "Nexus phản biện ý tưởng như thế nào?",
-    answer: "Nexus sử dụng AI phân tích tài liệu (link Drive của bạn) đối chiếu với các tiêu chí đánh giá checkpoint. Kết quả là bản báo cáo chi tiết chỉ ra các lỗ hổng lập luận, bằng chứng thiếu sót, và gợi ý giải pháp cải thiện.",
+    question: "Nexus phản biện tài liệu của tôi như thế nào?",
+    answer: "Bạn gửi tài liệu dự án (file hoặc link tài liệu). Nexus phân tích nội dung, đối chiếu với tiêu chí đánh giá và xuất báo cáo chỉ rõ từng lỗ hổng: lập luận chưa chặt, bằng chứng còn yếu, cần bổ sung gì. Sau đó Supporter — người có kinh nghiệm thực chiến — đọc lại và hoàn thiện báo cáo trước khi bạn nhận kết quả.",
   },
   {
-    question: "Báo cáo của Nexus có đảm bảo tôi sẽ pass checkpoint không?",
-    answer: "Không. Nexus là công cụ phản biện và hỗ trợ hoàn thiện tài liệu, giúp bạn chuẩn bị tốt nhất. Kết quả cuối cùng phụ thuộc vào hội đồng đánh giá và khả năng thuyết trình của đội ngũ.",
+    question: "Nexus có khác gì ChatGPT không?",
+    answer: "ChatGPT phản biện chung chung dựa trên câu hỏi bạn đặt. Nexus đọc đúng tài liệu của bạn, đối chiếu với tiêu chí đánh giá cụ thể, và có Supporter thực chiến xem xét lại — không phải AI trả lời một chiều. Kết quả là báo cáo có cấu trúc, chỉ đúng chỗ yếu, không phải lời khuyên mơ hồ.",
   },
   {
     question: "Vai trò của Supporter trên hệ thống là gì?",
-    answer: "Supporter là các chuyên gia, giảng viên hoặc mentor có kinh nghiệm. Họ sẽ xem xét bản draft phản biện của AI, điều chỉnh, bổ sung ý kiến thực tế để xuất bản báo cáo chất lượng nhất cho hồ sơ của bạn.",
+    answer: "Supporter là các chuyên gia, giảng viên hoặc mentor có kinh nghiệm thực chiến. Họ đọc lại bản draft phản biện của AI, chỉnh sửa, bổ sung ý kiến thực tế để xuất bản báo cáo chất lượng nhất cho hồ sơ của bạn. Bạn không nhận kết quả chưa qua tay người.",
   },
   {
-    question: "Tôi có thể chỉnh sửa ý tưởng sau khi nhận phản biện không?",
-    answer: "Có. Hệ thống hỗ trợ quy trình cập nhật phiên bản (v00, v01, v02...). Bạn có thể nộp bản chỉnh sửa dựa trên phản biện để chạy đánh giá vòng tiếp theo.",
+    question: "Bao lâu thì tôi nhận được kết quả?",
+    answer: "Thông thường trong vòng 24–48 giờ kể từ khi hồ sơ được tiếp nhận. Gói cao hơn có SLA ưu tiên phản hồi nhanh hơn. Nexus sẽ thông báo nếu cần thêm thông tin trước khi bắt đầu phân tích.",
   },
   {
-    question: "Nexus bảo mật thông tin ý tưởng của tôi như thế nào?",
-    answer: "Mọi thông tin ý tưởng và tài liệu Drive của bạn đều được bảo mật nghiêm ngặt. Chúng tôi chỉ sử dụng dữ liệu này cho mục đích phản biện và không chia sẻ cho bên thứ ba.",
+    question: "Tôi có thể gửi lại sau khi nhận phản biện không?",
+    answer: "Có. Sau khi nhận báo cáo và chỉnh sửa tài liệu, bạn có thể gửi bản mới để Nexus đánh giá lại. Mỗi lần gửi được lưu riêng, dễ theo dõi tiến trình qua từng vòng sửa.",
+  },
+  {
+    question: "Thông tin dự án của tôi có bị chia sẻ ra ngoài không?",
+    answer: "Không. Mọi thông tin và tài liệu của bạn chỉ được dùng cho mục đích phản biện nội bộ và không được chia sẻ cho bất kỳ bên nào.",
   },
 ];
+
 
 export default function FAQSection() {
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-app transition-colors duration-200">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 space-y-4">
-          <h2 className="font-heading text-3xl font-semibold text-text-app">Câu hỏi thường gặp (FAQ)</h2>
+          <h2 className="font-heading text-3xl font-semibold text-text-app">Câu hỏi thường gặp</h2>
           <p className="font-body text-text-muted">
-            Giải đáp các thắc mắc phổ biến về quy trình phản biện ý tưởng trên Nexus.
+            Những điều các nhóm khởi nghiệp thường thắc mắc trước khi dùng Nexus.
           </p>
         </div>
 

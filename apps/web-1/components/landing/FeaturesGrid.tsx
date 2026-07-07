@@ -6,26 +6,26 @@ import { Cpu, Users, History, CheckCircle } from "lucide-react";
 
 const featuresData = [
   {
-    title: "Phản biện thông minh (AI)",
-    description: "Phân tích tài liệu slide, đề cương để chỉ ra các điểm thiếu logic và khuyến nghị bổ sung chi tiết.",
+    title: "AI phản biện tức thì",
+    description: "Đọc slide và báo cáo rồi chỉ ra luận điểm chưa đủ, bằng chứng còn yếu, cần bổ sung chỗ nào.",
     icon: Cpu,
     color: "blue",
   },
   {
-    title: "Mở rộng góc nhìn thực tế",
-    description: "Các Supporter giàu kinh nghiệm sẽ bổ sung góc nhìn thực tiễn và tinh chỉnh kết quả phản biện.",
+    title: "Supporter thực chiến xem xét lại",
+    description: "Không chỉ AI. Mentor có kinh nghiệm thực tế đọc lại và bổ sung trước khi bạn nhận kết quả.",
     icon: Users,
     color: "teal",
   },
   {
-    title: "Theo dõi phiên bản",
-    description: "Lưu trữ lịch sử nộp bài (v0, v1, v2...) giúp bạn dễ dàng theo dõi tiến độ sửa đổi hồ sơ.",
+    title: "Lưu phiên bản từng lần sửa",
+    description: "Mỗi lần nộp được đánh số (v00, v01, v02...). Dễ so sánh trước và sau khi chỉnh sửa.",
     icon: History,
     color: "indigo",
   },
   {
-    title: "Chuẩn tiêu chí Checkpoint",
-    description: "Bộ tiêu chí bám sát syllabus học thuật, giúp giảm thiểu rủi ro khi bảo vệ trước hội đồng.",
+    title: "Bám sát tiêu chí đánh giá",
+    description: "Tìm kiếm lỗ hổng theo đúng cấu trúc đánh giá, không phản biện chung chung.",
     icon: CheckCircle,
     color: "green",
   },
@@ -37,10 +37,10 @@ export default function FeaturesGrid() {
       <Container size="lg" className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <Title order={2} className="font-heading text-3xl font-bold text-text-app">
-            Tính năng cốt lõi của Nexus
+            Nexus làm được gì?
           </Title>
           <Text className="font-body text-text-muted">
-            Đồng hành cùng ý tưởng của bạn từ lúc sơ khởi đến khi bảo vệ thành công trước hội đồng.
+            Bốn thứ thiết yếu để đi từ hồ sơ sơ khai đến bảo vệ tự tin.
           </Text>
         </div>
 

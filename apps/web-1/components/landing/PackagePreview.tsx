@@ -42,9 +42,9 @@ export default function PackagePreview() {
     <section id="packages" className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-app transition-colors duration-200">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h2 className="font-heading text-3xl sm:text-4xl font-semibold text-text-app">Gói dịch vụ kiểm định & Phản biện</h2>
+          <h2 className="font-heading text-3xl sm:text-4xl font-semibold text-text-app">Chọn gói phù hợp</h2>
           <p className="font-body text-text-muted">
-            Chọn gói đồng hành phù hợp với mục tiêu đề tài của bạn. Nhận báo cáo kiểm định chất lượng tức thì và hỗ trợ chuyên nghiệp từ đội ngũ supporter.
+            Mỗi gói đi kèm Supporter thực chiến. Bạn nộp hồ sơ, nhận báo cáo, rồi sửa theo phản biện — rõ ràng từng bước.
           </p>
         </div>
 
