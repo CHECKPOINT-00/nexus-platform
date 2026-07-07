@@ -4,7 +4,7 @@
 
 - Tên dự án: Nexus Platform
 - Mô tả một dòng: web đóng gói dịch vụ audit và review tài liệu/ý tưởng để giúp nhóm sinh viên tăng khả năng pass CP1 theo hướng có cấu trúc, nhiều vòng, và có truy vết.
-- Giai đoạn hiện tại: chốt MVP cho flow audit CP1 end-to-end.
+- Giai đoạn hiện tại: Chốt MVP cho flow audit CP1 end-to-end, hoàn thành Module Hoàn tiền (Refund) và Cấu hình giá Admin (F07).
 - Trạng thái tài liệu: đang làm việc
 
 ## 2. Bối cảnh business
@@ -180,8 +180,9 @@ User không cần thấy naming kỹ thuật như `v01`, `a01-v01`. Nhưng hệ 
 - Report phase 1 dùng dạng hỗn hợp:
   - phần chính là structured rich text để user đọc trực tiếp trong case workspace;
   - supporter có thể đính kèm file report nếu cần tải xuống hoặc in ra.
-- Giữ tab chat text đơn giản trong case như một coordination surface cốt lõi; không mở rộng thành realtime chat subsystem trước demo.
-- Payment không phải phần bắt buộc của MVP demo hiện tại và có thể tạm ẩn khỏi luồng chính. Tuy nhiên, khả năng cấu hình giá các gói dịch vụ (Packages Pricing Configuration) dành cho Admin đã được tích hợp và hoàn thành, đi kèm với cơ chế **Price Locking** (snapshot `locked_price` khi tạo case) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`) để bảo vệ dữ liệu lịch sử. Logic giá và kiểm thử minh chứng thanh toán được tập trung qua các helper như `getCaseEffectivePrice` và `validatePaymentProof` trong `@/lib/pricing.ts`.
+- Giữ tab chat text đơn giản trong case như một coordination surface cốt lõi (sử dụng polling 5 giây cho tin nhắn và 10 giây cho thông tin chi tiết case); không dùng realtime websocket.
+- Module thanh toán và hoàn tiền (Refund Module) đã hoạt động hoàn chỉnh: Cho phép khách hàng yêu cầu hoàn tiền (Tier 1 - trước khi gán supporter) trực tiếp từ case workspace, ghi nhận trạng thái (`requested` -> `approved`/`rejected` -> `completed`), lưu vết sự kiện (`refund_requested`, `refund_approved`, `refund_rejected`, `refund_completed`), và tải minh chứng chuyển tiền của admin lên Cloudinary.
+- Tính năng cấu hình giá các gói dịch vụ (Packages Pricing Configuration - F07) dành cho Admin đã được tích hợp và hoàn thành, đi kèm với cơ chế **Price Locking** (snapshot `locked_price` khi tạo case) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`) để bảo vệ dữ liệu lịch sử. Logic giá và kiểm thử minh chứng thanh toán được tập trung qua các helper như `getCaseEffectivePrice` và `validatePaymentProof` trong `@/lib/pricing.ts`.
 - Admin được phép `Yêu cầu bổ sung` ngay từ bước triage trước khi accept case.
 
 ## 12. Liên kết source of truth

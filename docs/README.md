@@ -8,7 +8,7 @@ Trục tài liệu chính:
 
 ## Focus hiện tại
 
-Bộ canonical hiện tại đang chốt MVP cho flow `audit + review CP1`, trình bày như workflow `student -> admin -> supporter` xoay quanh `Hồ sơ phản biện`, `Tài liệu minh chứng`, `Báo cáo phản biện`, và các vòng sửa trong cùng case workspace.
+Bộ canonical hiện tại đang chốt MVP cho flow `audit + review CP1`, trình bày như workflow `student -> admin -> supporter` xoay quanh `Hồ sơ phản biện` (Evaluation Profile), `Nhu cầu hỗ trợ` (Support Needs), `Tài liệu minh chứng` (Evidence Documents - được tải lên trực tiếp và quản lý thông qua `document_records`), `Báo cáo phản biện` (Evaluation Report), `Trao đổi & phản hồi` (polling-based chat), và các vòng sửa (`Revision rounds`) trong cùng case workspace.
 
 Giá trị chính cần giữ trong mọi tài liệu:
 - giúp team biết tài liệu hoặc hướng làm đang yếu ở đâu;
@@ -25,11 +25,11 @@ Giá trị chính cần giữ trong mọi tài liệu:
   - business context canonical
   - core value flow vs ops flow
   - khách hàng mục tiêu
-  - ràng buộc và giả định chính
+  - ràng buộc và giả định chính (bao gồm chi tiết về cấu hình giá F07 và Price Locking)
 - [`project-overview-pdr.md`](./project-overview-pdr.md)
   - canonical ngắn cho MVP demo realignment
   - student -> admin -> supporter workflow
-  - những gì giữ / sửa / hoãn trước demo
+  - chính sách hoàn tiền và thiết lập giá active/available
 - [`prd/core-product-prd.md`](./prd/core-product-prd.md)
   - product scope canonical
   - MVP scope
@@ -45,7 +45,7 @@ Giá trị chính cần giữ trong mọi tài liệu:
   - functional requirement canonical
   - user story
   - acceptance criteria
-  - business rules theo tính năng
+  - business rules theo tính năng (bao gồm quy trình thanh toán và hoàn tiền)
 - [`technical-notes/`](./technical-notes/)
   - technical note tối thiểu sau khi product scope đã rõ
   - route map và component map cho frontend MVP
@@ -72,13 +72,15 @@ Giá trị chính cần giữ trong mọi tài liệu:
 
 - [`codebase-summary.md`](./codebase-summary.md)
   - tóm tắt nhanh về codebase
-  - verified implementation surfaces cho MVP hiện tại
+  - verified implementation surfaces cho MVP hiện tại (bao gồm Refund module và direct upload)
 - [`code-standards.md`](./code-standards.md)
   - chuẩn code hỗ trợ
-  - guardrails khi cập nhật MVP demo realignment
+  - guardrails khi cập nhật MVP (bao gồm coding guidelines cho Mantine UI v9 + Tailwind và Refund/Pricing)
 - [`system-architecture.md`](./system-architecture.md)
   - architecture hiện trạng bám codebase
-  - document workspace, payment surface phụ, và shared shell hiện tại
+  - document workspace, payment surface phụ, Refund model integration, và Price Locking
+- [`db-query-guide.md`](./db-query-guide.md)
+  - hướng dẫn kết nối read-only và mô tả 18 bảng trong database schema
 - [`tech-doc-urls.txt`](./tech-doc-urls.txt)
   - nguồn docs ngoài ưu tiên khi cần viết về library/framework
 

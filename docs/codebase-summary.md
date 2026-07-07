@@ -52,12 +52,13 @@ Mô hình dữ liệu Postgres trung tâm cho auth, case, checkpoint, lifecycle 
 ## Verified MVP surfaces
 
 - Student case workspace và supporter case workspace cùng bám shared shell, nhưng supporter còn có review page riêng cho báo cáo phản biện.
-- `DocumentWorkspace` là bề mặt first-class trong workspace hiện tại, với checkpoint selector và các tab `overview`, `documents`, `external-feedback`.
-- `TabDiscussionChat` đã có fetch + send message qua REST và polling 5 giây; chưa có realtime socket.
+- `DocumentWorkspace` là bề mặt first-class trong workspace hiện tại, hỗ trợ chọn checkpoint khi case có nhiều checkpoint, hiển thị và phân loại tài liệu dưới dạng các tab `documents` (Tài liệu) và `external-feedback` (Đánh giá bên ngoài). Nó quản lý các tài liệu này thông qua cơ chế tải lên trực tiếp và liên kết bản ghi thông qua bảng `document_records` (phân định rõ người tải lên, nguồn gốc "Tải lên"/"Google Drive"/"Hệ thống" và định dạng).
+- `TabDiscussionChat` đã có fetch + send message qua REST và polling 5 giây; thông tin chi tiết của case sử dụng polling 10 giây; không dùng realtime socket.
 - `ActivityTimeline` đã được refactor để sử dụng `@mantine/core` Timeline, kết xuất `caseData.events` với các custom bullet và styling.
 - `useCaseDetails` polling 10 giây và expose `case`, `intake_snapshot`, `latest_report`, `latest_user_action`, `document_board_sections`, `round_history`, `open_requests_for_more_info`, và `document_workspace`.
-- Intake documents hiện vẫn dùng 1 Drive/Docs URL chính + checklist loại tài liệu trong thư mục, kèm template helper để copy Markdown hoặc tải `.docx`.
+- Intake documents là cổng tiếp nhận định hướng hồ sơ/minh chứng trước (profile/evidence-first) thay vì form chung chung, hỗ trợ sinh viên tải trực tiếp tài liệu minh chứng lên hệ thống để lưu trữ trong `document_records`.
 - Payment tồn tại như bề mặt phụ trong case workspace qua `payment_status`, unpaid banner, và payment page; không phải golden path của demo. Hệ thống đã bổ sung chức năng cho phép Admin cập nhật giá tiền động của các gói dịch vụ qua tab Settings/Packages mới trong Admin panel, tích hợp cơ chế **Price Locking** (chốt `Case.locked_price` khi tạo) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`). Logic giá và minh chứng thanh toán được tập trung qua các helper `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, và `validatePaymentProof` trong `@/lib/pricing.ts`.
+- **Refund Module**: Module hoàn tiền hoàn chỉnh với database model `Refund` cho phép khách hàng gửi yêu cầu hoàn tiền Tier 1 (100% trước khi gán supporter) trực tiếp từ case workspace, tạo ra sự kiện `refund_requested`. Admin có thể kiểm tra danh sách hoàn tiền, duyệt (`approved`), từ chối (`rejected` kèm lý do tối thiểu 10 ký tự), hoặc hoàn tất chuyển khoản (`completed` yêu cầu nhập mã GD ngân hàng và ảnh hóa đơn upload lên Cloudinary). Trạng thái case được tự động đồng bộ khi hoàn tất (stage: `"closed"`, internal_status: `"cancelled"`, payment_status: `"refunded"`).
 
 ## Ràng buộc vận hành
 

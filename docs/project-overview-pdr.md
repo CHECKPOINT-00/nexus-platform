@@ -96,39 +96,40 @@ Tham chiếu:
 - `apps/web-1/app/supporter/case/[id]/page.tsx`
 - `apps/web-1/app/supporter/case/[id]/review/page.tsx`
 
-### 5.6 Intake documents vẫn là hybrid sơ khai
-- Intake dùng `documents[0]` làm primary document bundle.
-- User hiện nộp 1 Drive/Docs URL chính.
-- User chọn checklist loại tài liệu có trong thư mục.
-- Có template helper để copy Markdown hoặc tải `.docx`.
-- Đây là hybrid model ở intake, không phải blank slate.
+### 5.6 Intake và Document Workspace qua document_records
+- Hệ thống hỗ trợ nộp và quản lý hồ sơ theo định hướng minh chứng/tài liệu trước (profile/evidence-first).
+- `DocumentWorkspace` quản lý các tài liệu minh chứng (`Tài liệu minh chứng`) thông qua cơ chế tải lên trực tiếp và quản lý bản ghi tài liệu bằng bảng `document_records` trong database thay vì chỉ sử dụng liên kết checklist Google Drive.
+- Hỗ trợ lưu trữ các file tài liệu đính kèm, phân loại theo checkpoint, hướng nộp, và phân chia quyền/uploader rõ ràng.
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/intake/_types/intake.types.ts`
-- `apps/web-1/app/dashboard/intake/_components/Steps/DocumentInputStep.tsx`
-- `apps/web-1/app/dashboard/intake/hooks/useIntakeForm.ts`
+- `apps/web-1/app/dashboard/case/[id]/_components/documents/DocumentWorkspace.tsx`
+- `apps/api/src/modules/documents/domain/document-contract.ts`
 
-### 5.7 Payment tồn tại như surface phụ
-- Case workspace đã có `payment_status`, unpaid banner, và payment page.
-- Payment không phải golden path của demo, nhưng là surface thật trong codebase nên không được mô tả như thể không tồn tại.
+### 5.7 Payment & Admin Pricing Configuration (F07)
+- Tính năng thanh toán hoạt động đầy đủ: Case workspace tích hợp Banner cảnh báo chưa thanh toán, trang upload minh chứng thanh toán (Payment Proof Upload) kết hợp lưu public URL ảnh hóa đơn/biên lai lên Cloudinary.
+- Admin Pricing: Tích hợp đầy đủ trang cấu hình các gói dịch vụ Admin (`AdminPackagesSettings.tsx`) thông qua API cập nhật đơn giá (`PUT /api/admin/packages/:id/price`) và hooks `useAdminPackages`.
+- Price Locking: Khi một hồ sơ được khởi tạo, hệ thống tự động khóa đơn giá hiện tại (`Case.locked_price`), giúp bảo vệ khách hàng khỏi sự thay đổi giá đột ngột và lưu lại lịch sử thay đổi giá (`previous_price`, `last_price_changed_at`, `last_price_changed_by`).
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
+- `apps/web-1/app/admin/_components/AdminPackagesSettings.tsx`
+- `apps/web-1/lib/pricing.ts`
 - `apps/web-1/types/case.ts`
 
 ## 6. MVP demo core đã chốt
 
 ### 6.1 Student
 - tạo tài khoản / đăng nhập;
-- tạo `Hồ sơ phản biện`;
+- tạo `Hồ sơ phản biện` (cổng tiếp nhận định hướng hồ sơ/minh chứng - profile/evidence-first);
 - điền bối cảnh, nhu cầu hỗ trợ, thông tin liên hệ, xác nhận cần thiết;
-- nộp tài liệu minh chứng qua Drive/Docs link chính + checklist loại tài liệu;
+- trực tiếp tải lên các tài liệu minh chứng qua Document Uploader và quản lý qua hệ thống `document_records`;
 - vào case workspace để theo dõi tài liệu, trạng thái, timeline, trao đổi, báo cáo, và vòng sửa.
 
 ### 6.2 Admin
 - xem case mới;
 - đọc nhanh summary, needs, documents;
 - yêu cầu làm rõ / từ chối / duyệt;
+- quản lý giá gói dịch vụ và xem audit trail thay đổi giá;
 - phân công supporter.
 
 ### 6.3 Supporter
@@ -141,10 +142,10 @@ Tham chiếu:
 ## 7. Những gì phải giữ
 
 - Giữ sidebar workspace pattern.
-- Giữ document workspace như bề mặt trung tâm của hồ sơ.
+- Giữ document workspace như bề mặt trung tâm của hồ sơ (quản lý qua `document_records`).
 - Giữ chat text đơn giản như coordination path.
 - Giữ timeline/event trace.
-- Giữ intake document model hiện tại nếu không thật cần đổi schema.
+- Giữ dynamic upload và pricing config.
 - Giữ shared shell giữa student và supporter.
 - Giữ review page riêng của supporter.
 
@@ -157,8 +158,8 @@ Tham chiếu:
 - Điều chỉnh student detail / supporter surfaces để không quay về story `ý tưởng dự án` cũ.
 
 ### 8.2 Intake framing
-- Intake phải đọc như quy trình tạo hồ sơ hỗ trợ thật.
-- Documents phải được nhấn là evidence chính.
+- Intake phải đọc như quy trình tạo hồ sơ hỗ trợ thật, định hướng minh chứng/tài liệu trước (profile/evidence-first).
+- Documents phải được nhấn là evidence chính của hồ sơ.
 - Review/submit phải kể được câu chuyện: vấn đề -> hỗ trợ cần -> bằng chứng -> kết quả mong muốn.
 
 ### 8.3 Status coherence
@@ -175,22 +176,20 @@ Tham chiếu:
 ## 9. Những gì phải bỏ hoặc hoãn
 
 Không làm trước demo:
-- document-first schema rewrite lớn;
 - backend workflow/status refactor;
 - subsystem chat realtime bằng socket;
-- upload manager mới hoàn toàn khác intake hiện có;
+- AI parsing pipeline tự động hóa hoàn toàn mới;
 - supporter/admin redesign lớn;
-- AI parsing pipeline mới;
-- payment scope expansion nếu không phục vụ trực tiếp demo path.
+- các tính năng thanh toán tự động (Cổng thanh toán ngân hàng tự động).
 
 ## 10. Demo path mục tiêu
 
-1. Sinh viên tạo `Hồ sơ phản biện`.
-2. Sinh viên mô tả rõ đang mắc ở đâu và cần hỗ trợ gì.
-3. Sinh viên nộp Drive folder / main doc cùng checklist tài liệu minh chứng.
+1. Sinh viên tạo `Hồ sơ phản biện` (cổng tiếp nhận profile/evidence-first).
+2. Sinh viên mô tả rõ đang mắc ở đâu và cần hỗ trợ gì (`Nhu cầu hỗ trợ`).
+3. Sinh viên nộp tài liệu minh chứng trực tiếp bằng upload hoặc liên kết.
 4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc yêu cầu làm rõ.
-5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện.
-6. Sinh viên nhận báo cáo, theo dõi timeline, và có thể nộp revision.
+5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện (`Báo cáo phản biện`).
+6. Sinh viên nhận báo cáo, theo dõi timeline, và có thể nộp revision (`Vòng phản biện/Revision rounds`).
 
 ## 11. Acceptance criteria cho bản demo
 

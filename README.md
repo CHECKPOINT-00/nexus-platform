@@ -1,14 +1,14 @@
 # Nexus Platform
 
-Monorepo for `apps/api`, `apps/web`, and shared `packages/*`.
+Monorepo for `apps/api`, `apps/web-1`, and shared `packages/*`.
 
 ## Stack
 
-- Next.js 16
-- Hono
+- Next.js 16 (App Router)
+- Hono (Backend framework)
 - Better Auth
-- Prisma 7
-- Mantine UI v9
+- Prisma 7 (PostgreSQL Client)
+- Mantine UI v9 + Tailwind CSS (Frontend UI)
 - Turborepo
 - Vercel AI SDK (with OpenAI & Google providers)
 - TanStack Stack (Query v5, Form v1, Virtual v3)
@@ -18,12 +18,12 @@ Monorepo for `apps/api`, `apps/web`, and shared `packages/*`.
 
 ```txt
 root/
-├── apps/api/      # Hono backend, auth, Prisma, streaming
-├── apps/web/      # Next.js product app
+├── apps/api/      # Hono backend, auth, Prisma, streaming, payments & refunds
+├── apps/web-1/    # Next.js product app (Mantine UI v9 + Tailwind CSS)
 ├── packages/ui/   # Shared React primitives
 ├── packages/*     # Shared ESLint and TypeScript presets
-├── prisma/        # Root Prisma schema
-└── docs/          # Tech docs URL list for library work
+├── prisma/        # Root Prisma schema (18 models/tables)
+└── docs/          # Technical documentation and system architecture
 ```
 
 ## Setup
@@ -45,7 +45,7 @@ Create root `.env` from `.env.example`, then set:
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
 
-Cloudinary used for payment proof uploads only. App stores public `secure_url` in payment record.
+Cloudinary is used for payment proof uploads only. The application stores the public `secure_url` in the payment record.
 
 ## Run
 
@@ -62,15 +62,22 @@ Ports:
 
 ```bash
 npm run build
-npm run lint
-npm run check-types
-npm run prisma:generate
-npm run prisma:migrate
 ```
 
 ## Notes
 
 - One root `.env` only.
-- API owns auth and session logic.
-- Web uses Mantine UI v9.
+- API owns authentication, session logic, and business workflows.
+- Web app (`apps/web-1`) uses Mantine UI v9 + Tailwind CSS. Do not position Modals/Drawers manually with Tailwind fixed/flex classes.
+- Standardized Terminology:
+  - `Hồ sơ phản biện` (Evaluation Profile)
+  - `Nhu cầu hỗ trợ` (Support Needs)
+  - `Tài liệu minh chứng` (Evidence Documents - managed via `document_records` direct uploads)
+  - `Báo cáo phản biện` (Evaluation Report)
+  - `Trao đổi & phản hồi` (Discussion & Chat - polling-based: 10s for details, 5s for messages)
+  - `Vòng phản biện/Revision rounds`
+- Admin Pricing Configurations (F07) & Price Locking:
+  - Centralized pricing helpers (`pricing.ts`), admin configuration pages, and endpoints to update/lock package pricing dynamically.
+- Refund Module:
+  - Supports structured refund requests (`Refund` database model) through multi-tier policies based on supporter assignment status.
 - `docs/tech-doc-urls.txt` is the source of truth for external library docs.

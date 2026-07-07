@@ -7,11 +7,14 @@ Tài liệu này mô tả architecture hiện trạng phục vụ MVP demo Nexus
 ## 2. Kiến trúc tổng quan
 
 Nexus hiện là monorepo Turborepo với 3 vùng chính:
-- `apps/web-1`: product frontend Next.js 16
+- `apps/web-1`: product frontend Next.js 16 (sử dụng Mantine UI v9 + Tailwind CSS)
 - `apps/api`: backend Hono + Better Auth + Prisma
 - `packages/ui`: UI primitives dùng chung
 
-Data model trung tâm nằm ở `prisma/schema.prisma`, với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, và AI job.
+Data model trung tâm nằm ở `prisma/schema.prisma` gồm 18 bảng, bao gồm:
+- Auth: `users`, `sessions`, `accounts`, `verifications`, `two_factors`
+- Core Business & Workflow: `cases`, `case_members`, `checkpoints`, `lifecycle_units`, `document_records`, `document_types`, `reports`, `payments`, `case_messages`, `case_events`, `ai_jobs`
+- Refund Module: `refunds`
 
 ## 3. Frontend surfaces chính
 
@@ -54,6 +57,14 @@ Tham chiếu:
 Tham chiếu:
 - `apps/web-1/app/admin/_components/AdminCaseDetailModal.tsx`
 
+### 3.5 Admin Packages Pricing Settings (F07)
+- Admin có trang cấu hình giá gói dịch vụ (`AdminPackagesSettings.tsx`) để cập nhật đơn giá, bật/tắt (is_active) trạng thái hiển thị gói dịch vụ cho khách hàng mới.
+- Tích hợp hook `useAdminPackages.ts` chứa các mutation: `updatePackagePrice` và `updatePackageStatus`.
+
+Tham chiếu:
+- `apps/web-1/app/admin/_components/AdminPackagesSettings.tsx`
+- `apps/web-1/app/admin/hooks/useAdminPackages.ts`
+
 ## 4. Backend responsibilities
 
 ### 4.1 Auth, session, authorization
@@ -62,9 +73,11 @@ Tham chiếu:
 - middleware và authorization layer ở backend gate dashboard, supporter, admin surfaces theo role + case membership
 - frontend không tự định nghĩa access policy riêng
 
-### 4.2 Case workflow
-- backend cung cấp endpoints cho case detail, message thread, status update, settings update, payment, admin triage, supporter actions
-- frontend không sở hữu workflow semantics; frontend chủ yếu map và trình bày
+### 4.2 Case & Pricing Workflow
+- Backend cung cấp các endpoint cho case detail, message thread, status update, settings update, payment, admin triage, supporter actions.
+- **Admin Packages Configuration (F07)**: API hỗ trợ điều chỉnh giá gói dịch vụ (`PUT /api/admin/packages/:id/price`) và cập nhật trạng thái hiển thị (`PUT /api/admin/packages/:id/status`).
+- **Price Locking**: Khi một case được tạo, hệ thống tự động khóa đơn giá hiện tại (`Case.locked_price` và `Case.proposed_locked_price`) để bảo vệ khách hàng khỏi sự thay đổi giá đột ngột, đồng thời ghi lại vết thay đổi giá (`previous_price`, `last_price_changed_at`, `last_price_changed_by`) trên bảng `ServicePackage`.
+- Frontend không sở hữu workflow semantics; frontend chủ yếu map và trình bày thông qua các helper tập trung như `@/lib/pricing.ts` (`getCaseEffectivePrice`).
 
 ### 4.3 Report workflow
 - supporter review page làm việc với draft report và approve/send flow
@@ -73,7 +86,11 @@ Tham chiếu:
 ### 4.4 Document workflow
 - backend documents module đã encode document workspace theo checkpoint/version/assessment
 - contract mới được expose theo kiểu additive từ case detail payload, giữ tương thích với field cũ
-- document type và document record đã có module riêng trong backend
+- document type và document record đã có module riêng trong backend (sử dụng bảng `document_records` để quản lý trực tiếp các file tải lên thay vì liên kết Google Drive).
+
+### 4.5 Refund Module
+- API sinh viên: `POST /api/payments/refund` (qua `requestRefundUseCase`): Cho phép gửi yêu cầu hoàn tiền khi hồ sơ đã thanh toán (`payment_status === "paid"`) và chưa có supporter nào được phân công (`assigned_supporter_auth_user_id === null`). Yêu cầu hoàn tiền Tier 1 được khởi tạo tự động hoàn 100% số tiền đã đóng.
+- API admin: `GET /api/admin/refunds` (xem danh sách yêu cầu hoàn tiền) và `POST /api/admin/refunds/:id/process` (qua `processRefundUseCase`): Cho phép Admin duyệt (`approve`), từ chối (`reject`, cần lý do tối thiểu 10 ký tự), hoặc hoàn tất chuyển tiền ngoài hệ thống (`complete`, yêu cầu lưu transaction reference và ảnh biên lai thanh toán lên Cloudinary). Trạng thái thanh toán của case được chuyển thành `"refunded"`, stage chuyển thành `"closed"`, và status chuyển thành `"cancelled"`. Cơ chế kiểm tra race condition (`REFUND_TIER_CHANGED`) được thực thi để đảm bảo tính toàn vẹn dữ liệu.
 
 ## 5. Case workspace data flow
 
@@ -156,6 +173,21 @@ Tham chiếu:
 Tham chiếu:
 - `apps/web-1/types/case.ts`
 - `apps/web-1/types/package.ts`
+
+### 6.3 Refund
+`Refund` model đại diện cho yêu cầu hoàn tiền:
+- `id`: Định danh UUID của yêu cầu hoàn tiền.
+- `case_id`: Liên kết tới `Case` liên quan.
+- `payment_id`: Liên kết tới giao dịch `Payment` gốc.
+- `tier`: Cấp độ hoàn tiền (Tier 1 = 100% trước khi gán supporter).
+- `amount`: Số tiền hoàn trả.
+- `status`: Trạng thái (`requested` | `approved` | `rejected` | `completed`).
+- `reason`: Lý do xin hoàn tiền.
+- `rejection_reason`: Lý do từ chối (Admin nhập, tối thiểu 10 ký tự).
+- `proof_file_url`: Ảnh biên lai/minh chứng hoàn tiền tải lên Cloudinary.
+- `bank_transfer_ref`: Mã giao dịch ngân hàng thực tế.
+- `requested_by` & `processed_by`: ID người yêu cầu & Admin xử lý.
+- `transferred_at` & `processed_at`: Thời gian thực hiện chuyển tiền & phê duyệt.
 
 ### 6.3 Message
 `CaseMessage` hiện gồm:

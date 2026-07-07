@@ -77,12 +77,25 @@ npx tsx scripts/temp-query.ts
 
 ## 3. Các bảng dữ liệu chính trong Schema `public`
 
-Bạn có thể query các bảng chính được cấu hình trong [schema.prisma](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/prisma/schema.prisma):
-* `users` - Người dùng hệ thống.
-* `cases` - Dự án phản biện/đánh giá.
-* `reports` - Báo cáo kết quả/đánh giá.
-* `lifecycle_units` - Tài liệu/Phiên bản nộp của dự án.
-* `case_events` - Nhật ký hoạt động của dự án.
+Bạn có thể query 18 bảng chính được cấu hình trong [schema.prisma](../prisma/schema.prisma):
+* `users` - Người dùng hệ thống (student, admin, supporter).
+* `sessions` - Quản lý phiên đăng nhập của người dùng.
+* `accounts` - Thông tin tài khoản liên kết đăng nhập OAuth (Google).
+* `verifications` - Lưu trữ token xác thực email/otp.
+* `two_factors` - Cấu hình bảo mật 2 lớp (2FA/MFA) của người dùng.
+* `service_packages` - Các gói dịch vụ (price, is_active, features) và audit trail đổi giá.
+* `cases` - Hồ sơ phản biện (Evaluation Profile) của nhóm sinh viên.
+* `case_members` - Thành viên nhóm sinh viên tham gia trong một Hồ sơ phản biện.
+* `checkpoints` - Các mốc đánh giá của case (ví dụ Checkpoint 1, Checkpoint 2).
+* `lifecycle_units` - Các phiên bản nộp/sửa tài liệu liên kết trong checkpoint.
+* `document_records` - Bản ghi lưu trữ file tài liệu tải lên trực tiếp hoặc qua link Drive.
+* `document_types` - Danh mục các loại tài liệu hỗ trợ.
+* `reports` - Báo cáo phản biện (Evaluation Report) của chuyên gia phản biện.
+* `payments` - Minh chứng và thông tin thanh toán của Hồ sơ phản biện.
+* `case_messages` - Tin nhắn thảo luận và trao đổi (`Trao đổi & phản hồi`).
+* `case_events` - Nhật ký lịch sử hành động trên case (`timeline/event log`).
+* `ai_jobs` - Hàng đợi các tiến trình xử lý AI không đồng bộ.
+* `refunds` - Yêu cầu và thông tin hoàn tiền dịch vụ (`Refund Module`).
 
 Ví dụ câu lệnh kiểm tra số lượng bản ghi của tất cả các bảng:
 ```sql
