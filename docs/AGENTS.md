@@ -18,6 +18,16 @@
 - `code-standards.md` - chuẩn code hỗ trợ.
 - `tech-doc-urls.txt` - nguồn docs ngoài ưu tiên.
 
+## Quy tắc và chỉ dẫn cho Agent (`.agents/rules/`)
+
+Các file cấu hình quy tắc cốt lõi giúp điều phối và hướng dẫn agent khi phát triển/vận hành hệ thống:
+- [development-rules.md](../.agents/rules/development-rules.md): Quy định về quy trình phát triển, các bước coding và kiểm tra an toàn.
+- [prisma-migration-safety.md](../.agents/rules/prisma-migration-safety.md): Hướng dẫn an toàn khi thực hiện thay đổi schema và chạy migration.
+- [orchestration-protocol.md](../.agents/rules/orchestration-protocol.md): Giao thức phối hợp và chia nhỏ task giữa các agent.
+- [frontend-ui-rules.md](../.agents/rules/frontend-ui-rules.md): Quy chuẩn viết UI với Mantine UI v9 + Tailwind và cảnh báo anti-pattern.
+- [primary-workflow.md](../.agents/rules/primary-workflow.md): Định nghĩa workflow hoạt động chính của agent trong workspace.
+- [documentation-management.md](../.agents/rules/documentation-management.md): Hướng dẫn quản lý, cập nhật, và bảo trì các file tài liệu canonical.
+
 ## Tài liệu legacy
 
 - `archive/` - legacy reference, không phải source of truth.
