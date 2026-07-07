@@ -94,7 +94,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         hidePayment={getCaseEffectivePrice(caseData) === 0}
       />
 
-      <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
+      <div className={`flex-grow flex flex-col h-full min-w-0 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto p-6 space-y-6"}`}>
         {activeTab !== "discussion" && (
           <>
             <CaseStatusHeader caseData={caseData} versions={roundHistory ?? []} selectedVersion={0} onVersionChange={() => {}} />
@@ -159,7 +159,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             </>
           )}
 
-          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
+          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} caseData={caseData} />}
 
           {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
 

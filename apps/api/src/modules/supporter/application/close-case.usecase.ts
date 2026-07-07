@@ -2,6 +2,18 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { requestCaseMoreInfo } from "../../cases/infrastructure/persistence/case.repository.js";
 import { prisma } from "../../../db.js";
 
+// Post-closure chat window in hours by package tier
+const POST_CLOSURE_CHAT_HOURS_DEFAULT = 24;
+const POST_CLOSURE_CHAT_HOURS_GOI2 = 48;
+
+function getPostClosureChatHours(packageName: string): number {
+  const name = packageName.toLowerCase();
+  if (name.includes("gói 2") || name.includes("goi 2") || name.includes("package 2")) {
+    return POST_CLOSURE_CHAT_HOURS_GOI2;
+  }
+  return POST_CLOSURE_CHAT_HOURS_DEFAULT;
+}
+
 export async function closeCaseUseCase(userId: string, caseId: string) {
   const currentCase = await prisma.case.findUnique({
     where: { id: caseId },
@@ -44,6 +56,15 @@ export async function closeCaseUseCase(userId: string, caseId: string) {
       `Bạn cần tải lên tối thiểu ${requiredDocCount} tài liệu hỗ trợ để đóng case này (Hiện tại mới tải lên: ${supporterUploadedDocsCount} tài liệu)`
     );
   }
+
+  // Set post-closure chat window
+  const chatHours = getPostClosureChatHours(packageName);
+  const postClosureChatExpiresAt = new Date(Date.now() + chatHours * 60 * 60 * 1000);
+
+  await prisma.case.update({
+    where: { id: caseId },
+    data: { post_closure_chat_expires_at: postClosureChatExpiresAt },
+  });
 
   return await requestCaseMoreInfo(
     caseId,

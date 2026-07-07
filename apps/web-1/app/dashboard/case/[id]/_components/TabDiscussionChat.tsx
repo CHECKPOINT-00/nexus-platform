@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCaseChat } from "../hooks/useCaseChat";
 import { useSession } from "@/lib/auth-client";
-import { Send, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { Send, MessageSquare, RefreshCw, AlertCircle, Loader2, Clock, Lock } from "lucide-react";
 import { ActionIcon, Textarea, Tooltip } from "@mantine/core";
+import { Case } from "@/types";
 
 interface TabDiscussionChatProps {
   caseId: string;
+  caseData?: Case | null;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -62,12 +64,39 @@ type Row =
   | { kind: "message"; msg: any };
 
 /* ─── Component ─────────────────────────────────────────────── */
-export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
+export default function TabDiscussionChat({ caseId, caseData }: TabDiscussionChatProps) {
   const { data: session } = useSession();
   const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending } =
     useCaseChat(caseId);
 
   const [inputText, setInputText] = useState("");
+  const [now, setNow] = useState(() => new Date());
+
+  /* Tick every minute to update countdown */
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  /* ── Chat window state ── */
+  const isClosed = caseData?.user_facing_stage === "closed";
+  const chatExpiresAt = caseData?.post_closure_chat_expires_at
+    ? new Date(caseData.post_closure_chat_expires_at)
+    : null;
+  const chatWindowExpired = isClosed && (!chatExpiresAt || chatExpiresAt <= now);
+  const chatWindowActive = isClosed && chatExpiresAt && chatExpiresAt > now;
+
+  /* Remaining hours/minutes for countdown label */
+  const chatWindowLabel = useMemo(() => {
+    if (!chatWindowActive || !chatExpiresAt) return "";
+    const diffMs = chatExpiresAt.getTime() - now.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    if (diffHours > 0) return `${diffHours} giờ ${diffMins} phút`;
+    return `${diffMins} phút`;
+  }, [chatWindowActive, chatExpiresAt, now]);
+
+  const isInputDisabled = chatWindowExpired || isSending;
 
   /* scrollable container ref for virtualizer */
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -124,11 +153,9 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   /* ─── Render ─────────────────────────────────────────────── */
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in"
+      className="flex flex-col overflow-hidden animate-fade-in h-full w-full"
       style={{
-        height: "calc(100vh - 130px)", /* full remaining height */
         background: "var(--color-surface-app)",
-        boxShadow: "var(--shadow-md)",
       }}
     >
       {/* ── Header ── */}
@@ -145,6 +172,13 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
               style={{ background: "var(--color-brand-soft)", color: "var(--color-brand)" }}
             >
               {messages.length}
+            </span>
+          )}
+          {chatWindowActive && (
+            <span
+              className="flex items-center gap-1 ml-3"
+              style={{ color: "var(--color-text-subtle)", fontSize: 11 }}
+            ><span>Còn {chatWindowLabel} để hỏi</span>
             </span>
           )}
         </div>
@@ -322,66 +356,87 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
       {/* ── Input area ── */}
       <div
-        className="shrink-0 px-4 py-3 border-t border-border-app"
+        className="shrink-0 border-t border-border-app"
         style={{ background: "var(--color-surface-soft)" }}
       >
-        <form onSubmit={handleSend} className="flex items-end gap-2">
-          <Textarea
-            aria-label="Nhập nội dung tin nhắn"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Nhắn gì đó… (Shift+Enter = xuống dòng)"
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend(e);
-              }
-            }}
-            minRows={1}
-            maxRows={5}
-            autosize
-            styles={{
-              input: {
-                background: "var(--color-surface-app)",
-                border: "1px solid var(--color-border-strong)",
-                borderRadius: 12,
-                fontSize: 12,
-                padding: "8px 12px",
-              },
-            }}
-          />
-
-          {/* Send */}
-          <ActionIcon
-            type="submit"
-            disabled={!inputText.trim() || isSending}
-            size={38}
-            radius="xl"
-            color="brand"
-            className="shrink-0 cursor-pointer"
+        {/* Expired banner — window closed */}
+        {chatWindowExpired && (
+          <div
+            className="px-4 py-3 flex items-center gap-2 text-[11px] font-medium"
             style={{
-              background:
-                inputText.trim() && !isSending ? "var(--color-brand)" : undefined,
-              boxShadow:
-                inputText.trim() && !isSending
-                  ? "0 2px 8px rgba(37,99,235,0.35)"
-                  : undefined,
-              transition: "all 0.15s ease",
+              background: "var(--color-surface-muted)",
+              color: "var(--color-text-muted)",
             }}
           >
-            {isSending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </ActionIcon>
-        </form>
+            <Lock className="w-3.5 h-3.5 shrink-0" />
+            <span>Thời gian trao đổi sau khi đóng hồ sơ đã kết thúc. Bạn vẫn có thể xem lại lịch sử trao đổi phía trên.</span>
+          </div>
+        )}
 
-        <p className="text-[9px] text-text-subtle mt-1.5 ml-0.5">
-          Enter để gửi · Shift+Enter để xuống dòng
-        </p>
+        {/* Input form — hidden when expired */}
+        {!chatWindowExpired && (
+          <div className="px-4 py-3">
+            <form onSubmit={handleSend} className="flex items-end gap-2">
+              <Textarea
+                aria-label="Nhập nội dung tin nhắn"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Nhắn gì đó… (Shift+Enter = xuống dòng)"
+                className="flex-1"
+                disabled={isInputDisabled}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(e);
+                  }
+                }}
+                minRows={1}
+                maxRows={5}
+                autosize
+                styles={{
+                  input: {
+                    background: "var(--color-surface-app)",
+                    border: "1px solid var(--color-border-strong)",
+                    borderRadius: 12,
+                    fontSize: 12,
+                    padding: "8px 12px",
+                  },
+                }}
+              />
+
+              {/* Send */}
+              <ActionIcon
+                type="submit"
+                disabled={!inputText.trim() || isInputDisabled}
+                size={38}
+                radius="xl"
+                color="brand"
+                className="shrink-0 cursor-pointer"
+                style={{
+                  background:
+                    inputText.trim() && !isInputDisabled ? "var(--color-brand)" : undefined,
+                  boxShadow:
+                    inputText.trim() && !isInputDisabled
+                      ? "0 2px 8px rgba(37,99,235,0.35)"
+                      : undefined,
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </ActionIcon>
+            </form>
+
+            <p className="text-[9px] text-text-subtle mt-1.5 ml-0.5">
+              Enter để gửi · Shift+Enter để xuống dòng
+            </p>
+          </div>
+        )}
       </div>
+
     </div>
   );
 }

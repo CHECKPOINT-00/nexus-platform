@@ -27,7 +27,18 @@ export async function sendMessageUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy hồ sơ");
   }
 
-  if (isFinalCaseStage(caseItem.user_facing_stage)) {
+  // If case is closed, allow chat only within the post-closure window
+  if (caseItem.user_facing_stage === "closed") {
+    const chatExpiresAt = caseItem.post_closure_chat_expires_at;
+    const isWithinWindow = chatExpiresAt && new Date(chatExpiresAt) > new Date();
+    if (!isWithinWindow) {
+      throw new AppError(
+        403,
+        "CHAT_WINDOW_EXPIRED",
+        "Thời gian trao đổi sau khi đóng hồ sơ đã kết thúc",
+      );
+    }
+  } else if (isFinalCaseStage(caseItem.user_facing_stage)) {
     throw new AppError(409, "INVALID_CASE_STAGE", "Không thể gửi tin nhắn khi hồ sơ đã đóng hoặc hoàn tất");
   }
 

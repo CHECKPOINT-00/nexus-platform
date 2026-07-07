@@ -60,6 +60,7 @@ function toBaseResponse(caseDetails: any) {
     payment_window_expires_at: caseDetails.payment_window_expires_at,
     triage_accepted_at: caseDetails.triage_accepted_at,
     expired_at: caseDetails.expired_at,
+    post_closure_chat_expires_at: caseDetails.post_closure_chat_expires_at,
     deadline: caseDetails.deadline,
     created_at: caseDetails.created_at,
     updated_at: caseDetails.updated_at,

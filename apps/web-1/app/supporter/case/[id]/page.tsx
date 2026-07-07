@@ -237,7 +237,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
             </>
           )}
 
-          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
+          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} caseData={caseData} />}
 
           {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
         </div>

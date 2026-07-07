@@ -22,6 +22,7 @@ export interface Case {
   package_confirmed_at?: string | null;
   payment_window_expires_at?: string | null;
   expired_at?: string | null;
+  post_closure_chat_expires_at?: string | null;
   proposed_package_id?: string | null;
   proposed_locked_price?: number | null;
   package_change_reason?: string | null;

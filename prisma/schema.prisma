@@ -150,6 +150,7 @@ model Case {
   package_confirmed_at            DateTime?
   payment_window_expires_at       DateTime?
   expired_at                      DateTime?
+  post_closure_chat_expires_at    DateTime?
   proposed_package_id             String?
   proposed_locked_price           Int?
   package_change_reason           String?  @db.Text
