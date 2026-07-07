@@ -23,12 +23,12 @@ export default function WorkspaceSidebar({
   const tabs = [
     {
       id: "documents" as const,
-      label: "Tài liệu",
+      label: "Quản lý tài liệu",
       icon: FileText,
     },
     {
       id: "discussion" as const,
-      label: "Thảo luận & Phối hợp",
+      label: "Tin nhắn",
       icon: MessageSquare,
       count: messageCount,
     },
@@ -36,7 +36,7 @@ export default function WorkspaceSidebar({
       ? [
           {
             id: "payment" as const,
-            label: "Thanh toán & Hóa đơn",
+          label: "Thanh toán",
             icon: CreditCard,
           },
         ]

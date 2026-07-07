@@ -165,3 +165,16 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-border) !important;
 }
 
+/* Unify all table font sizes to 14px */
+.mantine-Table-table,
+.mantine-Table-root,
+.mantine-Table-th,
+.mantine-Table-td,
+table,
+table th,
+table td,
+table td :not(.mantine-Badge-root):not(.mantine-Button-root):not(button):not(.mantine-Badge-label):not(input):not(.mantine-Input-input) {
+  font-size: 14px !important;
+}
+
+
