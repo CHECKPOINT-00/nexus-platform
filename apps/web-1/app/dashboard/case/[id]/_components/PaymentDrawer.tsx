@@ -145,15 +145,15 @@ export default function PaymentDrawer({ isOpen, onClose, caseData }: PaymentDraw
           <div className="space-y-3 font-body text-xs text-text-app divide-y divide-brand/5">
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Ngân hàng</span>
-              <span className="font-bold">MB Bank (Ngân hàng Quân Đội)</span>
+              <span className="font-bold">{process.env.NEXT_PUBLIC_PAYMENT_BANK_NAME || "Chưa cấu hình"}</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Số tài khoản</span>
-              <span className="font-bold text-sm tracking-wide text-brand">0909090909</span>
+              <span className="font-bold text-sm tracking-wide text-brand">{process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NO || "Chưa cấu hình"}</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Chủ tài khoản</span>
-              <span className="font-bold">NEXUS PLATFORM</span>
+              <span className="font-bold">{process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NAME || "Chưa cấu hình"}</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Số tiền cần chuyển</span>

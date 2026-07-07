@@ -174,8 +174,10 @@ export default function TabPayment({ caseData }: TabPaymentProps) {
 
   const amount = getCaseEffectivePrice(caseData);
   const addInfo = `${caseData.case_code}${randomSuffix}`.replace(/[^A-Z0-9]/gi, "").toUpperCase();
-  const qrUrl = `https://img.vietqr.io/image/mb-0909090909-qr_only.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=NEXUS%20PLATFORM`;
-
+  const bankId = process.env.NEXT_PUBLIC_PAYMENT_BANK_ID || "mb";
+  const accNo = process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NO || "0909090909";
+  const accName = process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NAME || "NEXUS PLATFORM";
+  const qrUrl = `https://img.vietqr.io/image/${bankId}-${accNo}-qr_only.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(accName)}`;
   const paymentsList = caseData.payments || [];
   const requiresUpload = canUploadProof(caseData);
   const isSatisfied = isPaymentSatisfied(caseData);
@@ -263,20 +265,20 @@ export default function TabPayment({ caseData }: TabPaymentProps) {
                       <div className="md:col-span-3 space-y-0.5 divide-y divide-border-app/45">
                         <div className="flex justify-between items-center py-2">
                           <span className="text-text-muted">Ngân hàng</span>
-                          <span className="font-bold">MB Bank (Ngân hàng Quân Đội)</span>
+                          <span className="font-bold">{process.env.NEXT_PUBLIC_PAYMENT_BANK_NAME || "Chưa cấu hình"}</span>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-text-muted">Số tài khoản</span>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm tracking-wide text-brand select-all">0909090909</span>
-                            <button onClick={() => copyToClipboard("0909090909", "số tài khoản")} className="p-1 text-text-muted hover:text-brand hover:bg-brand-soft/40 rounded transition-all cursor-pointer">
+                            <span className="font-bold text-sm tracking-wide text-brand select-all">{accNo}</span>
+                            <button onClick={() => copyToClipboard(accNo, "số tài khoản")} className="p-1 text-text-muted hover:text-brand hover:bg-brand-soft/40 rounded transition-all cursor-pointer">
                               <Copy className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-text-muted">Chủ tài khoản</span>
-                          <span className="font-bold">NEXUS PLATFORM</span>
+                          <span className="font-bold">{accName}</span>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-text-muted">Số tiền cần chuyển</span>
