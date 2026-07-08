@@ -10,9 +10,9 @@ Monorepo for `apps/api`, `apps/web`, and shared `packages/*`.
 - Prisma 7
 - Mantine UI v9
 - Turborepo
-- Vercel AI SDK (with OpenAI & Google providers)
+- Vercel AI SDK (OpenAI & Google)
 - TanStack Stack (Query v5, Form v1, Virtual v3)
-- Lucide React (for UI icons)
+- Lucide React (UI icons)
 
 ## Structure
 
@@ -32,7 +32,7 @@ root/
 npm install
 ```
 
-Create root `.env` from `.env.example`, then set:
+Create root `.env` from `.env.example`, set:
 
 - `DATABASE_URL`
 - `DIRECT_URL`
@@ -45,7 +45,7 @@ Create root `.env` from `.env.example`, then set:
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
 
-Cloudinary used for payment proof uploads only. App stores public `secure_url` in payment record.
+Cloudinary for payment proof uploads only. Stores public `secure_url` in payment record.
 
 ## Run
 
@@ -70,7 +70,7 @@ npm run prisma:migrate
 
 ## Notes
 
-- One root `.env` only.
+- One root `.env`.
 - API owns auth and session logic.
 - Web uses Mantine UI v9.
-- `docs/tech-doc-urls.txt` is the source of truth for external library docs.
+- `docs/tech-doc-urls.txt` is source of truth for external library docs.

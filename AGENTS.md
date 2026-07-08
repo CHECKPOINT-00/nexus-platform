@@ -1,13 +1,13 @@
 # PROJECT KNOWLEDGE BASE
 
-- When available and relevant, prefer the `caveman` skill in lite mode together with `sequential-thinking` for structured reasoning.
-- **CodeGraph**: Since this project is indexed with CodeGraph, reach for it (`codegraph_explore` MCP tool or `codegraph explore` CLI) BEFORE using `grep` or reading files when you need to understand or locate code symbols.
+- Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
+- **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
 **Generated:** 2026-06-25
 
 ## OVERVIEW
 
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (with OpenAI/Google), shared `@repo/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (OpenAI/Google), shared `@repo/*` packages.
 
 ## STRUCTURE
 
@@ -36,27 +36,27 @@ root/
 ## CONVENTIONS
 
 - One root `.env`.
-- TypeScript ESM, NodeNext-style relative imports use `.js` in source.
-- API on `8000`; web on `3000`.
-- Better Auth lives in `apps/api`; frontend only consumes client/session helpers.
-- Prisma schema follows plural tables + snake_case columns.
-- Mantine UI is web-only.
+- TypeScript ESM, NodeNext-style relative imports use `.js`.
+- API `8000`; web `3000`.
+- Better Auth in `apps/api`; frontend only consumes client/session helpers.
+- Prisma schema: plural tables + snake_case columns.
+- Mantine UI web-only.
 
-## ANTI-PATTERNS (THIS PROJECT)
+## ANTI-PATTERNS
 
 - Split env files per app.
-- Add auth routes or session logic outside `apps/api`.
-- Edit `apps/web-1` without checking `apps/web-1/AGENTS.md`.
-- Reintroduce shadcn-style web components into `apps/web-1`.
+- Add auth routes/session logic outside `apps/api`.
+- Edit `apps/web-1` without reading `apps/web-1/AGENTS.md` first.
+- Reintroduce shadcn-style components into `apps/web-1`.
 - Change Prisma names away from plural/snake_case.
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or Mantine UI code.
-- Tự tiện thêm các Tailwind class định vị thủ công (như `fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào các component của Mantine UI (như `Modal`, `Drawer`). Các component này đã có style định vị mặc định, việc viết đè class sẽ gây lỗi hiển thị (làm lệch căn giữa modal, v.v.).
+- Add manual Tailwind positioning classes (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) to Mantine UI components (`Modal`, `Drawer`). Mantine has default layout; override classes break display (e.g., center alignment).
 
 ## UNIQUE STYLES
 
-- `apps/web-1` uses Mantine UI v9 + TanStack Form for form state & validation + Lucide React for UI icons.
-- `apps/api` uses Hono streaming helpers, Better Auth plugins, and Vercel AI SDK for Google/OpenAI integrations.
-- `packages/ui` is tiny, stable, and shared; keep changes minimal.
+- `apps/web-1`: Mantine UI v9 + TanStack Form + Lucide React.
+- `apps/api`: Hono streaming helpers, Better Auth plugins, Vercel AI SDK for Google/OpenAI.
+- `packages/ui`: tiny, stable, shared; keep changes minimal.
 
 ## COMMANDS
 
@@ -70,19 +70,19 @@ npm run prisma:migrate
 
 ## NOTES
 
-- `apps/web-1/AGENTS.md` is the child-specific Mantine UI note; keep it in sync with web work.
-- **Agent Rules**: The [.agents/rules/](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/) directory contains project-wide guidelines for agent behavior, workflows, and standards:
-  - [development-rules.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, and the rule prohibiting direct `apiClient` calls in UI components.
-  - [documentation-management.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/documentation-management.md): Guidelines for maintaining roadmaps, changelogs, and plan files.
-  - [orchestration-protocol.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/orchestration-protocol.md): Standards for delegating tasks to subagents and parallel execution.
-  - [primary-workflow.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/primary-workflow.md): The step-by-step workflow covering planning, implementation, testing, code quality, integration, and visual explanations.
-  - [prisma-migration-safety.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/prisma-migration-safety.md): Prisma migration safety rules, database mutation guidelines, and target database classification rules for AI agents.
+- `apps/web-1/AGENTS.md` is child-specific Mantine UI note; sync with web work.
+- **Agent Rules**: [.agents/rules/](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/) contains project-wide guidelines:
+  - [development-rules.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, no direct `apiClient` calls in UI.
+  - [documentation-management.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
+  - [orchestration-protocol.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution.
+  - [primary-workflow.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations.
+  - [prisma-migration-safety.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/prisma-migration-safety.md): Migration safety, DB mutation rules, target DB classification.
 
-## UI-UX-PRO-MAX USAGE RULE FOR NEXUS
+## UI-UX-PRO-MAX USAGE RULE
 
-ui-ux-pro-max is available as a UI/UX reference skill. It is not the source of truth.
+ui-ux-pro-max is UI/UX reference, not source of truth.
 
-Before building a major frontend screen, optionally query ui-ux-pro-max for:
+Before building major frontend screen, optionally query for:
 
 - visual direction
 - layout pattern
@@ -90,17 +90,17 @@ Before building a major frontend screen, optionally query ui-ux-pro-max for:
 - UX anti-patterns
 - Next.js/Tailwind implementation guidance
 
-Then filter all recommendations through Nexus Frontend UI/UX Design Rules v2.
+Filter through Nexus Frontend UI/UX Design Rules v2.
 
-Never blindly apply a recommendation just because the skill returned it.
-Never let the skill override Nexus-specific requirements:
+Never blindly apply skill recommendations.
+Never let skill override Nexus requirements:
 
-- AI output must be explainable.
+- AI output explainable.
 - Trust over magic.
-- Status must be visible.
-- Student input, AI output, and supporter/admin decision must be separated.
-- UI must support revision/version workflow.
-- Student screens must not feel like admin dashboards.
-- Landing can be more creative; workspace/admin must be clearer and more restrained.
+- Status visible.
+- Student input, AI output, supporter/admin decision separated.
+- UI support revision/version workflow.
+- Student screens not admin dashboards.
+- Landing creative; workspace/admin restrained.
 
-Use the skill as inspiration and validation, not as a rigid generator.
+Use skill as inspiration and validation, not rigid generator.
