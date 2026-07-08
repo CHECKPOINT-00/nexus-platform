@@ -7,7 +7,7 @@ Hono backend for Nexus Platform.
 - Hono (Backend framework)
 - Better Auth (Authentication)
 - Prisma 7 (Database client)
-- Vercel AI SDK & Core Providers (`ai`, `@ai-sdk/google`, `@ai-sdk/openai`)
+- Vercel AI SDK + Core Providers (`ai`, `@ai-sdk/google`, `@ai-sdk/openai`)
 
 ## Core Features
 
@@ -15,12 +15,12 @@ Hono backend for Nexus Platform.
 - Streaming demo at `/stream`
 - Better Auth at `/api/auth/*`
 - Bounded contexts modules (Cases, Reports, Payments, Packages, AI Engine) mounted at `/api/*`
-- Prisma access through the root schema
-- AI-powered analyses using Google Gemini and OpenAI models via Vercel AI SDK
+- Prisma access through root schema
+- AI analyses using Google Gemini + OpenAI via Vercel AI SDK
 
 ## Folder Structure (Modular Monolith + Clean Architecture + DDD)
 
-We group code by **business domains (Bounded Contexts)** inside `src/modules/` instead of technical folders. Each module is split into 4 layers representing Clean Architecture:
+Code grouped by **business domains (Bounded Contexts)** in `src/modules/`, not technical folders. Each module split into 4 Clean Architecture layers:
 
 ```
 apps/api/src/
@@ -41,14 +41,14 @@ apps/api/src/
 ```
 
 ### Module Communication Rules
-- **Direct Calls**: To keep the MVP simple, modules communicate by directly importing and calling the target module's Application Services / Use Cases.
-- **No Sockets/Event-Buses**: We do not use messaging brokers, sockets, or event buses in this phase.
-- **Decoupled Database**: Other modules reference users via `auth_user_id: String` in their schemas. We do not define strict Prisma model-level relations with Better Auth's `User` model to keep domain contexts decoupled.
+- **Direct Calls**: Modules communicate by directly importing target module's Application Services / Use Cases.
+- **No Sockets/Event-Buses**: No messaging brokers, sockets, or event buses in this phase.
+- **Decoupled Database**: Modules reference users via `auth_user_id: String`. No strict Prisma model-level relations with Better Auth `User` model.
 
 ### Better Auth Integration
-- The setup lives in `src/auth.ts`.
-- The routes are mounted on Hono via `app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))`.
-- Authenticated endpoints are guarded using the shared middleware `requireAuth` (`src/shared/infrastructure/middlewares/auth.ts`) which resolves the session and sets `c.set('user', user)` into Hono's context.
+- Setup in `src/auth.ts`.
+- Routes mounted via `app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))`.
+- Authenticated endpoints guarded by shared middleware `requireAuth` (`src/shared/infrastructure/middlewares/auth.ts`).
 
 ## Setup
 
