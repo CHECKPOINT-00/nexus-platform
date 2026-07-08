@@ -8,5 +8,5 @@
 
 1. PRD trả lời `vì sao`, `cho ai`, `gồm những gì`, `không gồm những gì`.
 2. PRD không phải API spec, DB design doc, hay implementation plan.
-3. Mỗi feature trong PRD phải trace được về business reason, target user, và user problem.
-4. Requirement chỉ được viết sau khi feature đã xuất hiện trong PRD.
+3. Mỗi feature trace được về business reason, target user, user problem.
+4. Requirement chỉ viết sau khi feature đã xuất hiện trong PRD.

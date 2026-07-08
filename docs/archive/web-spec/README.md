@@ -1,13 +1,12 @@
-# Trạng thái: tham chiếu legacy
-# Không dùng làm source of truth chính.
+# Legacy reference - không dùng làm source of truth
 
-Đây là bộ `web-spec` cũ của dự án. Tài liệu ở đây có thể lộn xộn, trùng lặp, hoặc lỗi thời.
+Bộ `web-spec` cũ. Tài liệu có thể lộn xộn, trùng lặp, lỗi thời.
 
-Quy tắc dùng:
+Quy tắc:
 
-- Chỉ mở khi cần truy vết lịch sử hoặc lấy chi tiết thô.
-- Nếu cần nội dung canonical, hãy dùng `../..` trỏ về `project-context.md`, `prd/core-product-prd.md`, `flows/`, `requirements/`, hoặc `technical-notes/`.
-- Không cập nhật các file này như tài liệu chính.
+- Chỉ mở khi truy vết lịch sử hoặc lấy chi tiết thô.
+- Cần canonical: dùng `../..` trỏ về `project-context.md`, `prd/core-product-prd.md`, `flows/`, `requirements/`, `technical-notes/`.
+- Không cập nhật như tài liệu chính.
 
 Danh sách file:
 

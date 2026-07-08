@@ -1,8 +1,8 @@
 # Technical notes
 
-Thư mục này giữ technical note tối thiểu sau khi business context, PRD, flow, và requirement đã rõ.
+Chứa technical note tối thiểu sau khi business context, PRD, flow, requirement rõ.
 
-Không dùng thư mục này để thay PRD hay requirement.
+Không dùng thư mục này thay PRD hay requirement.
 
 ## Files
 

@@ -1,14 +1,14 @@
 # Tài liệu requirement
 
-Thư mục này giữ functional requirement canonical.
+Chứa functional requirement canonical.
 
 Quy tắc:
 
-1. Requirement chỉ được tạo cho feature đã có trong PRD.
+1. Requirement chỉ tạo cho feature đã có trong PRD.
 2. Mỗi requirement phải có traceability chain.
-3. Nếu thiếu dữ liệu, ghi `Missing`, `Unclear`, `Needs decision`, hoặc `Assumption`.
+3. Nếu thiếu dữ liệu, ghi `Missing`, `Unclear`, `Needs decision`, `Assumption`.
 
-## Feature set hiện tại của MVP
+## Feature set MVP
 
 - F01 `Structured intake and case submission`
 - F02 `User case workspace and document board`
