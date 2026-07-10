@@ -48,6 +48,32 @@ Giá trị chính:
 - [`system-architecture.md`](./system-architecture.md): architecture hiện trạng, document workspace, payment surface, shared shell
 - [`tech-doc-urls.txt`](./tech-doc-urls.txt): nguồn docs ngoài cho library/framework
 
+## Tài liệu nguồn — `nexus-document/`
+
+[`nexus-document/`](./nexus-document/) chứa **tài liệu gốc của dự án Nexus** — bài nộp checkpoint, biên bản mentoring, phản hồi giảng viên, tài liệu hướng dẫn và vận hành thủ công.
+
+**Khác biệt với `docs/` chính:**
+
+| `docs/` (product docs) | `nexus-document/` (source materials) |
+|------------------------|--------------------------------------|
+| PRD, requirements, flows, technical notes | Bài nộp CP1–CP4, script thuyết trình |
+| Dùng để implement sản phẩm | Dùng để tra cứu ngữ cảnh business |
+| Canonical, luôn được cập nhật | Cố định theo từng checkpoint |
+| Hướng đến dev team | Hướng đến người cần hiểu business gốc |
+
+**Khi nào dùng `nexus-document/`?**
+- Cần hiểu business context gốc (bài nộp thật, feedback thật)
+- Cần tham khảo số liệu phỏng vấn, TAM/SAM/SOM
+- Cần xem phản hồi giảng viên cho từng CP
+- Cần biết quy trình vận hành thủ công (concierge MVP)
+
+**Khi nào dùng `docs/` chính?**
+- Cần implement tính năng
+- Cần hiểu requirement, flow, architecture
+- Cần technical spec
+
+Bắt đầu từ [`nexus-document/structure-map.md`](./nexus-document/structure-map.md) để xem cây thư mục đầy đủ.
+
 ## Quy tắc
 
 1. Cập nhật file canonical trước.

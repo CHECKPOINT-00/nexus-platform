@@ -29,6 +29,16 @@
 3. Không tạo top-level folder docs mới nếu chưa có lý do rõ.
 4. Giữ tên file ngắn, mô tả đúng chủ đề, tránh trùng nghĩa.
 
+## `nexus-document/` — Tài liệu nguồn
+
+[`nexus-document/`](./nexus-document/) là kho **tài liệu gốc học thuật & vận hành** (bài nộp checkpoint, transcript mentoring, feedback GV, tài liệu hướng dẫn).
+
+- **Không** sửa nội dung business trong các file CP.
+- **Không** dùng `nexus-document/` làm nguồn cho implementation — dùng `docs/` chính cho PRD, requirements, flows.
+- **Khi cần ngữ cảnh business** (số liệu phỏng vấn, mô tả value proposition, PMF), tham khảo `nexus-document/` trước rồi cập nhật `docs/project-context.md` hoặc `docs/prd/` tương ứng.
+- **Cấu trúc `nexus-document/` được tổ chức theo CP** — xem [`structure-map.md`](./nexus-document/structure-map.md) cho navigation.
+- **`overview.md`** trong `nexus-document/` là overview business, không phải product overview.
+
 ## Quy tắc cập nhật
 
 - Không tự bịa API, kiến trúc, env key, runtime flow chưa thấy trong code/docs xác nhận.

@@ -1,5 +1,3 @@
-# Tài liệu chính ở CP1 \- Ý tưởng
-
 # **TÀI LIỆU MÔ TẢ Ý TƯỞNG STARTUP**
 
 ## **PHẦN 0 — THÔNG TIN NHÓM**
