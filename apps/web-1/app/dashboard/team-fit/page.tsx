@@ -1,19 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Center, Loader } from "@mantine/core";
+import { useSession } from "@/lib/auth-client";
 import StepIndicator from "./_components/StepIndicator";
 import IdeaMadLibsStep from "./_components/IdeaMadLibsStep";
 import TeamInputStep from "./_components/TeamInputStep";
 import TeamFitResultStep from "./_components/TeamFitResultStep";
 import ErrorBanner from "./_components/ErrorBanner";
 import NavigationButtons from "./_components/NavigationButtons";
-import { useTeamFitMutation } from "./hooks/useTeamFitMutation";
+import { useTeamFitMutation, useTeamFitSaveMutation } from "./hooks/useTeamFitMutation";
 import { TeamFitInputSchema } from "@repo/validation";
 import { LS_KEY_BLANKS, LS_KEY_MEMBERS, loadSaved, saveToLS, removeFromLS } from "./lib/storage";
 import { INITIAL_BLANKS, validateBlank, validateAllBlanks, formatIssue } from "./lib/validation";
 import type { TeamMemberInput } from "./hooks/useTeamFitMutation";
 
 export default function TeamFitPage() {
+  // ── Auth guard ──
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/auth");
+    }
+  }, [isPending, session, router]);
+
+  // ── Page state ──
   const [currentStep, setCurrentStep] = useState<0 | 1 | 2>(0);
   const [blanks, setBlanks] = useState<Record<string, string>>(() =>
     loadSaved(LS_KEY_BLANKS, INITIAL_BLANKS),
@@ -24,10 +38,27 @@ export default function TeamFitPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const mutation = useTeamFitMutation();
+  const saveMutation = useTeamFitSaveMutation();
+  const [hasSaved, setHasSaved] = useState(false);
+  const [savedCaseId, setSavedCaseId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Auto-save blanks & members to localStorage on change
   useEffect(() => { saveToLS(LS_KEY_BLANKS, blanks); }, [blanks]);
   useEffect(() => { saveToLS(LS_KEY_MEMBERS, members); }, [members]);
+
+  // ── Auth guard early returns ──
+  if (isPending) {
+    return (
+      <Center className="min-h-[60vh]">
+        <Loader size="lg" />
+      </Center>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
 
   // ── Handlers ──
 
@@ -96,12 +127,69 @@ export default function TeamFitPage() {
     setMembers([]);
     setFieldErrors({});
     setValidationErrors([]);
+    setHasSaved(false);
+    setSavedCaseId(null);
+    setSaveError(null);
     mutation.reset();
     removeFromLS(LS_KEY_BLANKS, LS_KEY_MEMBERS);
   };
 
-  const displayErrors =
-    validationErrors.length > 0
+  const handleSave = async () => {
+    setSaveError(null);
+    try {
+      const payload = {
+        idea: {
+          projectName: blanks.projectName,
+          field: blanks.field,
+          targetCustomer: blanks.targetCustomer,
+          problem: blanks.problem,
+          solution: blanks.solution,
+          mvp: blanks.mvp,
+        },
+        team: members,
+        result: mutation.data!,
+        packageId: "pkg_tf_free",
+      };
+      const data = await saveMutation.mutateAsync(payload);
+      setHasSaved(true);
+      setSavedCaseId(data.caseId);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Lưu kết quả thất bại");
+    }
+  };
+
+  const handleBuy = async () => {
+    setSaveError(null);
+    try {
+      const payload = {
+        idea: {
+          projectName: blanks.projectName,
+          field: blanks.field,
+          targetCustomer: blanks.targetCustomer,
+          problem: blanks.problem,
+          solution: blanks.solution,
+          mvp: blanks.mvp,
+        },
+        team: members,
+        result: mutation.data!,
+        packageId: "pkg_tf_audit",
+      };
+      const data = await saveMutation.mutateAsync(payload);
+      router.push(`/dashboard/case/${data.caseId}/payment`);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Mua audit thất bại");
+    }
+  };
+
+  const handleXemCase = () => {
+    if (savedCaseId) {
+      router.push(`/dashboard/case/${savedCaseId}`);
+    }
+  };
+
+  const displayErrors = saveError
+    ? [saveError]
+    : validationErrors.length > 0
       ? validationErrors
       : mutation.error
         ? [mutation.error.message]
@@ -147,6 +235,12 @@ export default function TeamFitPage() {
             isLoading={mutation.isPending}
             error={mutation.error?.message ?? null}
             onReset={handleReset}
+            onSave={handleSave}
+            onBuy={handleBuy}
+            onXemCase={handleXemCase}
+            isSaving={saveMutation.isPending}
+            isBuying={saveMutation.isPending}
+            hasSaved={hasSaved}
           />
         )}
       </div>

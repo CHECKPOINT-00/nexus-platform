@@ -727,3 +727,18 @@ export async function listAllSupporters() {
     },
   });
 }
+
+export async function upgradeCasePackage(
+  caseId: string,
+  packageId: string,
+  lockedPrice: number,
+) {
+  return await prisma.case.update({
+    where: { id: caseId },
+    data: {
+      package_id: packageId,
+      locked_price: lockedPrice,
+      payment_status: "unpaid",
+    },
+  });
+}

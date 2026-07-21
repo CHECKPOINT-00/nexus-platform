@@ -1,7 +1,6 @@
 import type { TeamFitInput } from "../domain/team-fit.dto.js";
 import { TeamFitInputSchema } from "../domain/team-fit.dto.js";
-import type { TeamFitReport } from "../domain/team-fit.schema.js";
-import { TeamFitReportSchema } from "../domain/team-fit.schema.js";
+import { TeamFitFreeReportSchema, type TeamFitFreeReport } from "@repo/validation";
 import { getGoogleModel } from "../../../services/google-provider.js";
 import { generateObject } from "ai";
 import { AppError } from "../../../shared/domain/app-error.js";
@@ -19,6 +18,27 @@ Tiêu chí đánh giá:
 5. Đưa ra khuyến nghị cụ thể, hành động được.
 
 Output phải là tiếng Việt, có cấu trúc rõ ràng, dễ hiểu cho sinh viên năm 1-2.`;
+
+const SYSTEM_PROMPT_FREE = `Bạn là công cụ quét bề mặt. Nhiệm vụ duy nhất: phát hiện khoảng trống. Không phân tích, không đánh giá, không đề xuất.
+
+=== NHIỆM VỤ 1: ĐỘI NGŨ (teamGaps) ===
+Dựa vào lĩnh vực dự án (field) và thông tin từng thành viên (chuyên ngành, sở trường, kinh nghiệm), liệt kê những kỹ năng hoặc lĩnh vực chuyên môn mà đội ngũ hiện chưa thể hiện.
+- Mỗi gap là một câu ngắn, chỉ nêu tên sự thiếu hụt.
+- Không giải thích tại sao thiếu là nguy hiểm.
+- Không gợi ý cần tìm ai hay làm gì để bổ sung.
+
+=== NHIỆM VỤ 2: THƯƠNG MẠI (commercialGaps) ===
+Quét 6 trường thông tin dự án: projectName, field, targetCustomer, problem, solution, mvp.
+- Chỉ ra những trường chưa rõ ràng, còn mơ hồ hoặc quá chung chung.
+- Không phán xét đúng/sai.
+- Không gợi ý cách cải thiện.
+
+=== QUY TẮC CỨNG ===
+- KHÔNG đưa ra: khuyến nghị, điểm mạnh, phân tích có dẫn chứng, mức độ nghiêm trọng, hành động cụ thể.
+- Mỗi gap tối đa 20 từ.
+- Mỗi mảng (teamGaps, commercialGaps) tối đa 5 gap.
+- Toàn bộ output phải bằng tiếng Việt.
+- Output phải khớp chính xác schema: { teamGaps: string[], commercialGaps: string[] }`;
 
 function buildPrompt(input: TeamFitInput): string {
   const { idea, team } = input;
@@ -45,7 +65,7 @@ MVP: ${idea.mvp}
 ${teamMembers}`;
 }
 
-export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamFitReport> {
+export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamFitFreeReport> {
   const parsed = TeamFitInputSchema.safeParse(input);
   if (!parsed.success) {
     const firstError = parsed.error.issues[0];
@@ -58,8 +78,8 @@ export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamF
   try {
     const { object } = await generateObject({
       model,
-      schema: TeamFitReportSchema,
-      system: SYSTEM_PROMPT,
+      schema: TeamFitFreeReportSchema,
+      system: SYSTEM_PROMPT_FREE,
       prompt,
       temperature: 0.3,
       maxOutputTokens: 2048,

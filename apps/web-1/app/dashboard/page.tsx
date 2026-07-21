@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Card, Text, Button, Group } from "@mantine/core";
 import { useCasesList } from "./hooks/useCasesList";
 import CaseCard from "./_components/CaseCard";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
@@ -8,6 +10,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { FolderPlus, Users } from "lucide-react";
 
 export default function StudentDashboard() {
+  const router = useRouter();
   const { data: cases, isLoading, error } = useCasesList();
 
   return (
@@ -41,6 +44,29 @@ export default function StudentDashboard() {
           </div>
         )}
       </div>
+
+      {/* Paid Audit CTA */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder className="border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50">
+        <Group justify="space-between" align="center">
+          <div className="space-y-1">
+            <Text fw={700} size="lg" c="#115e59">
+              Mua audit ngay
+            </Text>
+            <Text size="sm" c="dimmed">
+              Bỏ qua bước đánh giá miễn phí, mua thẳng 1 lượt audit (39k)
+            </Text>
+          </div>
+          <Button
+            variant="filled"
+            color="teal"
+            size="md"
+            rightSection="→"
+            onClick={() => router.push("/dashboard/team-fit?intent=paid")}
+          >
+            Mua ngay (39k)
+          </Button>
+        </Group>
+      </Card>
 
       {/* Main Content */}
       {isLoading ? (

@@ -159,6 +159,7 @@ model Case {
   events             CaseEvent[]
   ai_jobs            AiJob[]
   document_records   DocumentRecord[]
+  team_fit_report    TeamFitReport?
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -385,4 +386,19 @@ model AiJob {
 
   @@index([case_id])
   @@map("ai_jobs")
+}
+
+model TeamFitReport {
+  id              String   @id @default(cuid())
+  case_id         String
+  idea_snapshot   Json
+  team_snapshot   Json
+  result_snapshot Json
+  created_at      DateTime @default(now())
+
+  case            Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@unique([case_id])
+  @@index([case_id])
+  @@map("team_fit_reports")
 }

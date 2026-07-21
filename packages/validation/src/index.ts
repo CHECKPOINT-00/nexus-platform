@@ -34,3 +34,14 @@ export const TeamFitInputSchema = z.object({
 });
 
 export type TeamFitInput = z.infer<typeof TeamFitInputSchema>;
+
+// ---------------------------------------------------------------------------
+// Team-Idea Fit Free — lightweight report schema (no structured fields)
+// ---------------------------------------------------------------------------
+
+export const TeamFitFreeReportSchema = z.object({
+  teamGaps: z.array(z.string()),
+  commercialGaps: z.array(z.string()),
+});
+
+export type TeamFitFreeReport = z.infer<typeof TeamFitFreeReportSchema>;

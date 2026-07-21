@@ -24,6 +24,10 @@ import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
 import { recallRevisionUseCase } from "../application/recall-revision.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
 import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
+import { findCaseById, upgradeCasePackage, createCaseEvent } from "../infrastructure/persistence/case.repository.js";
+import { findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
+import { isFinalCaseStage } from "../domain/case.types.js";
+import { AppError } from "../../../shared/domain/app-error.js";
 import type {
   CreateCaseRequest,
   SubmitRevisionRequest,
@@ -442,6 +446,91 @@ export async function deleteCaseHandler(c: Context) {
       caseId,
     );
     return c.json({ success: true, message: "Đã xóa dự án thành công", data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/upgrade-package — Upgrade case to a paid package
+// ---------------------------------------------------------------------------
+
+export async function upgradePackageHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = (await readJsonBody(c)) as { packageId?: string };
+    const newPackageId = body?.packageId;
+
+    if (!newPackageId) {
+      throw new AppError(400, "VALIDATION_ERROR", "Thiếu packageId");
+    }
+
+    // 1. Find case
+    const caseRecord = await findCaseById(caseId);
+    if (!caseRecord) {
+      throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
+    }
+
+    // 2. Verify owner
+    if (caseRecord.owner_auth_user_id !== session.user.id) {
+      throw new AppError(403, "FORBIDDEN", "Không có quyền nâng cấp gói");
+    }
+
+    // 3. Check not final stage
+    if (isFinalCaseStage(caseRecord.user_facing_stage)) {
+      throw new AppError(400, "CASE_FINALIZED", "Dự án đã kết thúc, không thể nâng cấp gói");
+    }
+
+    // 4. Check case is currently free
+    const isCurrentlyFree =
+      caseRecord.package_id === "pkg_tf_free" ||
+      (caseRecord.locked_price ?? 0) === 0;
+
+    if (!isCurrentlyFree) {
+      throw new AppError(400, "CASE_ALREADY_PAID", "Dự án đã sử dụng gói trả phí");
+    }
+
+    // 5. Lookup new package
+    const newPackage = await findPackageById(newPackageId);
+    if (!newPackage || !newPackage.is_active) {
+      throw new AppError(400, "INVALID_PACKAGE", "Gói dịch vụ không tồn tại hoặc không khả dụng");
+    }
+
+    // 6. Check new package is paid (price > 0)
+    if (newPackage.price <= 0) {
+      throw new AppError(400, "INVALID_PACKAGE_PRICE", "Không thể nâng cấp lên gói miễn phí");
+    }
+
+    const fromPackageId = caseRecord.package_id;
+    const fromPrice = caseRecord.locked_price ?? 0;
+    const toPackageId = newPackage.id;
+    const toPrice = newPackage.price;
+
+    // 7. Update case
+    const updatedCase = await upgradeCasePackage(caseId, toPackageId, toPrice);
+
+    // 8. Create case event
+    await createCaseEvent(caseId, session.user.id, "package_upgraded", {
+      fromPackageId,
+      toPackageId,
+      fromPrice,
+      toPrice,
+    });
+
+    // 9. Return
+    return c.json({
+      caseId: updatedCase.id,
+      caseCode: updatedCase.case_code,
+      newPackageId: toPackageId,
+      newPrice: toPrice,
+      paymentStatus: "unpaid",
+    });
   } catch (error: any) {
     return handleError(c, error);
   }

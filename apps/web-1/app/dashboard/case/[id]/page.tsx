@@ -18,6 +18,9 @@ import { Button, Alert, Modal } from "@mantine/core";
 import { useRecallRevision } from "./hooks/useRecallRevision";
 import { notifications } from "@mantine/notifications";
 import { getCaseEffectivePrice, caseRequiresPayment } from "@/lib/pricing";
+import { useMutation } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { Sparkles, Zap } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -46,6 +49,31 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const handleRecall = () => {
     setIsRecallConfirmOpen(true);
   };
+
+  const finalStages = ["completed", "rejected", "closed"];
+  const showUpgradeBanner =
+    caseData.package_id === "pkg_tf_free" &&
+    caseData.payment_status === "not_required" &&
+    !finalStages.includes(caseData.user_facing_stage);
+
+  const upgradeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiClient.post(`/cases/${id}/upgrade-package`, {
+        packageId: "pkg_tf_audit",
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      router.push(`/dashboard/case/${id}/payment`);
+    },
+    onError: () => {
+      notifications.show({
+        title: "Nâng cấp thất bại",
+        message: "Không thể nâng cấp gói dịch vụ. Vui lòng thử lại sau.",
+        color: "red",
+      });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -89,6 +117,29 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               caseData={caseData}
               onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
             />
+
+            {showUpgradeBanner && (
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-brand-soft/30 border border-brand/20 animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="w-5 h-5 text-brand shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <h4 className="font-heading font-semibold text-sm text-text-app">Nâng cấp gói dịch vụ</h4>
+                    <p className="font-body text-xs text-text-muted leading-relaxed">
+                      Bạn đang dùng bản đánh giá miễn phí. Nâng cấp lên Audit (39k) để được phân tích chuyên sâu.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => upgradeMutation.mutate()}
+                  color="teal"
+                  loading={upgradeMutation.isPending}
+                  leftSection={<Zap className="w-4 h-4" />}
+                  className="font-body font-semibold text-xs h-9 px-4 shrink-0 cursor-pointer"
+                >
+                  Nâng cấp ngay
+                </Button>
+              </div>
+            )}
 
             {!caseRequiresPayment(caseData) && (
               <StatusGuidanceCard
