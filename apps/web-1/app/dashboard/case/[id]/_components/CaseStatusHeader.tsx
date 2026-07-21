@@ -28,6 +28,17 @@ export default function CaseStatusHeader({
 
   const isPaused = caseData.internal_status === "need_clarification";
 
+  // Latest non-completed, non-cancelled audit round for SLA
+  const activeRound = caseData.audit_rounds
+    ?.filter((r) => r.status !== "completed" && r.status !== "cancelled")
+    .sort((a, b) => b.roundNumber - a.roundNumber)[0];
+  const slaSource = activeRound?.slaDeadlineAt || caseData.deadline;
+
+  // Multi-round: if ALL audit_rounds are completed/cancelled, show "Hoàn thành"
+  const allRoundsCompleted = caseData.audit_rounds
+    ? caseData.audit_rounds.length > 0 && caseData.audit_rounds.every((r) => r.status === "completed" || r.status === "cancelled")
+    : false;
+
   useEffect(() => {
     if (isPaused) {
       setTimeLeft("Đang chờ nhóm bổ sung thông tin");
@@ -35,13 +46,19 @@ export default function CaseStatusHeader({
       return;
     }
 
-    if (!caseData.deadline) {
+    if (allRoundsCompleted) {
+      setTimeLeft("Hoàn thành");
+      setTimerColor("text-success font-semibold");
+      return;
+    }
+
+    if (!slaSource) {
       setTimeLeft("Chưa thiết lập");
       setTimerColor("text-text-subtle");
       return;
     }
 
-    const targetDate = new Date(caseData.deadline).getTime();
+    const targetDate = new Date(slaSource).getTime();
 
     const updateTimer = () => {
       const now = new Date().getTime();
@@ -78,7 +95,7 @@ export default function CaseStatusHeader({
 
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [caseData.deadline, isPaused]);
+  }, [slaSource, isPaused]);
 
   // Translate stage label
   const getStageLabel = (stage: string) => {
@@ -111,6 +128,14 @@ export default function CaseStatusHeader({
     danger: "bg-danger-soft text-danger border border-danger/20",
     default: "bg-surface-muted text-text-muted border border-border-app",
   }[statusTheme.color as "primary" | "secondary" | "success" | "warning" | "danger" | "default"] || "bg-surface-muted text-text-muted border border-border-app";
+
+  const slaLabel = allRoundsCompleted
+    ? ""
+    : activeRound?.slaDeadlineAt
+      ? "Cam kết SLA:"
+      : caseData.deadline
+        ? "Hạn mong muốn:"
+        : "";
 
   return (
     <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -171,7 +196,7 @@ export default function CaseStatusHeader({
       <div className="flex flex-wrap md:flex-col items-start md:items-end gap-4 shrink-0 w-full md:w-auto">
         <div className="flex items-center gap-2 p-2 px-3 bg-surface-soft rounded-lg text-xs font-body">
           <Clock className="w-4 h-4 text-text-subtle" />
-          <span className="text-text-muted mr-1.5">Hạn phản biện:</span>
+          <span className="text-text-muted mr-1.5">{slaLabel}</span>
           <span className={timerColor}>{timeLeft}</span>
           {isPaused && (
             <div className="w-2 h-2 rounded-full bg-warning animate-ping ml-1" />

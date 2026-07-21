@@ -51,6 +51,11 @@ export async function findManyCasesAdmin(where: any, take?: number) {
         where: { unit_type: "version" },
         take: 1,
       },
+      audit_rounds: {
+        where: { status: { notIn: ["completed", "cancelled"] } },
+        orderBy: { round_number: "desc" },
+        take: 1,
+      },
     },
     orderBy: { created_at: "desc" },
     take,

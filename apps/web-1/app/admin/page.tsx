@@ -9,9 +9,11 @@ import AdminPaymentVerificationTable from "./_components/AdminPaymentVerificatio
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
+import StatsDashboard from "./_components/StatsDashboard";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
+import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -53,9 +55,11 @@ export default function AdminHubPage() {
     isUpdatingStatus,
   } = useAdminPackages();
 
+  const statsQuery = useAdminStats();
+
   // Rejection modal control
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages">("payments");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("payments");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
@@ -299,13 +303,23 @@ export default function AdminHubPage() {
                 <Settings className="w-5 h-5" />
               </UnstyledButton>
             </Tooltip>
+
+            <Tooltip label="Thống kê" position="right" withArrow>
+              <UnstyledButton
+                onClick={() => setActiveSection("stats")}
+                className={classes.mainLink}
+                data-active={activeSection === "stats" || undefined}
+              >
+                <BarChart3 className="w-5 h-5" />
+              </UnstyledButton>
+            </Tooltip>
           </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={6} className={classes.title}>
-                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói" }
+                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "packages" ? "Cấu hình gói" : "Thống kê" }
               </Title>
               <Text size="xs" c="dimmed" className="font-body text-[11px]">
                 {activeSection === "payments"
@@ -314,7 +328,9 @@ export default function AdminHubPage() {
                   ? "Phân loại ý tưởng & phân công."
                   : activeSection === "documents"
                   ? "Danh mục tài liệu trên hệ thống."
-                  : "Cấu hình đơn giá gói dịch vụ."}
+                  : activeSection === "packages"
+                  ? "Cấu hình đơn giá gói dịch vụ."
+                  : "Tổng quan dữ liệu vận hành."}
               </Text>
             </div>
 
@@ -399,13 +415,22 @@ export default function AdminHubPage() {
                   <span>Tất cả tài liệu</span>
                 </UnstyledButton>
               </div>
-            ) : (
+            ) : activeSection === "packages" ? (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
                   className={classes.link}
                   data-active={true}
                 >
                   <span>Danh sách gói dịch vụ</span>
+                </UnstyledButton>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Tổng quan</span>
                 </UnstyledButton>
               </div>
             )}
@@ -425,6 +450,14 @@ export default function AdminHubPage() {
             <p className="text-text-muted text-xs">Quản lý giao dịch thanh toán và phân công Supporter chuyên môn hỗ trợ.</p>
           </div>
         </div>
+
+        {/* SLA Alert Banner - global overdue warning */}
+        {!statsQuery.isLoading && statsQuery.data && statsQuery.data.slaBreachCount > 0 && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-soft border border-danger/20 text-danger text-xs font-semibold">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>🔴 {statsQuery.data.slaBreachCount} hồ sơ đang quá hạn SLA — cần kiểm tra và phân công lại.</span>
+          </div>
+        )}
 
         {/* 2. Loading State or Section Content */}
         {isLoading ? (
@@ -476,7 +509,7 @@ export default function AdminHubPage() {
                   isDeleting={isDeletingDoc}
                 />
               </div>
-            ) : (
+            ) : activeSection === "packages" ? (
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
                   <h3 className="font-heading font-bold text-sm text-text-app">Thiết lập gói dịch vụ</h3>
@@ -489,6 +522,22 @@ export default function AdminHubPage() {
                   isUpdatingPrice={isUpdatingPrice}
                   isUpdatingStatus={isUpdatingStatus}
                 />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
+                  <h3 className="font-heading font-bold text-sm text-text-app">Thống kê hệ thống</h3>
+                  <p className="text-[10px] text-text-muted">Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành.</p>
+                </div>
+                {statsQuery.isLoading ? (
+                  <LoadingSkeleton variant="card" count={1} />
+                ) : statsQuery.error ? (
+                  <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl text-sm">
+                    Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.
+                  </div>
+                ) : (
+                  <StatsDashboard data={statsQuery.data} isLoading={false} />
+                )}
               </div>
             )}
           </div>
