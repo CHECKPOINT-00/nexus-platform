@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Primary Workflow
 
 **IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.
