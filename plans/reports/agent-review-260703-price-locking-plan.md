@@ -1,3 +1,11 @@
+# Agent Review: Price Locking Plan (locked_price)
+
+**Source:** Oracle agent review | **Date:** ~26/07/2026  
+**Context:** Review của AI agent về price-locking plan, phát hiện các gap trong coverage UI/API/backfill.  
+**File gốc:** Transcript từ agent session (raw output, không edit).
+
+---
+
 Có. Plan hiện đúng hướng, nhưng còn thiếu vài chỗ quan trọng so với vấn đề gốc: case cũ giữ giá cũ, chỉ case mới ăn giá mới.
 
 Kết luận ngắn
