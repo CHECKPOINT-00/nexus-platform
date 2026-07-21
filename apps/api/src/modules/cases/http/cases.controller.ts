@@ -28,6 +28,7 @@ import { findCaseById, upgradeCasePackage, createCaseEvent } from "../infrastruc
 import { findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
 import { isFinalCaseStage } from "../domain/case.types.js";
 import { AppError } from "../../../shared/domain/app-error.js";
+import { prisma } from "../../../db.js";
 import type {
   CreateCaseRequest,
   SubmitRevisionRequest,
@@ -531,6 +532,145 @@ export async function upgradePackageHandler(c: Context) {
       newPrice: toPrice,
       paymentStatus: "unpaid",
     });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/buy-round — Buy an audit round
+// ---------------------------------------------------------------------------
+
+export async function buyRoundHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = (await readJsonBody(c)) as { packageId?: string };
+    const packageId = body?.packageId || "pkg_tf_audit";
+
+    // 1. Find case → 404
+    const caseRecord = await findCaseById(caseId);
+    if (!caseRecord) {
+      throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
+    }
+
+    // 2. Verify owner → 403
+    if (caseRecord.owner_auth_user_id !== session.user.id) {
+      throw new AppError(403, "FORBIDDEN", "Không có quyền mua round");
+    }
+
+    // 3. Check case has paid package (price > 0) → 400
+    if (!caseRecord.locked_price || caseRecord.locked_price <= 0) {
+      throw new AppError(400, "NOT_UPGRADED", "Case này chưa được nâng cấp lên gói trả phí");
+    }
+
+    // 4. Check no unpaid previous rounds → 400
+    const unpaidRound = await prisma.auditRound.findFirst({
+      where: { case_id: caseId, status: "pending_payment" },
+    });
+    if (unpaidRound) {
+      throw new AppError(400, "UNPAID_ROUND", "Vui lòng hoàn tất thanh toán cho round trước");
+    }
+
+    // 5. Lookup package → 400 if not found/inactive
+    const pkg = await findPackageById(packageId);
+    if (!pkg || !pkg.is_active) {
+      throw new AppError(400, "INVALID_PACKAGE", "Gói dịch vụ không tồn tại hoặc không khả dụng");
+    }
+
+    // 6-10. Atomic transaction: create checkpoint (if needed) + round + payment + link
+    const result = await prisma.$transaction(async (tx: any) => {
+      let checkpointId: string | null = null;
+
+      // 6. Auto-create checkpoint if none exists
+      if (!caseRecord.current_checkpoint) {
+        const checkpoint = await tx.checkpoint.create({
+          data: {
+            case_id: caseId,
+            checkpoint_code: "CP1",
+            checkpoint_status: "draft",
+            latest_version_no: 1,
+            latest_assessment_no: 0,
+          },
+        });
+        checkpointId = checkpoint.id;
+
+        await tx.case.update({
+          where: { id: caseId },
+          data: { current_checkpoint: "CP1" },
+        });
+      } else {
+        const existingCp = await tx.checkpoint.findFirst({
+          where: { case_id: caseId, checkpoint_code: caseRecord.current_checkpoint },
+        });
+        if (existingCp) {
+          checkpointId = existingCp.id;
+        }
+      }
+
+      // 7. Count existing rounds → next round_number
+      const roundCount = await tx.auditRound.count({
+        where: { case_id: caseId },
+      });
+      const roundNumber = roundCount + 1;
+
+      // 8. Create AuditRound with status="pending_payment"
+      const auditRound = await tx.auditRound.create({
+        data: {
+          case_id: caseId,
+          round_number: roundNumber,
+          checkpoint_id: checkpointId,
+          status: "pending_payment",
+        },
+      });
+
+      // 9. Create Payment record
+      const payment = await tx.payment.create({
+        data: {
+          case_id: caseId,
+          package_id: packageId,
+          amount: pkg.price,
+          status: "unpaid",
+        },
+      });
+
+      // 10. Link audit_round.payment_id
+      await tx.auditRound.update({
+        where: { id: auditRound.id },
+        data: { payment_id: payment.id },
+      });
+
+      // Create case event
+      await tx.caseEvent.create({
+        data: {
+          case_id: caseId,
+          event_type: "buy_round",
+          actor_auth_user_id: session.user.id,
+          metadata_json: {
+            round_id: auditRound.id,
+            round_number: roundNumber,
+            payment_id: payment.id,
+            amount: pkg.price,
+            package_id: packageId,
+          },
+        },
+      });
+
+      return {
+        roundId: auditRound.id,
+        roundNumber,
+        paymentId: payment.id,
+        amount: pkg.price,
+        caseId,
+      };
+    });
+
+    return c.json(result, 201);
   } catch (error: any) {
     return handleError(c, error);
   }

@@ -92,6 +92,11 @@ export async function findCaseByIdWithAllRelations(id: string) {
       reports: {
         orderBy: { created_at: "desc" },
       },
+      audit_rounds: {
+        include: {
+          payment: true,
+        },
+      },
     },
   });
 }

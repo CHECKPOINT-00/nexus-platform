@@ -118,6 +118,14 @@ export async function submitRevisionUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
+  if (caseDetails.package_id === "pkg_tf_audit") {
+    throw new AppError(
+      400,
+      "FEATURE_DEPRECATED",
+      "Tính năng nộp bản sửa miễn phí đã được thay thế bằng mua thêm lượt audit. Vui lòng sử dụng /api/cases/:id/buy-round.",
+    );
+  }
+
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
     (member: CaseMemberLike) => member.auth_user_id === userId,
@@ -199,6 +207,14 @@ export async function submitRevisionUploadUseCase(
 
   if (!caseDetails) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
+  }
+
+  if (caseDetails.package_id === "pkg_tf_audit") {
+    throw new AppError(
+      400,
+      "FEATURE_DEPRECATED",
+      "Tính năng nộp bản sửa miễn phí đã được thay thế bằng mua thêm lượt audit. Vui lòng sử dụng /api/cases/:id/buy-round.",
+    );
   }
 
   const isOwner = caseDetails.owner_auth_user_id === userId;

@@ -19,6 +19,7 @@ import {
   updateCaseSettingsHandler,
   deleteCaseHandler,
   upgradePackageHandler,
+  buyRoundHandler,
 } from "./cases.controller.js";
 
 export const casesRouter = new Hono();
@@ -42,3 +43,4 @@ casesRouter.post("/:id/messages", sendMessageHandler);
 casesRouter.put("/:id/settings", updateCaseSettingsHandler);
 casesRouter.delete("/:id", deleteCaseHandler);
 casesRouter.post("/:id/upgrade-package", upgradePackageHandler);
+casesRouter.post("/:id/buy-round", buyRoundHandler);

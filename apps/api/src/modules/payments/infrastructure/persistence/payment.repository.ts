@@ -1,4 +1,5 @@
 import { prisma } from "../../../../db.js";
+import { updateAuditRoundAfterPayment } from "./audit-round-update.js";
 
 export async function findManyPaymentsWithCase() {
   return await prisma.payment.findMany({
@@ -96,6 +97,10 @@ export async function verifyPayment(data: {
         metadata_json: { payment_id: paymentId, rejection_reason: rejectionReason },
       },
     });
+
+    if (status === "paid") {
+      await updateAuditRoundAfterPayment(tx, paymentId);
+    }
 
     return updatedPayment;
   });

@@ -81,6 +81,15 @@ export async function recallRevisionUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
+  // Block recall for paid audit packages — user paid for the round, cannot undo
+  if (caseDetails.package_id === "pkg_tf_audit") {
+    throw new AppError(
+      400,
+      "PAID_PACKAGE_RECALL_BLOCKED",
+      "Không thể thu hồi round đã thanh toán.",
+    );
+  }
+
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
     (member: CaseMemberLike) => member.auth_user_id === userId,

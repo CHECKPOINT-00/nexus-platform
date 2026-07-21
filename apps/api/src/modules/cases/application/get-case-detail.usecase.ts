@@ -68,6 +68,16 @@ function toBaseResponse(caseDetails: any) {
     payments: caseDetails.payments,
     messages: caseDetails.messages,
     events: caseDetails.events,
+    audit_rounds: (caseDetails.audit_rounds || []).map((ar: any) => ({
+      id: ar.id,
+      caseId: ar.case_id,
+      roundNumber: ar.round_number,
+      paymentId: ar.payment_id,
+      checkpointId: ar.checkpoint_id,
+      slaDeadlineAt: ar.sla_deadline_at ? new Date(ar.sla_deadline_at).toISOString() : null,
+      status: ar.status,
+      createdAt: new Date(ar.created_at).toISOString(),
+    })),
   };
 }
 

@@ -10,9 +10,11 @@ import WorkspaceSidebar from "./_components/WorkspaceSidebar";
 import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
+import AuditRoundTimeline from "./_components/AuditRoundTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import RevisionSubmitModal from "./_components/RevisionSubmitModal";
+import BuyRoundModal from "./_components/BuyRoundModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import { Button, Alert, Modal } from "@mantine/core";
 import { useRecallRevision } from "./hooks/useRecallRevision";
@@ -43,6 +45,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isRecallConfirmOpen, setIsRecallConfirmOpen] = useState(false);
+  const [buyRoundOpened, setBuyRoundOpened] = useState(false);
 
   const { recallRevision, isRecalling } = useRecallRevision(id);
 
@@ -99,6 +102,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     caseData.user_facing_stage === "report_ready" ||
     caseData.user_facing_stage === "waiting_for_revision";
   const effectivePrice = getCaseEffectivePrice(caseData);
+  const isPaidCase = caseData.package_id === "pkg_tf_audit";
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
@@ -146,10 +150,15 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 caseData={caseData}
                 openRequestsForMoreInfo={openRequestsForMoreInfo}
                 onOpenRevision={() => setIsRevisionOpen(true)}
+                onOpenBuyRound={() => setBuyRoundOpened(true)}
                 onRecallRevision={handleRecall}
                 isRecalling={isRecalling}
                 onSelectTab={setActiveTab}
               />
+            )}
+
+            {caseData.audit_rounds && caseData.audit_rounds.length > 0 && (
+              <AuditRoundTimeline auditRounds={caseData.audit_rounds} />
             )}
           </>
         )}
@@ -193,6 +202,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         </div>
       </div>
 
+      <BuyRoundModal caseId={id} opened={buyRoundOpened} onClose={() => setBuyRoundOpened(false)} />
       <RevisionSubmitModal isOpen={isRevisionOpen} onClose={() => setIsRevisionOpen(false)} caseId={id} />
       <ExternalFeedbackUploadModal
         isOpen={isFeedbackOpen}

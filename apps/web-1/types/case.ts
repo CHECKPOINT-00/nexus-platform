@@ -31,6 +31,7 @@ export interface Case {
   payments?: Payment[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
+  audit_rounds?: AuditRound[];
 }
 
 export interface CaseMember {
@@ -117,6 +118,17 @@ export interface CaseEvent {
   actor?: User;
   report?: Report | null;
   payment?: Payment | null;
+}
+
+export interface AuditRound {
+  id: string;
+  caseId: string;
+  roundNumber: number;
+  paymentId: string | null;
+  checkpointId: string | null;
+  slaDeadlineAt: string | null;
+  status: string;
+  createdAt: string;
 }
 
 export interface DocumentWorkspace {

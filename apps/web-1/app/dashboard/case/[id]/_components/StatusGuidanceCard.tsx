@@ -15,6 +15,7 @@ interface StatusGuidanceCardProps {
   caseData: Case;
   openRequestsForMoreInfo?: any[] | null;
   onOpenRevision: () => void;
+  onOpenBuyRound?: () => void;
   onRecallRevision: () => void;
   isRecalling: boolean;
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
@@ -24,6 +25,7 @@ export default function StatusGuidanceCard({
   caseData,
   openRequestsForMoreInfo,
   onOpenRevision,
+  onOpenBuyRound,
   onRecallRevision,
   isRecalling,
 }: StatusGuidanceCardProps) {
@@ -95,7 +97,8 @@ export default function StatusGuidanceCard({
       );
 
     case "report_ready":
-    case "waiting_for_revision":
+    case "waiting_for_revision": {
+      const isPaidCase = caseData.package_id === "pkg_tf_audit";
       return (
         <Alert
           variant="light"
@@ -107,19 +110,34 @@ export default function StatusGuidanceCard({
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Bạn hãy đọc kỹ nhận xét tại tab Tài liệu và nhấp nút bên dưới để nộp bản sửa đổi vòng tiếp theo.
+              {isPaidCase
+                ? "Supporter đã hoàn thành đánh giá chi tiết. Nhấp nút bên dưới để mua thêm lượt audit và tiếp tục nộp tài liệu vòng mới."
+                : "Supporter đã hoàn thành đánh giá chi tiết. Bạn hãy đọc kỹ nhận xét tại tab Tài liệu và nhấp nút bên dưới để nộp bản sửa đổi vòng tiếp theo."
+              }
             </p>
-            <Button
-              size="xs"
-              color="brand"
-              className="font-semibold shrink-0 cursor-pointer"
-              onClick={onOpenRevision}
-            >
-              Nộp bản sửa đổi
-            </Button>
+            {isPaidCase ? (
+              <Button
+                size="xs"
+                color="teal"
+                className="font-semibold shrink-0 cursor-pointer"
+                onClick={onOpenBuyRound}
+              >
+                Mua thêm lượt audit (39k)
+              </Button>
+            ) : (
+              <Button
+                size="xs"
+                color="brand"
+                className="font-semibold shrink-0 cursor-pointer"
+                onClick={onOpenRevision}
+              >
+                Nộp bản sửa đổi
+              </Button>
+            )}
           </div>
         </Alert>
       );
+    }
 
     case "revision_submitted":
       return (
