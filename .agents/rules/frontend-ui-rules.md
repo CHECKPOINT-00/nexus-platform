@@ -505,4 +505,41 @@ Evidence and detailed reasoning can be collapsed by default if the screen is den
 
 The user should know what to fix without reading every detail.
 
-#
+## 6. Implementation Rules (Light/Dark Mode & Card)
+
+### 6.1 Dark Mode Text Colors
+
+Hardcoded text colors (`c="#115e59"`, `color: #115e59`) vỡ trong dark mode → dùng CSS variables hoặc Mantine theme color.
+
+Mantine `c="dimmed"` tự động theo theme (ok).
+
+### 6.2 Card Background Override
+
+Global CSS override `.mantine-Card-root` background bằng `!important`. Tailwind gradient/background classes trên Card không生效.
+
+Fix: dùng inline `style` hoặc CSS vars thay vì className.
+
+### 6.3 No Shadow on Cards
+
+Không dùng `shadow` trên Card/Paper. Chỉ dùng border + `borderWidth: 1.5px` cho thanh mảnh, sang trọng.
+
+### 6.4 No Gradient Backgrounds
+
+Dùng solid color, không gradient.
+
+### 6.5 CSS Variables Pattern
+
+```css
+:root {
+  --cta-bg: #f0fdfa;
+  --cta-border: #99f6e4;
+  --cta-title: #115e59;
+}
+[data-mantine-color-scheme="dark"] {
+  --cta-bg: rgba(13, 148, 136, 0.15);
+  --cta-border: #0f766e;
+  --cta-title: #5eead4;
+}
+```
+
+Định nghĩa trong `globals.css`, dùng qua `style={{ background: "var(--cta-bg)" }}`.

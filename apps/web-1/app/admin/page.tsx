@@ -59,7 +59,7 @@ export default function AdminHubPage() {
 
   // Rejection modal control
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("payments");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
@@ -253,91 +253,100 @@ export default function AdminHubPage() {
       <nav className={classes.navbar}>
         <div className={classes.wrapper}>
           {/* Primary Rail (Icons) */}
-          <aside className={classes.aside}>
-            <Tooltip label="Duyệt thanh toán" position="right" withArrow>
-              <UnstyledButton
-                onClick={() => setActiveSection("payments")}
-                className={classes.mainLink}
-                data-active={activeSection === "payments" || undefined}
-              >
-                <CreditCard className="w-5 h-5" />
-                {pendingPaymentsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold bg-warning text-white flex items-center justify-center border-2 border-surface-app">
-                    {pendingPaymentsCount}
-                  </span>
-                )}
-              </UnstyledButton>
-            </Tooltip>
+            <aside className={classes.aside}>
+              <Tooltip label="Thống kê" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("stats")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "stats" || undefined}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                </UnstyledButton>
+              </Tooltip>
 
-            <Tooltip label="Duyệt & Phân công" position="right" withArrow>
-              <UnstyledButton
-                onClick={() => setActiveSection("cases")}
-                className={classes.mainLink}
-                data-active={activeSection === "cases" || undefined}
-              >
-                <UserCheck className="w-5 h-5" />
-                {unassignedCasesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
-                    {unassignedCasesCount}
-                  </span>
-                )}
-              </UnstyledButton>
-            </Tooltip>
+              <Tooltip label="Duyệt thanh toán" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("payments")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "payments" || undefined}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  {pendingPaymentsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold bg-warning text-white flex items-center justify-center border-2 border-surface-app">
+                      {pendingPaymentsCount}
+                    </span>
+                  )}
+                </UnstyledButton>
+              </Tooltip>
 
-            <Tooltip label="Quản lý tài liệu" position="right" withArrow>
-              <UnstyledButton
-                onClick={() => setActiveSection("documents")}
-                className={classes.mainLink}
-                data-active={activeSection === "documents" || undefined}
-              >
-                <FileText className="w-5 h-5" />
-              </UnstyledButton>
-            </Tooltip>
+              <Tooltip label="Duyệt & Phân công" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("cases")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "cases" || undefined}
+                >
+                  <UserCheck className="w-5 h-5" />
+                  {unassignedCasesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
+                      {unassignedCasesCount}
+                    </span>
+                  )}
+                </UnstyledButton>
+              </Tooltip>
 
-            <Tooltip label="Cấu hình giá gói" position="right" withArrow>
-              <UnstyledButton
-                onClick={() => setActiveSection("packages")}
-                className={classes.mainLink}
-                data-active={activeSection === "packages" || undefined}
-              >
-                <Settings className="w-5 h-5" />
-              </UnstyledButton>
-            </Tooltip>
+              <Tooltip label="Quản lý tài liệu" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("documents")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "documents" || undefined}
+                >
+                  <FileText className="w-5 h-5" />
+                </UnstyledButton>
+              </Tooltip>
 
-            <Tooltip label="Thống kê" position="right" withArrow>
-              <UnstyledButton
-                onClick={() => setActiveSection("stats")}
-                className={classes.mainLink}
-                data-active={activeSection === "stats" || undefined}
-              >
-                <BarChart3 className="w-5 h-5" />
-              </UnstyledButton>
-            </Tooltip>
-          </aside>
+              <Tooltip label="Cấu hình giá gói" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("packages")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "packages" || undefined}
+                >
+                  <Settings className="w-5 h-5" />
+                </UnstyledButton>
+              </Tooltip>
+            </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={6} className={classes.title}>
-                {activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "packages" ? "Cấu hình gói" : "Thống kê" }
+                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói"}
               </Title>
               <Text size="xs" c="dimmed" className="font-body text-[11px]">
-                {activeSection === "payments"
+                {activeSection === "stats"
+                  ? "Tổng quan dữ liệu vận hành."
+                  : activeSection === "payments"
                   ? "Duyệt minh chứng chuyển khoản."
                   : activeSection === "cases"
                   ? "Phân loại ý tưởng & phân công."
                   : activeSection === "documents"
                   ? "Danh mục tài liệu trên hệ thống."
-                  : activeSection === "packages"
-                  ? "Cấu hình đơn giá gói dịch vụ."
-                  : "Tổng quan dữ liệu vận hành."}
+                  : "Cấu hình đơn giá gói dịch vụ."}
               </Text>
             </div>
 
             <Divider className="border-border-app mb-4" />
 
             {/* Sub-menu filters */}
-            {activeSection === "payments" ? (
+            {activeSection === "stats" ? (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Tổng quan</span>
+                </UnstyledButton>
+              </div>
+            ) : activeSection === "payments" ? (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
                   onClick={() => setPaymentFilter("pending")}
@@ -415,22 +424,13 @@ export default function AdminHubPage() {
                   <span>Tất cả tài liệu</span>
                 </UnstyledButton>
               </div>
-            ) : activeSection === "packages" ? (
-              <div className="flex flex-col gap-1">
-                <UnstyledButton
-                  className={classes.link}
-                  data-active={true}
-                >
-                  <span>Danh sách gói dịch vụ</span>
-                </UnstyledButton>
-              </div>
             ) : (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
                   className={classes.link}
                   data-active={true}
                 >
-                  <span>Tổng quan</span>
+                  <span>Danh sách gói dịch vụ</span>
                 </UnstyledButton>
               </div>
             )}
@@ -467,7 +467,23 @@ export default function AdminHubPage() {
           </div>
         ) : (
           <div className="flex-grow min-h-0">
-            {activeSection === "payments" ? (
+            {activeSection === "stats" ? (
+              <div className="space-y-3">
+                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
+                  <h3 className="font-heading font-bold text-sm text-text-app">Thống kê hệ thống</h3>
+                  <p className="text-[10px] text-text-muted">Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành.</p>
+                </div>
+                {statsQuery.isLoading ? (
+                  <LoadingSkeleton variant="card" count={1} />
+                ) : statsQuery.error ? (
+                  <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl text-sm">
+                    Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.
+                  </div>
+                ) : (
+                  <StatsDashboard data={statsQuery.data} isLoading={false} />
+                )}
+              </div>
+            ) : activeSection === "payments" ? (
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
                   <h3 className="font-heading font-bold text-sm text-text-app">Duyệt minh chứng thanh toán</h3>
@@ -509,7 +525,7 @@ export default function AdminHubPage() {
                   isDeleting={isDeletingDoc}
                 />
               </div>
-            ) : activeSection === "packages" ? (
+            ) : (
               <div className="space-y-3">
                 <div className="pb-1.5 border-b border-border-app/55 shrink-0">
                   <h3 className="font-heading font-bold text-sm text-text-app">Thiết lập gói dịch vụ</h3>
@@ -522,22 +538,6 @@ export default function AdminHubPage() {
                   isUpdatingPrice={isUpdatingPrice}
                   isUpdatingStatus={isUpdatingStatus}
                 />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Thống kê hệ thống</h3>
-                  <p className="text-[10px] text-text-muted">Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành.</p>
-                </div>
-                {statsQuery.isLoading ? (
-                  <LoadingSkeleton variant="card" count={1} />
-                ) : statsQuery.error ? (
-                  <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl text-sm">
-                    Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.
-                  </div>
-                ) : (
-                  <StatsDashboard data={statsQuery.data} isLoading={false} />
-                )}
               </div>
             )}
           </div>

@@ -46,10 +46,19 @@ export default function StudentDashboard() {
       </div>
 
       {/* Paid Audit CTA */}
-      <Card shadow="sm" padding="lg" radius="md" withBorder className="border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50">
+      <Card
+        padding="lg"
+        radius="md"
+        withBorder
+        style={{
+          background: "var(--audit-cta-bg)",
+          borderColor: "var(--audit-cta-border)",
+          borderWidth: "1.5px",
+        }}
+      >
         <Group justify="space-between" align="center">
           <div className="space-y-1">
-            <Text fw={700} size="lg" c="#115e59">
+            <Text fw={700} size="lg" style={{ color: "var(--audit-cta-title)" }}>
               Mua audit ngay
             </Text>
             <Text size="sm" c="dimmed">
