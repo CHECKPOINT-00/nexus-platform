@@ -1,5 +1,6 @@
 import { prisma } from "../../../../db.js";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
+import { AppError } from "../../../../shared/domain/app-error.js";
 
 
 export async function findManyCasesByRole(userId: string, role: string) {
@@ -485,7 +486,7 @@ export async function createSupporterOutput(data: {
     });
 
     if (!checkpoint) {
-      throw new Error("CHECKPOINT_NOT_FOUND");
+      throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
     }
 
     const versionNo = checkpoint.latest_version_no;
@@ -501,7 +502,7 @@ export async function createSupporterOutput(data: {
     });
 
     if (!versionUnit) {
-      throw new Error("VERSION_UNIT_NOT_FOUND");
+      throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
     }
 
     await createDocumentRecordsForUnit(
@@ -563,7 +564,7 @@ export async function createExternalFeedback(data: {
     });
 
     if (!checkpoint) {
-      throw new Error("CHECKPOINT_NOT_FOUND");
+      throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
     }
 
     const versionUnit = await tx.lifecycleUnit.findFirst({
@@ -577,7 +578,7 @@ export async function createExternalFeedback(data: {
     });
 
     if (!versionUnit) {
-      throw new Error("VERSION_UNIT_NOT_FOUND");
+      throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
     }
 
     const nextAssessmentNo = (checkpoint.latest_assessment_no ?? 0) + 1;

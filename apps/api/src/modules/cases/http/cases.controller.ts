@@ -21,7 +21,6 @@ import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
-import { recallRevisionUseCase } from "../application/recall-revision.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
 import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
 import { findCaseById, upgradeCasePackage, createCaseEvent } from "../infrastructure/persistence/case.repository.js";
@@ -233,26 +232,6 @@ export async function submitRevisionUploadHandler(c: Context) {
     return c.json(result, 201);
   } catch (error: any) {
     await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));
-    return handleError(c, error);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// POST /api/cases/:id/revisions/recall — Student recalls submitted revision
-// ---------------------------------------------------------------------------
-
-export async function recallRevisionHandler(c: Context) {
-  const session = await getSession(c);
-  if (!session) {
-    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
-  }
-
-  const caseId = c.req.param("id") || "";
-
-  try {
-    const result = await recallRevisionUseCase(session.user.id, caseId);
-    return c.json(result, 200);
-  } catch (error: any) {
     return handleError(c, error);
   }
 }
@@ -550,8 +529,9 @@ export async function buyRoundHandler(c: Context) {
   const caseId = c.req.param("id") || "";
 
   try {
-    const body = (await readJsonBody(c)) as { packageId?: string };
+    const body = (await readJsonBody(c)) as { packageId?: string; idempotencyKey?: string };
     const packageId = body?.packageId || "pkg_tf_audit";
+    const idempotencyKey = body?.idempotencyKey;
 
     // 1. Find case → 404
     const caseRecord = await findCaseById(caseId);
@@ -569,6 +549,12 @@ export async function buyRoundHandler(c: Context) {
       throw new AppError(400, "NOT_UPGRADED", "Case này chưa được nâng cấp lên gói trả phí");
     }
 
+    // 3b. Stage validation: only allow buy-round at these stages
+    const allowedStages = ["under_review", "report_ready", "waiting_for_revision"];
+    if (!allowedStages.includes(caseRecord.user_facing_stage)) {
+      throw new AppError(400, "INVALID_STAGE", "Không thể mua round ở giai đoạn này");
+    }
+
     // 4. Check no unpaid previous rounds → 400
     const unpaidRound = await prisma.auditRound.findFirst({
       where: { case_id: caseId, status: "pending_payment" },
@@ -584,8 +570,9 @@ export async function buyRoundHandler(c: Context) {
     }
 
     // 6-10. Atomic transaction: create checkpoint (if needed) + round + payment + link
-    const result = await prisma.$transaction(async (tx: any) => {
-      let checkpointId: string | null = null;
+    try {
+      const result = await prisma.$transaction(async (tx: any) => {
+        let checkpointId: string | null = null;
 
       // 6. Auto-create checkpoint if none exists
       if (!caseRecord.current_checkpoint) {
@@ -670,7 +657,14 @@ export async function buyRoundHandler(c: Context) {
       };
     });
 
-    return c.json(result, 201);
+      return c.json(result, 201);
+    } catch (error: any) {
+      // P2002 = unique constraint violation on (case_id, round_number) — race condition
+      if (error?.code === "P2002") {
+        throw new AppError(409, "DUPLICATE_ROUND", "Round này đã tồn tại, vui lòng thử lại");
+      }
+      throw error;
+    }
   } catch (error: any) {
     return handleError(c, error);
   }

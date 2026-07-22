@@ -13,19 +13,79 @@ import ActivityTimeline from "./_components/ActivityTimeline";
 import AuditRoundTimeline from "./_components/AuditRoundTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import RevisionSubmitModal from "./_components/RevisionSubmitModal";
 import BuyRoundModal from "./_components/BuyRoundModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
-import { Button, Alert, Modal } from "@mantine/core";
-import { useRecallRevision } from "./hooks/useRecallRevision";
+import { Button, Alert, Stepper } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { getCaseEffectivePrice, caseRequiresPayment } from "@/lib/pricing";
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles, Zap, Clock, AlertCircle } from "lucide-react";
+import type { AuditRound } from "@/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+const AUDIT_STAGES = [
+  "Bổ sung thông tin",
+  "Chờ supporter review",
+  "Nhận báo cáo",
+];
+
+function getActiveStep(stage: string): number {
+  switch (stage) {
+    case "submitted":
+    case "need_more_information":
+      return 0;
+    case "under_review":
+    case "revision_submitted":
+      return 1;
+    case "report_ready":
+    case "waiting_for_revision":
+      return 2;
+    case "completed":
+    case "approved":
+    case "APPROVED":
+    case "sent":
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+function getStepGuidance(stage: string): { title: string; message: string; color: string } | null {
+  switch (stage) {
+    case "submitted":
+      return { title: "Bổ sung thông tin", message: "Vui lòng tải lên đầy đủ tài liệu dự án để Supporter có thể bắt đầu đánh giá.", color: "blue" };
+    case "need_more_information":
+      return { title: "Cần bổ sung thông tin", message: "Supporter yêu cầu bổ sung thêm thông tin. Vui lòng kiểm tra yêu cầu và cập nhật tài liệu.", color: "orange" };
+    case "under_review":
+      return { title: "Đang đánh giá", message: "Supporter đang đọc tài liệu và viết báo cáo phản biện. Vui lòng chờ trong thời gian này.", color: "blue" };
+    case "revision_submitted":
+      return { title: "Đang thẩm định bản sửa", message: "Supporter đang thẩm định bản sửa đổi mới nhất của bạn.", color: "blue" };
+    case "report_ready":
+    case "waiting_for_revision":
+      return { title: "Nhận báo cáo", message: "Báo cáo phản biện đã sẵn sàng. Bạn có thể xem báo cáo và nộp bản sửa đổi cho vòng tiếp theo.", color: "green" };
+    case "completed":
+    case "approved":
+    case "APPROVED":
+    case "sent":
+      return { title: "Hoàn tất", message: "Quy trình phản biện đã hoàn tất. Cảm ơn bạn đã sử dụng dịch vụ.", color: "green" };
+    default:
+      return null;
+  }
+}
+
+function getSlaInfo(slaDeadlineAt: string | null): { text: string; isOverdue: boolean } | null {
+  if (!slaDeadlineAt) return null;
+  const slaDate = new Date(slaDeadlineAt);
+  const now = new Date();
+  const diffMs = slaDate.getTime() - now.getTime();
+  if (diffMs <= 0) return { text: "Quá hạn", isOverdue: true };
+  const hoursRemaining = Math.round(diffMs / (1000 * 60 * 60));
+  if (hoursRemaining < 1) return { text: "còn <1h", isOverdue: false };
+  return { text: `còn ${hoursRemaining}h`, isOverdue: false };
 }
 
 export default function CaseWorkspacePage({ params }: PageProps) {
@@ -42,16 +102,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   } = useCaseDetails(id);
 
   const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
-  const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [isRecallConfirmOpen, setIsRecallConfirmOpen] = useState(false);
   const [buyRoundOpened, setBuyRoundOpened] = useState(false);
-
-  const { recallRevision, isRecalling } = useRecallRevision(id);
-
-  const handleRecall = () => {
-    setIsRecallConfirmOpen(true);
-  };
 
   const finalStages = ["completed", "rejected", "closed"];
   const showUpgradeBanner =
@@ -97,12 +149,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
-  const hasRevisionBanner =
-    !!(openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0) ||
-    caseData.user_facing_stage === "report_ready" ||
-    caseData.user_facing_stage === "waiting_for_revision";
   const effectivePrice = getCaseEffectivePrice(caseData);
-  const isPaidCase = caseData.package_id === "pkg_tf_audit";
+  const isAudit = caseData.package_id === "pkg_tf_audit";
+  const activeAuditRound = caseData.audit_rounds?.find(
+    (r: AuditRound) => r.status !== "completed"
+  ) || caseData.audit_rounds?.[caseData.audit_rounds.length - 1];
+  const slaInfo = activeAuditRound ? getSlaInfo(activeAuditRound.slaDeadlineAt) : null;
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
@@ -116,6 +168,23 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         {activeTab !== "discussion" && (
           <>
             <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
+
+            {slaInfo && (
+              <div
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-body animate-fade-in ${
+                  slaInfo.isOverdue
+                    ? "bg-danger/10 text-danger font-semibold"
+                    : "bg-blue-50 text-blue-700"
+                }`}
+              >
+                {slaInfo.isOverdue ? (
+                  <AlertCircle className="w-4 h-4" />
+                ) : (
+                  <Clock className="w-4 h-4" />
+                )}
+                <span>SLA {slaInfo.text}</span>
+              </div>
+            )}
 
             <UnpaidAlertBanner
               caseData={caseData}
@@ -145,20 +214,49 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               </div>
             )}
 
+            {isAudit && (
+              <>
+                <Stepper
+                  active={getActiveStep(caseData.user_facing_stage)}
+                  size="sm"
+                  className="animate-fade-in"
+                >
+                  {AUDIT_STAGES.map((label, idx) => (
+                    <Stepper.Step key={idx} label={label} />
+                  ))}
+                </Stepper>
+
+                {(() => {
+                  const guidance = getStepGuidance(caseData.user_facing_stage);
+                  if (!guidance) return null;
+                  return (
+                    <Alert
+                      variant="light"
+                      color={guidance.color}
+                      radius="md"
+                      title={guidance.title}
+                      className="animate-fade-in font-body text-xs shrink-0"
+                    >
+                      <p className="text-text-muted text-xs leading-relaxed">
+                        {guidance.message}
+                      </p>
+                    </Alert>
+                  );
+                })()}
+              </>
+            )}
+
             {!caseRequiresPayment(caseData) && (
               <StatusGuidanceCard
                 caseData={caseData}
                 openRequestsForMoreInfo={openRequestsForMoreInfo}
-                onOpenRevision={() => setIsRevisionOpen(true)}
                 onOpenBuyRound={() => setBuyRoundOpened(true)}
-                onRecallRevision={handleRecall}
-                isRecalling={isRecalling}
                 onSelectTab={setActiveTab}
               />
             )}
 
             {caseData.audit_rounds && caseData.audit_rounds.length > 0 && (
-              <AuditRoundTimeline auditRounds={caseData.audit_rounds} />
+              <AuditRoundTimeline auditRounds={caseData.audit_rounds} assignedSupporterAuthUserId={caseData.assigned_supporter_auth_user_id} />
             )}
           </>
         )}
@@ -167,19 +265,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">
-                {(caseData.user_facing_stage === "report_ready" ||
-                  caseData.user_facing_stage === "waiting_for_revision" ||
-                  caseData.user_facing_stage === "need_more_information") &&
-                  !hasRevisionBanner && (
-                  <Button
-                    size="sm"
-                    color="brand"
-                    className="font-semibold cursor-pointer h-8.5 text-xs"
-                    onClick={() => setIsRevisionOpen(true)}
-                  >
-                    Nộp bản sửa
-                  </Button>
-                )}
                 <Button
                   size="sm"
                   color="brand"
@@ -203,7 +288,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       </div>
 
       <BuyRoundModal caseId={id} opened={buyRoundOpened} onClose={() => setBuyRoundOpened(false)} />
-      <RevisionSubmitModal isOpen={isRevisionOpen} onClose={() => setIsRevisionOpen(false)} caseId={id} />
       <ExternalFeedbackUploadModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
@@ -211,64 +295,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         latestVersionNo={documentWorkspace?.checkpoints?.[0]?.latest_version_no || 1}
       />
 
-      <Modal
-        opened={isRecallConfirmOpen}
-        onClose={() => setIsRecallConfirmOpen(false)}
-        title={<span className="font-heading font-bold text-sm text-text-app">Xác nhận thu hồi bản nộp mới nhất</span>}
-        size="md"
-        radius="md"
-        centered
-      >
-        <div className="space-y-4 font-body text-xs text-text-muted">
-          <p>
-            Bạn có chắc chắn muốn thu hồi <span className="font-bold">bản nộp mới nhất</span> này không? Hành động này sẽ thực hiện:
-          </p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Xóa toàn bộ các tệp tài liệu của <span className="font-bold">bản nộp mới nhất</span> khỏi hệ thống.</li>
-            <li>Hoàn tác phiên bản và khôi phục trạng thái hồ sơ về vòng trước.</li>
-          </ul>
-          <p className="font-semibold text-danger">
-            Lưu ý: Mọi tệp và mô tả của bản nộp mới nhất này sẽ bị xóa bỏ hoàn toàn và không thể khôi phục.
-          </p>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <Button
-              size="xs"
-              variant="subtle"
-              color="gray"
-              className="font-semibold cursor-pointer"
-              onClick={() => setIsRecallConfirmOpen(false)}
-            >
-              Hủy bỏ
-            </Button>
-            <Button
-              size="xs"
-              color="red"
-              className="font-semibold cursor-pointer"
-              loading={isRecalling}
-              onClick={async () => {
-                try {
-                  await recallRevision();
-                  setIsRecallConfirmOpen(false);
-                  notifications.show({
-                    title: "Thu hồi thành công",
-                    message: "Bản nộp đã được thu hồi. Bạn có thể tiến hành nộp lại.",
-                    color: "teal",
-                  });
-                } catch (err: any) {
-                  notifications.show({
-                    title: "Lỗi thu hồi",
-                    message: err?.response?.data?.message || "Không thể thu hồi bản nộp.",
-                    color: "red",
-                  });
-                }
-              }}
-            >
-              Xác nhận thu hồi
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

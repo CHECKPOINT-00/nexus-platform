@@ -49,24 +49,26 @@ export default function LandingHero() {
             <Group mt={30} className="w-full sm:w-auto">
               <Button
                 component={Link}
-                href="/auth"
-                size="md"
+                href="/dashboard/team-fit"
+                size="lg"
                 color="brand"
                 radius="md"
+                data-cta="free"
                 rightSection={<ArrowRight className="w-4 h-4" />}
                 className={`${classes.control} font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5`}
               >
-                Bắt đầu kiểm định
+                Kiểm tra miễn phí
               </Button>
               <Button
-                component="a"
-                href="#packages"
-                size="md"
-                variant="default"
+                component={Link}
+                href="/dashboard/team-fit?intent=paid"
+                size="lg"
+                variant="outline"
                 radius="md"
-                className={`${classes.control} font-semibold font-body text-text-muted hover:text-text-app border-border-strong`}
+                data-cta="paid"
+                className={`${classes.control} font-semibold font-body border-border-strong`}
               >
-                Xem bảng giá dịch vụ
+                Mua 1 lượt kiểm tra chuyên sâu (39k)
               </Button>
             </Group>
           </div>

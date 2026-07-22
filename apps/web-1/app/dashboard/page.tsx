@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Card, Text, Button, Group } from "@mantine/core";
 import { useCasesList } from "./hooks/useCasesList";
 import CaseCard from "./_components/CaseCard";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { FolderPlus, Users } from "lucide-react";
+import { CreditCard, Users } from "lucide-react";
 
 export default function StudentDashboard() {
-  const router = useRouter();
   const { data: cases, isLoading, error } = useCasesList();
 
   return (
@@ -24,58 +21,26 @@ export default function StudentDashboard() {
           </p>
         </div>
         
-        {/* Only show Create buttons if there are cases, otherwise the empty state has it */}
+        {/* Only show CTA buttons if there are cases, otherwise the empty state has it */}
         {!isLoading && cases && cases.length > 0 && (
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/team-fit"
-              className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-4 py-2 h-10 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-4 py-2 h-10 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
             >
               <Users className="w-4 h-4" />
               <span>Đánh giá đội ngũ</span>
             </Link>
             <Link
-              href="/dashboard/intake"
-              className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-4 py-2 h-10 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
+              href="/dashboard/team-fit?intent=paid"
+              className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-4 py-2 h-10 rounded-lg transition-colors cursor-pointer"
             >
-              <FolderPlus className="w-4 h-4" />
-              <span>Tạo hồ sơ mới</span>
+              <CreditCard className="w-4 h-4" />
+              <span>Mua audit ngay (39k)</span>
             </Link>
           </div>
         )}
       </div>
-
-      {/* Paid Audit CTA */}
-      <Card
-        padding="lg"
-        radius="md"
-        withBorder
-        style={{
-          background: "var(--audit-cta-bg)",
-          borderColor: "var(--audit-cta-border)",
-          borderWidth: "1.5px",
-        }}
-      >
-        <Group justify="space-between" align="center">
-          <div className="space-y-1">
-            <Text fw={700} size="lg" style={{ color: "var(--audit-cta-title)" }}>
-              Mua audit ngay
-            </Text>
-            <Text size="sm" c="dimmed">
-              Bỏ qua bước đánh giá miễn phí, mua thẳng 1 lượt audit (39k)
-            </Text>
-          </div>
-          <Button
-            variant="filled"
-            color="teal"
-            size="md"
-            rightSection="→"
-            onClick={() => router.push("/dashboard/team-fit?intent=paid")}
-          >
-            Mua ngay (39k)
-          </Button>
-        </Group>
-      </Card>
 
       {/* Main Content */}
       {isLoading ? (

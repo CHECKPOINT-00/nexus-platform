@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Text, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation } from "@tanstack/react-query";
@@ -19,11 +19,19 @@ export default function BuyRoundModal({
   onClose,
 }: BuyRoundModalProps) {
   const router = useRouter();
+  const [idempotencyKey, setIdempotencyKey] = useState<string>("");
+
+  useEffect(() => {
+    if (opened) {
+      setIdempotencyKey(crypto.randomUUID());
+    }
+  }, [opened]);
 
   const mutation = useMutation({
     mutationFn: async () => {
       const res = await apiClient.post(`/cases/${caseId}/buy-round`, {
         packageId: "pkg_tf_audit",
+        idempotencyKey,
       });
       return res.data;
     },

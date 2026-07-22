@@ -24,9 +24,16 @@ async function getSession(request: NextRequest): Promise<AuthSession> {
   return response.json();
 }
 
-function redirectTo(request: NextRequest, pathname: string) {
+function redirectTo(request: NextRequest, pathname: string, preserveReturnUrl = false) {
   const redirectUrl = request.nextUrl.clone();
   redirectUrl.pathname = pathname;
+
+  if (preserveReturnUrl) {
+    // Encode current pathname+search as returnUrl so auth page knows where to send user back
+    const originalPath = request.nextUrl.pathname + request.nextUrl.search;
+    redirectUrl.searchParams.set("returnUrl", originalPath);
+  }
+
   return NextResponse.redirect(redirectUrl);
 }
 
@@ -38,7 +45,7 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin");
 
   if (!sessionCookie && (isDashboardRoute || isSupporterRoute || isAdminRoute)) {
-    return redirectTo(request, "/auth");
+    return redirectTo(request, "/auth", true);
   }
 
   if (!sessionCookie || (!isSupporterRoute && !isAdminRoute)) {
@@ -49,7 +56,7 @@ export async function proxy(request: NextRequest) {
   const role = session?.user?.role;
 
   if (!role) {
-    return redirectTo(request, "/auth");
+    return redirectTo(request, "/auth", true);
   }
 
   if (isAdminRoute && role !== "admin") {

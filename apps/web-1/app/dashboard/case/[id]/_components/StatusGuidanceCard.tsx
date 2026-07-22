@@ -14,20 +14,14 @@ import { Alert, Button } from "@mantine/core";
 interface StatusGuidanceCardProps {
   caseData: Case;
   openRequestsForMoreInfo?: any[] | null;
-  onOpenRevision: () => void;
   onOpenBuyRound?: () => void;
-  onRecallRevision: () => void;
-  isRecalling: boolean;
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
 }
 
 export default function StatusGuidanceCard({
   caseData,
   openRequestsForMoreInfo,
-  onOpenRevision,
   onOpenBuyRound,
-  onRecallRevision,
-  isRecalling,
 }: StatusGuidanceCardProps) {
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -43,22 +37,12 @@ export default function StatusGuidanceCard({
         icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
         className="animate-fade-in font-body text-xs shrink-0"
       >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1.5">
-          <div className="space-y-1 flex-grow">
+        <div className="space-y-1 flex-grow">
             <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
             <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body text-[11px] leading-relaxed">
               "{queryText}"
             </p>
           </div>
-          <Button
-            size="xs"
-            color="brand"
-            className="font-semibold shrink-0 cursor-pointer"
-            onClick={onOpenRevision}
-          >
-            Bổ sung thông tin
-          </Button>
-        </div>
       </Alert>
     );
   }
@@ -98,7 +82,6 @@ export default function StatusGuidanceCard({
 
     case "report_ready":
     case "waiting_for_revision": {
-      const isPaidCase = caseData.package_id === "pkg_tf_audit";
       return (
         <Alert
           variant="light"
@@ -110,30 +93,16 @@ export default function StatusGuidanceCard({
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              {isPaidCase
-                ? "Supporter đã hoàn thành đánh giá chi tiết. Nhấp nút bên dưới để mua thêm lượt audit và tiếp tục nộp tài liệu vòng mới."
-                : "Supporter đã hoàn thành đánh giá chi tiết. Bạn hãy đọc kỹ nhận xét tại tab Tài liệu và nhấp nút bên dưới để nộp bản sửa đổi vòng tiếp theo."
-              }
+              Supporter đã hoàn thành đánh giá chi tiết. Nhấp nút bên dưới để mua thêm lượt audit và tiếp tục nộp tài liệu vòng mới.
             </p>
-            {isPaidCase ? (
-              <Button
-                size="xs"
-                color="teal"
-                className="font-semibold shrink-0 cursor-pointer"
-                onClick={onOpenBuyRound}
-              >
-                Mua thêm lượt audit (39k)
-              </Button>
-            ) : (
-              <Button
-                size="xs"
-                color="brand"
-                className="font-semibold shrink-0 cursor-pointer"
-                onClick={onOpenRevision}
-              >
-                Nộp bản sửa đổi
-              </Button>
-            )}
+            <Button
+              size="xs"
+              color="teal"
+              className="font-semibold shrink-0 cursor-pointer"
+              onClick={onOpenBuyRound}
+            >
+              Mua thêm lượt audit (39k)
+            </Button>
           </div>
         </Alert>
       );
@@ -149,21 +118,9 @@ export default function StatusGuidanceCard({
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn. Nếu cần thay đổi thông tin trước khi Supporter chấm, bạn có thể thu hồi bản nộp.
-            </p>
-            <Button
-              size="xs"
-              color="red"
-              variant="filled"
-              className="font-semibold shrink-0 cursor-pointer"
-              loading={isRecalling}
-              onClick={onRecallRevision}
-            >
-              Thu hồi bản nộp
-            </Button>
-          </div>
+          <p className="text-text-muted text-xs leading-relaxed">
+            Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn.
+          </p>
         </Alert>
       );
 

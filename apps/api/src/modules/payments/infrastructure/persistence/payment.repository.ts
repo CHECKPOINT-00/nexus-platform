@@ -30,8 +30,9 @@ export async function createPaymentProof(data: {
   amount: number;
   proofFileUrl: string;
   userId: string;
+  auditRoundId: string;
 }) {
-  const { caseId, packageId, amount, proofFileUrl, userId } = data;
+  const { caseId, packageId, amount, proofFileUrl, userId, auditRoundId } = data;
   return await prisma.$transaction(async (tx: any) => {
     const payment = await tx.payment.create({
       data: {
@@ -41,6 +42,12 @@ export async function createPaymentProof(data: {
         status: "pending_verification",
         proof_file_url: proofFileUrl,
       },
+    });
+
+    // Link payment to the pending audit_round
+    await tx.auditRound.update({
+      where: { id: auditRoundId },
+      data: { payment_id: payment.id },
     });
 
     await tx.case.update({
@@ -55,7 +62,7 @@ export async function createPaymentProof(data: {
         case_id: caseId,
         event_type: "payment_proof_uploaded",
         actor_auth_user_id: userId,
-        metadata_json: { payment_id: payment.id, amount },
+        metadata_json: { payment_id: payment.id, amount, audit_round_id: auditRoundId },
       },
     });
 
@@ -100,6 +107,17 @@ export async function verifyPayment(data: {
 
     if (status === "paid") {
       await updateAuditRoundAfterPayment(tx, paymentId);
+    } else if (status === "rejected") {
+      // Update linked audit_round to payment_rejected on rejection
+      const linkedRound = await tx.auditRound.findFirst({
+        where: { payment_id: paymentId },
+      });
+      if (linkedRound) {
+        await tx.auditRound.update({
+          where: { id: linkedRound.id },
+          data: { status: "payment_rejected" },
+        });
+      }
     }
 
     return updatedPayment;

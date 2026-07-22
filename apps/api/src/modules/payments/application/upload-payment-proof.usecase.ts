@@ -4,6 +4,7 @@ import { createPaymentProof } from "../infrastructure/persistence/payment.reposi
 import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
 import { isValidPrice } from "../../cases/domain/case.types.js";
+import { prisma } from "../../../db.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
 type SavedProofFile = {
@@ -83,6 +84,18 @@ export async function uploadPaymentProofUseCase(
     );
   }
 
+  // Verify active audit_round with pending_payment status exists
+  const auditRound = await prisma.auditRound.findFirst({
+    where: { case_id: caseId, status: "pending_payment" },
+  });
+  if (!auditRound) {
+    throw new AppError(
+      400,
+      "NO_PENDING_ROUND",
+      "Không tìm thấy round đang chờ thanh toán cho dự án này",
+    );
+  }
+
   const proofFile = (await saveProofFile(file)) as SavedProofFile;
 
   try {
@@ -92,6 +105,7 @@ export async function uploadPaymentProofUseCase(
       amount,
       proofFileUrl: proofFile.fileUrl,
       userId,
+      auditRoundId: auditRound.id,
     });
 
     return {

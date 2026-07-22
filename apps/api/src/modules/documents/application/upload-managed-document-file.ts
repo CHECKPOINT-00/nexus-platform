@@ -65,6 +65,23 @@ function generateSafeCloudinaryPublicId(originalName: string): string {
   return `${cleanBase}-${randomChars}${ext}`;
 }
 
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      // Don't retry AppErrors — they signal domain-level failures
+      if (error instanceof AppError) throw error;
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promise<UploadedManagedDocument> {
   const extension = validateManagedDocumentFile(file);
 
@@ -72,7 +89,7 @@ export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promis
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const publicId = generateSafeCloudinaryPublicId(file.name);
-    const result = await uploadFile(buffer, CLOUDINARY_FOLDER, publicId, "raw");
+    const result = await withRetry(() => uploadFile(buffer, CLOUDINARY_FOLDER, publicId, "raw"));
 
     return {
       original_name: file.name,
@@ -87,10 +104,17 @@ export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promis
       throw error;
     }
 
+    // Log raw error for debugging, never leak SDK internals to client
+    console.error(
+      "[CloudinaryUpload]",
+      error?.message ?? "Unknown error",
+      error?.http_code ? `(http_code: ${error.http_code})` : "",
+    );
+
     throw new AppError(
       500,
       "CLOUDINARY_UPLOAD_ERROR",
-      `Lỗi khi tải tài liệu lên Cloudinary: ${error?.message ?? "Unknown error"}`,
+      "Lỗi khi tải tài liệu lên Cloudinary",
     );
   }
 }

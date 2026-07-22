@@ -9,7 +9,6 @@ import {
   uploadManagedDocumentHandler,
   submitRevisionHandler,
   submitRevisionUploadHandler,
-  recallRevisionHandler,
   submitSupporterOutputUploadHandler,
   submitExternalFeedbackUploadHandler,
   assignSupporterHandler,
@@ -33,7 +32,6 @@ casesRouter.get("/:id", getCaseDetailHandler);
 casesRouter.get("/:id/documents", getCaseDocumentsHandler);
 casesRouter.post("/:id/revisions", submitRevisionHandler);
 casesRouter.post("/:id/revisions/upload", submitRevisionUploadHandler);
-casesRouter.post("/:id/revisions/recall", recallRevisionHandler);
 casesRouter.post("/:id/supporter-outputs/upload", submitSupporterOutputUploadHandler);
 casesRouter.post("/:id/external-feedback/upload", submitExternalFeedbackUploadHandler);
 casesRouter.post("/:id/assign", assignSupporterHandler);

@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
@@ -11,10 +12,13 @@ import { packagesRouter } from './modules/packages/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
 import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
+import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { prisma } from './db.js'
+import { AppError } from './shared/domain/app-error.js'
 
 
-const app = new Hono()
+type Variables = { correlationId: string }
+const app = new Hono<{ Variables: Variables }>()
 const port = Number(process.env.PORT ?? 8000)
 
 app.use(
@@ -27,6 +31,13 @@ app.use(
     credentials: true,
   }),
 )
+
+// Correlation ID middleware — injects per-request UUID
+app.use('/api/*', async (c, next) => {
+  const correlationId = crypto.randomUUID()
+  c.set('correlationId', correlationId)
+  await next()
+})
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -90,6 +101,19 @@ app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
 app.route('/api/supporter', supporterRouter)
+app.route('/api/documents', documentsRouter)
+
+// Global error handler — catches unhandled errors, no stack trace leak
+app.onError((err, c) => {
+  const correlationId = (c.get('correlationId') as string) ?? 'unknown'
+  console.error('[Unhandled]', { correlationId, error: err instanceof Error ? err.message : String(err) })
+
+  if (err instanceof AppError) {
+    return c.json({ code: err.code, message: err.message }, err.status as 200)
+  }
+
+  return c.json({ code: 'INTERNAL_ERROR', message: 'Lỗi hệ thống' }, 500 as 200)
+})
 
 export { app }
 

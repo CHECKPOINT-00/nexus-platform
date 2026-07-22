@@ -1,5 +1,6 @@
 /**
  * Pure utility: update linked audit_round after payment verified "paid".
+ * Sets status to "in_progress" with a 48h SLA deadline.
  * Takes a Prisma transaction client (tx) — does NOT import prisma directly,
  * so it can be unit-tested without a database.
  */
@@ -14,7 +15,7 @@ export async function updateAuditRoundAfterPayment(
     await tx.auditRound.update({
       where: { id: auditRound.id },
       data: {
-        status: "payment_verified",
+        status: "in_progress",
         sla_deadline_at: new Date(Date.now() + 48 * 60 * 60 * 1000),
       },
     });

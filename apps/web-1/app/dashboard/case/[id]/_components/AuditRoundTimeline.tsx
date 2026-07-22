@@ -13,6 +13,7 @@ import {
 
 interface AuditRoundTimelineProps {
   auditRounds: AuditRound[];
+  assignedSupporterAuthUserId?: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -72,6 +73,7 @@ function formatDate(dateStr: string): string {
 
 export default function AuditRoundTimeline({
   auditRounds,
+  assignedSupporterAuthUserId,
 }: AuditRoundTimelineProps) {
   if (!auditRounds || auditRounds.length === 0) {
     return (
@@ -143,7 +145,7 @@ export default function AuditRoundTimeline({
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-body text-text-muted">
                   <span>{formatDate(round.createdAt)}</span>
 
-                  {slaInfo && (
+                  {slaInfo ? (
                     <span
                       className={
                         slaInfo.isOverdue
@@ -156,7 +158,12 @@ export default function AuditRoundTimeline({
                       )}
                       SLA: {slaInfo.text}
                     </span>
-                  )}
+                  ) : !assignedSupporterAuthUserId ? (
+                    <span className="text-warning font-semibold flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Chờ phân công Supporter
+                    </span>
+                  ) : null}
                 </div>
 
                 {/* Connector line to next (except last) */}

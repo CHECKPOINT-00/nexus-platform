@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Center, Loader } from "@mantine/core";
 import { useSession } from "@/lib/auth-client";
 import StepIndicator from "./_components/StepIndicator";
@@ -20,6 +20,8 @@ export default function TeamFitPage() {
   // ── Auth guard ──
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const intent = searchParams.get("intent");
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -43,9 +45,48 @@ export default function TeamFitPage() {
   const [savedCaseId, setSavedCaseId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // ── Auto-buy (intent=paid) ──
+  const autoBuyTriggeredRef = useRef(false);
+  const [isAutoBuying, setIsAutoBuying] = useState(false);
+
   // Auto-save blanks & members to localStorage on change
   useEffect(() => { saveToLS(LS_KEY_BLANKS, blanks); }, [blanks]);
   useEffect(() => { saveToLS(LS_KEY_MEMBERS, members); }, [members]);
+
+  // Auto-buy trigger when intent=paid and AI evaluation completes
+  useEffect(() => {
+    if (intent !== "paid") return;
+    if (autoBuyTriggeredRef.current) return;
+    if (!mutation.data || mutation.isPending) return;
+
+    autoBuyTriggeredRef.current = true;
+    setIsAutoBuying(true);
+
+    const doAutoBuy = async () => {
+      try {
+        const payload = {
+          idea: {
+            projectName: blanks.projectName,
+            field: blanks.field,
+            targetCustomer: blanks.targetCustomer,
+            problem: blanks.problem,
+            solution: blanks.solution,
+            mvp: blanks.mvp,
+          },
+          team: members,
+          result: mutation.data!,
+          packageId: "pkg_tf_audit",
+        };
+        const data = await saveMutation.mutateAsync(payload);
+        router.push(`/dashboard/case/${data.caseId}`);
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : "Tự động lưu audit thất bại");
+        setIsAutoBuying(false);
+      }
+    };
+
+    doAutoBuy();
+  }, [intent, mutation.data, mutation.isPending, blanks, members, saveMutation, router]);
 
   // ── Auth guard early returns ──
   if (isPending) {
@@ -130,6 +171,8 @@ export default function TeamFitPage() {
     setHasSaved(false);
     setSavedCaseId(null);
     setSaveError(null);
+    setIsAutoBuying(false);
+    autoBuyTriggeredRef.current = false;
     mutation.reset();
     removeFromLS(LS_KEY_BLANKS, LS_KEY_MEMBERS);
   };
@@ -175,7 +218,7 @@ export default function TeamFitPage() {
         packageId: "pkg_tf_audit",
       };
       const data = await saveMutation.mutateAsync(payload);
-      router.push(`/dashboard/case/${data.caseId}/payment`);
+      router.push(`/dashboard/case/${data.caseId}`);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Mua audit thất bại");
     }
@@ -232,11 +275,11 @@ export default function TeamFitPage() {
         {currentStep === 2 && (
           <TeamFitResultStep
             result={mutation.data ?? null}
-            isLoading={mutation.isPending}
+            isLoading={mutation.isPending || isAutoBuying}
             error={mutation.error?.message ?? null}
             onReset={handleReset}
-            onSave={handleSave}
-            onBuy={handleBuy}
+            onSave={intent === "paid" ? undefined : handleSave}
+            onBuy={intent === "paid" ? undefined : handleBuy}
             onXemCase={handleXemCase}
             isSaving={saveMutation.isPending}
             isBuying={saveMutation.isPending}
