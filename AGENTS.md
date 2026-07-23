@@ -3,7 +3,7 @@
 - Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
-**Generated:** 2026-06-25
+**Generated:** 2026-07-23
 
 ## OVERVIEW
 
@@ -13,13 +13,18 @@ Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v
 
 ```
 root/
-├── apps/api/      # Hono backend, auth, Prisma, streaming
-├── apps/web-1/    # Next.js product app, Mantine UI v9, TanStack Query
-├── packages/ui/   # Shared React primitives used by docs
-├── packages/*     # ESLint/TypeScript presets
-├── prisma/        # Root Prisma schema
-├── docs/          # Tech doc URL list for library work
-└── .omo/          # Local continuation/workflow state
+├── apps/api/         # Hono backend (8 modules, 51 endpoints)
+├── apps/web-1/       # Next.js 16 product app (port 3001)
+├── packages/         # Shared packages
+│   ├── ui/           # React primitives (Button, Card, Code)
+│   ├── validation/   # Zod schemas (shared frontend↔backend)
+│   ├── eslint-config/# ESLint 9 flat configs
+│   └── typescript-config/ # tsconfig presets
+├── prisma/           # Root Prisma schema (16 models)
+├── docs/             # Product + technical documentation
+├── .agents/rules/    # Agent development rules
+├── .codegraph/       # Code intelligence index
+└── .omo/             # Local continuation/workflow state
 ```
 
 ## WHERE TO LOOK
@@ -29,9 +34,12 @@ root/
 | Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                |
 | Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first |
 | Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage         |
-| DB schema       | `prisma/schema.prisma`                                | Plural table names, snake_case fields            |
+| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields              |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                |
 | Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                  |
+| Shared packages | `packages/validation/src/`, `packages/ui/src/`        | Zod schemas, React primitives                    |
+| Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
+| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 12 test files, Node built-in runner              |
 
 ## CONVENTIONS
 
@@ -41,6 +49,13 @@ root/
 - Better Auth in `apps/api`; frontend only consumes client/session helpers.
 - Prisma schema: plural tables + snake_case columns.
 - Mantine UI web-only.
+- ESLint 9 flat config (not legacy .eslintrc).
+- Tailwind CSS v4 + postcss-preset-mantine.
+- TanStack Query + Axios for data fetching (no Redux/Zustand).
+- TanStack Form for form state management.
+- Lucide React for icons (not Mantine icons).
+- Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
+- No CI/CD configured (no GitHub Actions, Docker, Makefile).
 
 ## ANTI-PATTERNS
 
@@ -51,6 +66,12 @@ root/
 - Change Prisma names away from plural/snake_case.
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or Mantine UI code.
 - Add manual Tailwind positioning classes (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) to Mantine UI components (`Modal`, `Drawer`). Mantine has default layout; override classes break display (e.g., center alignment).
+- Split `.env` per app (3 violations found: `apps/web-1/.env`, `apps/web-1/.env.prod`, `.env.prod`).
+- Direct `apiClient` calls in UI components instead of hooks.
+- `as any` type escapes (107 occurrences in API, 11 in web-1).
+- try/catch in component code (delegate to hook/query layer).
+- Files exceeding 200-line limit (20 files across API and web-1).
+- Shadows on Mantine Card/Paper (`shadow-sm`, `shadow-md` on 22 files).
 
 ## UNIQUE STYLES
 
@@ -68,6 +89,21 @@ npm run prisma:generate
 npm run prisma:migrate
 ```
 
+## BUILD & CI
+
+```bash
+No CI/CD configured. All commands run locally.
+
+# Dev
+npm run dev                    # parallel: API (tsx watch :8000) + Web (next dev :3001)
+npm run build                  # prisma generate → tsc (API) + next build (Web)
+npm run lint                   # ESLint zero-warnings (Web + UI)
+npm run check-types            # tsc --noEmit all workspaces
+npm run prisma:generate        # Root Prisma schema → client
+npm test                       # Only in apps/api: tsx --test (Node built-in runner)
+npm run format                 # Prettier (not in CI pipeline)
+```
+
 ## NOTES
 
 - `apps/web-1/AGENTS.md` is child-specific Mantine UI note; sync with web work.
@@ -77,6 +113,10 @@ npm run prisma:migrate
   - [orchestration-protocol.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution.
   - [primary-workflow.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations.
   - [prisma-migration-safety.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/prisma-migration-safety.md): Migration safety, DB mutation rules, target DB classification.
+- Apps/api: 51 endpoints across 8 modules. Clean Architecture (domain/application/infrastructure/http). Some modules lack infrastructure layer (admin, supporter). Direct module-to-module calls (no event bus).
+- Apps/web-1: 16 custom hooks across 4 route groups. Auth entirely client-side (no middleware guard). Vietnamese-first UI.
+- Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
+- Packages/ui: 3 scaffold components — these are NOT the real design system (Mantine is).
 
 ## UI-UX-PRO-MAX USAGE RULE
 

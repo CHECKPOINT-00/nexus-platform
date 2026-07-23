@@ -105,12 +105,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [buyRoundOpened, setBuyRoundOpened] = useState(false);
 
-  const finalStages = ["completed", "rejected", "closed"];
-  const showUpgradeBanner =
-    caseData.package_id === "pkg_tf_free" &&
-    caseData.payment_status === "not_required" &&
-    !finalStages.includes(caseData.user_facing_stage);
-
   const upgradeMutation = useMutation({
     mutationFn: async () => {
       const res = await apiClient.post(`/cases/${id}/upgrade-package`, {
@@ -148,6 +142,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       </div>
     );
   }
+
+  const finalStages = ["completed", "rejected", "closed"];
+  const showUpgradeBanner =
+    caseData.package_id === "pkg_tf_free" &&
+    caseData.payment_status === "not_required" &&
+    !finalStages.includes(caseData.user_facing_stage);
 
   const effectivePrice = getCaseEffectivePrice(caseData);
   const isAudit = caseData.package_id === "pkg_tf_audit";
