@@ -28,27 +28,12 @@ export default function CaseStatusHeader({
 
   const isPaused = caseData.internal_status === "need_clarification";
 
-  // Latest non-completed, non-cancelled audit round for SLA
-  const activeRound = caseData.audit_rounds
-    ?.filter((r) => r.status !== "completed" && r.status !== "cancelled")
-    .sort((a, b) => b.roundNumber - a.roundNumber)[0];
-  const slaSource = activeRound?.slaDeadlineAt || caseData.deadline;
-
-  // Multi-round: if ALL audit_rounds are completed/cancelled, show "Hoàn thành"
-  const allRoundsCompleted = caseData.audit_rounds
-    ? caseData.audit_rounds.length > 0 && caseData.audit_rounds.every((r) => r.status === "completed" || r.status === "cancelled")
-    : false;
+  const slaSource = caseData.sla_deadline_at || caseData.deadline;
 
   useEffect(() => {
     if (isPaused) {
       setTimeLeft("Đang chờ nhóm bổ sung thông tin");
       setTimerColor("text-warning");
-      return;
-    }
-
-    if (allRoundsCompleted) {
-      setTimeLeft("Hoàn thành");
-      setTimerColor("text-success font-semibold");
       return;
     }
 
@@ -129,13 +114,7 @@ export default function CaseStatusHeader({
     default: "bg-surface-muted text-text-muted border border-border-app",
   }[statusTheme.color as "primary" | "secondary" | "success" | "warning" | "danger" | "default"] || "bg-surface-muted text-text-muted border border-border-app";
 
-  const slaLabel = allRoundsCompleted
-    ? ""
-    : activeRound?.slaDeadlineAt
-      ? "Cam kết SLA:"
-      : caseData.deadline
-        ? "Hạn mong muốn:"
-        : "";
+  const slaLabel = caseData.sla_deadline_at ? "Cam kết SLA:" : caseData.deadline ? "Hạn mong muốn:" : "";
 
   return (
     <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

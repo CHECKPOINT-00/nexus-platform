@@ -24,7 +24,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
 
   const { data: session, isPending: isAuthPending } = useSession();
   const { caseData, documentWorkspace, isLoading, error } = useCaseDetails(id);
-  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
+  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings" | "credits">("documents");
   const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
 
   React.useEffect(() => {
@@ -63,6 +63,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         }}
         messageCount={caseData.messages?.length}
         hideSettings
+        hideCredits
       />
 
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">

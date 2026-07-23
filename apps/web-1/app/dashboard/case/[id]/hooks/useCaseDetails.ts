@@ -50,6 +50,9 @@ export function useCaseDetails(id: string) {
 
   return {
     caseData: caseQuery.data?.case || null,
+    creditBalance: caseQuery.data?.case?.credit_balance ?? 0,
+    slaDeadlineAt: caseQuery.data?.case?.sla_deadline_at || null,
+    allowedTransitions: caseQuery.data?.case?.allowed_transitions || [],
     intakeSnapshot: caseQuery.data?.intake_snapshot || null,
     latestReport: caseQuery.data?.latest_report || null,
     latestUserAction: caseQuery.data?.latest_user_action || null,

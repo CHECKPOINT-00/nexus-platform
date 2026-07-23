@@ -17,6 +17,9 @@ export interface Case {
   user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
   internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;
   payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
+  credit_balance?: number;              // NEW — derived from CreditLedger
+  sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
+  allowed_transitions?: string[];       // NEW — valid symflow transitions
   deadline?: string | null;
   created_at: string;
   updated_at: string;
@@ -31,7 +34,7 @@ export interface Case {
   payments?: Payment[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
-  audit_rounds?: AuditRound[];
+  // XOÁ: audit_rounds?: AuditRound[];
 }
 
 export interface CaseMember {
@@ -78,7 +81,7 @@ export interface Report {
   case_id: string;
   checkpoint_id: string;
   lifecycle_unit_id?: string | null;
-  audit_round_id?: string | null;
+  // XOÁ: audit_round_id?: string | null;
   report_type: string;
   content_md: string;
   status: "draft" | "sent" | "APPROVED" | string;
@@ -110,7 +113,7 @@ export interface CaseEvent {
   actor_auth_user_id: string;
   document_id?: string | null;
   report_id?: string | null;
-  audit_round_id?: string | null;
+  // XOÁ: audit_round_id?: string | null;
   payment_id?: string | null;
   meeting_id?: string | null;
   metadata_json?: any;
@@ -120,16 +123,17 @@ export interface CaseEvent {
   payment?: Payment | null;
 }
 
-export interface AuditRound {
-  id: string;
-  caseId: string;
-  roundNumber: number;
-  paymentId: string | null;
-  checkpointId: string | null;
-  slaDeadlineAt: string | null;
-  status: string;
-  createdAt: string;
-}
+// XOÁ toàn bộ:
+// export interface AuditRound {
+//   id: string;
+//   caseId: string;
+//   roundNumber: number;
+//   paymentId: string | null;
+//   checkpointId: string | null;
+//   slaDeadlineAt: string | null;
+//   status: string;
+//   createdAt: string;
+// }
 
 export interface DocumentWorkspace {
   selected_checkpoint_id: string | null;

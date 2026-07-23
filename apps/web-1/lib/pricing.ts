@@ -1,4 +1,3 @@
-import { Case } from "@/types";
 import { notifications } from "@mantine/notifications";
 
 /**
@@ -14,14 +13,10 @@ export function getCaseEffectivePrice(caseData?: {
 
 /**
  * Determines whether a case requires a payment to be made.
- * Checks for any audit rounds with "pending_payment" status (round-level gating).
- * This allows users to access the payment page for new unpaid rounds even after
- * a previous case-level payment has been completed.
+ * Checks the case-level payment status.
  */
-export function caseRequiresPayment(caseData: Case): boolean {
-  return caseData.audit_rounds?.some(
-    (r) => r.status === "pending_payment",
-  ) ?? false;
+export function caseRequiresPayment(caseData: { payment_status?: string }): boolean {
+  return caseData.payment_status === "unpaid" || caseData.payment_status === "pending_verification" || caseData.payment_status === "rejected";
 }
 
 /**

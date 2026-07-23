@@ -5,10 +5,11 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCaseChat } from "../hooks/useCaseChat";
 import { useSession } from "@/lib/auth-client";
 import { Send, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
-import { ActionIcon, Textarea, Tooltip } from "@mantine/core";
+import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
 
 interface TabDiscussionChatProps {
   caseId: string;
+  creditBalance?: number;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -62,11 +63,12 @@ type Row =
   | { kind: "message"; msg: any };
 
 /* ─── Component ─────────────────────────────────────────────── */
-export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
+export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussionChatProps) {
   const { data: session } = useSession();
   const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending } =
     useCaseChat(caseId);
 
+  const isLocked = (creditBalance ?? 1) <= 0;
   const [inputText, setInputText] = useState("");
 
   /* scrollable container ref for virtualizer */
@@ -330,7 +332,8 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
             aria-label="Nhập nội dung tin nhắn"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Nhắn gì đó… (Shift+Enter = xuống dòng)"
+            disabled={isLocked}
+            placeholder={isLocked ? "Hết credit — mua thêm để tiếp tục trao đổi" : "Nhắn gì đó… (Shift+Enter = xuống dòng)"}
             className="flex-1"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -377,6 +380,15 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
             )}
           </ActionIcon>
         </form>
+
+        {isLocked && (
+          <Alert color="red" variant="light" radius="md" className="mt-2">
+            <div className="flex items-center gap-2 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Bạn đã hết credit. Mua thêm để tiếp tục trao đổi với supporter.</span>
+            </div>
+          </Alert>
+        )}
 
         <p className="text-[9px] text-text-subtle mt-1.5 ml-0.5">
           Enter để gửi · Shift+Enter để xuống dòng

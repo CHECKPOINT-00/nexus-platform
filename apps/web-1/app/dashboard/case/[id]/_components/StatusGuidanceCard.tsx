@@ -9,19 +9,17 @@ import {
   CheckCircle2, 
   HelpCircle
 } from "lucide-react";
-import { Alert, Button } from "@mantine/core";
+import { Alert } from "@mantine/core";
 
 interface StatusGuidanceCardProps {
   caseData: Case;
   openRequestsForMoreInfo?: any[] | null;
-  onOpenBuyRound?: () => void;
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
 }
 
 export default function StatusGuidanceCard({
   caseData,
   openRequestsForMoreInfo,
-  onOpenBuyRound,
 }: StatusGuidanceCardProps) {
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -107,18 +105,10 @@ export default function StatusGuidanceCard({
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
+          <div className="mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Nhấp nút bên dưới để Mua thêm lượt audit và tiếp tục nộp tài liệu vòng mới.
+              Supporter đã hoàn thành đánh giá chi tiết. Vào tab Credit để mua thêm lượt nếu cần.
             </p>
-            <Button
-              size="xs"
-              color="teal"
-              className="font-semibold shrink-0 cursor-pointer"
-              onClick={onOpenBuyRound}
-            >
-              Mua thêm lượt audit
-            </Button>
           </div>
         </Alert>
       );
