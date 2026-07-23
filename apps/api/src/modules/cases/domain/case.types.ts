@@ -65,3 +65,13 @@ export function isValidPrice(price: unknown): price is number {
   return typeof price === "number" && Number.isInteger(price) && price >= 0;
 }
 
+import { getCreditBalance } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { AppError } from "../../../shared/domain/app-error.js";
+
+export async function requireCredits(caseId: string, minCredits: number = 1): Promise<void> {
+  const balance = await getCreditBalance(caseId);
+  if (balance < minCredits) {
+    throw new AppError(402, 'NO_CREDITS', 'Hết lượt kiểm tra. Vui lòng mua thêm credit.');
+  }
+}
+

@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { isFinalCaseStage } from "../domain/case.types.js";
+import { isFinalCaseStage, requireCredits } from "../domain/case.types.js";
 import {
   findActiveDocumentTypeByCode,
 } from "../../documents/infrastructure/persistence/document-type.repository.js";
@@ -118,13 +118,7 @@ export async function submitRevisionUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  if (caseDetails.package_id === "pkg_tf_audit") {
-    throw new AppError(
-      400,
-      "FEATURE_DEPRECATED",
-      "Tính năng nộp bản sửa miễn phí đã được thay thế bằng mua thêm lượt audit. Vui lòng sử dụng /api/cases/:id/buy-round.",
-    );
-  }
+  await requireCredits(caseId);
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
@@ -209,13 +203,7 @@ export async function submitRevisionUploadUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  if (caseDetails.package_id === "pkg_tf_audit") {
-    throw new AppError(
-      400,
-      "FEATURE_DEPRECATED",
-      "Tính năng nộp bản sửa miễn phí đã được thay thế bằng mua thêm lượt audit. Vui lòng sử dụng /api/cases/:id/buy-round.",
-    );
-  }
+  await requireCredits(caseId);
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
@@ -320,6 +308,8 @@ export async function submitExternalFeedbackUploadUseCase(
   if (!caseDetails) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
+
+  await requireCredits(caseId);
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(

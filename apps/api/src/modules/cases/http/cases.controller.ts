@@ -23,11 +23,7 @@ import { updateCaseSettingsUseCase } from "../application/update-case-settings.u
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
 import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
-import { findCaseById, upgradeCasePackage, createCaseEvent } from "../infrastructure/persistence/case.repository.js";
-import { findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
-import { isFinalCaseStage } from "../domain/case.types.js";
-import { AppError } from "../../../shared/domain/app-error.js";
-import { prisma } from "../../../db.js";
+
 import type {
   CreateCaseRequest,
   SubmitRevisionRequest,
@@ -35,7 +31,12 @@ import type {
   SupporterOutputUploadRequest,
   ExternalFeedbackUploadRequest,
   UpdateCaseSettingsRequest,
+  IntakeRequest,
 } from "../application/cases.dto.js";
+import { validateCp1Intake } from "./cases.schema.js";
+import { submitIntakeUseCase } from "../application/submit-intake.usecase.js";
+import { vetoCaseUseCase } from "../application/veto-case.usecase.js";
+import { completeCaseUseCase } from "../application/complete-case.usecase.js";
 
 // ---------------------------------------------------------------------------
 // GET /api/cases — List cases based on role
@@ -432,248 +433,74 @@ export async function deleteCaseHandler(c: Context) {
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/cases/:id/upgrade-package — Upgrade case to a paid package
+// POST /api/cases/:id/intake — Submit intake snapshot for existing case
 // ---------------------------------------------------------------------------
 
-export async function upgradePackageHandler(c: Context) {
+export async function intakeHandler(c: Context) {
   const session = await getSession(c);
   if (!session) {
     return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
   }
 
   const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId, { allowStudent: true, allowSupporter: false, allowAdmin: true });
+  if (!access.ok) return access.response;
 
   try {
-    const body = (await readJsonBody(c)) as { packageId?: string };
-    const newPackageId = body?.packageId;
-
-    if (!newPackageId) {
-      throw new AppError(400, "VALIDATION_ERROR", "Thiếu packageId");
+    const body = await readJsonBody(c) as IntakeRequest;
+    const errors = validateCp1Intake(body);
+    if (errors.length > 0) {
+      return c.json({ code: "VALIDATION_ERROR", message: errors.join("; ") }, 400);
     }
 
-    // 1. Find case
-    const caseRecord = await findCaseById(caseId);
-    if (!caseRecord) {
-      throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
-    }
-
-    // 2. Verify owner
-    if (caseRecord.owner_auth_user_id !== session.user.id) {
-      throw new AppError(403, "FORBIDDEN", "Không có quyền nâng cấp gói");
-    }
-
-    // 3. Check not final stage
-    if (isFinalCaseStage(caseRecord.user_facing_stage)) {
-      throw new AppError(400, "CASE_FINALIZED", "Dự án đã kết thúc, không thể nâng cấp gói");
-    }
-
-    // 4. Check case is currently free
-    const isCurrentlyFree =
-      caseRecord.package_id === "pkg_tf_free" ||
-      (caseRecord.locked_price ?? 0) === 0;
-
-    if (!isCurrentlyFree) {
-      throw new AppError(400, "CASE_ALREADY_PAID", "Dự án đã sử dụng gói trả phí");
-    }
-
-    // 5. Lookup new package
-    const newPackage = await findPackageById(newPackageId);
-    if (!newPackage || !newPackage.is_active) {
-      throw new AppError(400, "INVALID_PACKAGE", "Gói dịch vụ không tồn tại hoặc không khả dụng");
-    }
-
-    // 6. Check new package is paid (price > 0)
-    if (newPackage.price <= 0) {
-      throw new AppError(400, "INVALID_PACKAGE_PRICE", "Không thể nâng cấp lên gói miễn phí");
-    }
-
-    const fromPackageId = caseRecord.package_id;
-    const fromPrice = caseRecord.locked_price ?? 0;
-    const toPackageId = newPackage.id;
-    const toPrice = newPackage.price;
-
-    // 7. Update case
-    const updatedCase = await upgradeCasePackage(caseId, toPackageId, toPrice);
-
-    // 8. Create case event
-    await createCaseEvent(caseId, session.user.id, "package_upgraded", {
-      fromPackageId,
-      toPackageId,
-      fromPrice,
-      toPrice,
-    });
-
-    // 9. Return
-    return c.json({
-      caseId: updatedCase.id,
-      caseCode: updatedCase.case_code,
-      newPackageId: toPackageId,
-      newPrice: toPrice,
-      paymentStatus: "unpaid",
-    });
+    const result = await submitIntakeUseCase(session.user.id, caseId, body);
+    return c.json(result, 201);
   } catch (error: any) {
     return handleError(c, error);
   }
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/cases/:id/buy-round — Buy an audit round
+// POST /api/cases/:id/veto — Admin veto (reject within 48h, refund credits)
 // ---------------------------------------------------------------------------
 
-export async function buyRoundHandler(c: Context) {
+export async function vetoHandler(c: Context) {
   const session = await getSession(c);
-  if (!session) {
-    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  if (!session || session.user.role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Không có quyền quản trị" }, 403);
   }
 
   const caseId = c.req.param("id") || "";
 
   try {
-    const body = (await readJsonBody(c)) as { packageId?: string; idempotencyKey?: string; quantity?: number };
-    const packageId = body?.packageId || "pkg_tf_audit";
-    const idempotencyKey = body?.idempotencyKey;
-    const quantity = body?.quantity ?? 1;
-    if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > 50) {
-      throw new AppError(400, "INVALID_QUANTITY", "Số lượng phải từ 1 đến 50");
-    }
+    const body = await readJsonBody(c) as { reason: string };
+    const result = await vetoCaseUseCase(session.user.id, caseId, body.reason);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
 
-    // 1. Find case → 404
-    const caseRecord = await findCaseById(caseId);
-    if (!caseRecord) {
-      throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
-    }
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/complete — Supporter marks case as completed
+// ---------------------------------------------------------------------------
 
-    // 2. Verify owner → 403
-    if (caseRecord.owner_auth_user_id !== session.user.id) {
-      throw new AppError(403, "FORBIDDEN", "Không có quyền mua round");
-    }
+export async function completeCaseHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
 
-    // 3. Check case has paid package (price > 0) → 400
-    if (!caseRecord.locked_price || caseRecord.locked_price <= 0) {
-      throw new AppError(400, "NOT_UPGRADED", "Case này chưa được nâng cấp lên gói trả phí");
-    }
+  const role = (session.user as any).role;
+  if (role !== "supporter" && role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Chỉ supporter mới có quyền đánh dấu hoàn thành" }, 403);
+  }
 
-    // 3b. Stage validation: only allow buy-round at these stages
-    const allowedStages = ["submitted", "report_ready", "waiting_for_revision"];
-    if (!allowedStages.includes(caseRecord.user_facing_stage)) {
-      throw new AppError(400, "INVALID_STAGE", "Không thể mua round ở giai đoạn này");
-    }
+  const caseId = c.req.param("id") || "";
 
-    // 4. Check no unpaid previous rounds → 400
-    const unpaidRound = await prisma.auditRound.findFirst({
-      where: { case_id: caseId, status: "pending_payment" },
-    });
-    if (unpaidRound) {
-      throw new AppError(400, "UNPAID_ROUND", "Vui lòng hoàn tất thanh toán cho round trước");
-    }
-
-    // 5. Lookup package → 400 if not found/inactive
-    const pkg = await findPackageById(packageId);
-    if (!pkg || !pkg.is_active) {
-      throw new AppError(400, "INVALID_PACKAGE", "Gói dịch vụ không tồn tại hoặc không khả dụng");
-    }
-
-    // 6-10. Atomic transaction: create checkpoint (if needed) + round + payment + link
-    try {
-      const result = await prisma.$transaction(async (tx: any) => {
-        let checkpointId: string | null = null;
-
-      // 6. Auto-create checkpoint if none exists
-      if (!caseRecord.current_checkpoint) {
-        const checkpoint = await tx.checkpoint.create({
-          data: {
-            case_id: caseId,
-            checkpoint_code: "CP1",
-            checkpoint_status: "draft",
-            latest_version_no: 1,
-            latest_assessment_no: 0,
-          },
-        });
-        checkpointId = checkpoint.id;
-
-        await tx.case.update({
-          where: { id: caseId },
-          data: { current_checkpoint: "CP1" },
-        });
-      } else {
-        const existingCp = await tx.checkpoint.findFirst({
-          where: { case_id: caseId, checkpoint_code: caseRecord.current_checkpoint },
-        });
-        if (existingCp) {
-          checkpointId = existingCp.id;
-        }
-      }
-
-      // 7. Count existing rounds → next round_number
-      const roundCount = await tx.auditRound.count({
-        where: { case_id: caseId },
-      });
-
-      const totalAmount = pkg.price * quantity;
-      const rounds: { id: string; roundNumber: number }[] = [];
-
-      // 8. Create N AuditRounds
-      for (let i = 0; i < quantity; i++) {
-        const auditRound = await tx.auditRound.create({
-          data: {
-            case_id: caseId,
-            round_number: roundCount + 1 + i,
-            checkpoint_id: checkpointId,
-            status: "pending_payment",
-          },
-        });
-        rounds.push({ id: auditRound.id, roundNumber: roundCount + 1 + i });
-      }
-
-      // 9. Create Payment record
-      const payment = await tx.payment.create({
-        data: {
-          case_id: caseId,
-          package_id: packageId,
-          amount: totalAmount,
-          status: "unpaid",
-        },
-      });
-
-      // 10. Link all audit_rounds to payment
-      for (const round of rounds) {
-        await tx.auditRound.update({
-          where: { id: round.id },
-          data: { payment_id: payment.id },
-        });
-      }
-
-      // Create case event
-      await tx.caseEvent.create({
-        data: {
-          case_id: caseId,
-          event_type: "buy_round",
-          actor_auth_user_id: session.user.id,
-          metadata_json: {
-            quantity,
-            rounds: rounds.map((r) => ({ id: r.id, round_number: r.roundNumber })),
-            payment_id: payment.id,
-            total_amount: totalAmount,
-            package_id: packageId,
-          },
-        },
-      });
-
-      return {
-        rounds,
-        paymentId: payment.id,
-        totalAmount,
-      };
-    });
-
-      return c.json(result, 201);
-    } catch (error: any) {
-      // P2002 = unique constraint violation on (case_id, round_number) — race condition
-      if (error?.code === "P2002") {
-        throw new AppError(409, "DUPLICATE_ROUND", "Round này đã tồn tại, vui lòng thử lại");
-      }
-      throw error;
-    }
+  try {
+    const result = await completeCaseUseCase(session.user.id, role, caseId);
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }

@@ -3,6 +3,8 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { streamText } from 'hono/streaming'
+import { idempotency } from "hono-idempotency"
+import { memoryStore } from "hono-idempotency/stores/memory"
 import './env.js'
 import { auth } from './auth.js'
 import { casesRouter } from './modules/cases/http/cases.routes.js'
@@ -38,6 +40,14 @@ app.use('/api/*', async (c, next) => {
   c.set('correlationId', correlationId)
   await next()
 })
+
+// Idempotency middleware — Stripe-style Idempotency-Key for POST/PATCH
+app.use("/api/*", idempotency({
+  store: memoryStore(),
+  required: false,
+  methods: ["POST", "PATCH"],
+  maxKeyLength: 256,
+}))
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')

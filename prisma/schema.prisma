@@ -143,6 +143,7 @@ model Case {
   internal_status                 String   @default("unassigned")
   payment_status                  String   @default("unpaid")
   deadline                        DateTime?
+  sla_deadline_at                 DateTime?
   created_at                      DateTime @default(now())
   updated_at                      DateTime @updatedAt
 
@@ -160,7 +161,7 @@ model Case {
   ai_jobs            AiJob[]
   document_records   DocumentRecord[]
   team_fit_report    TeamFitReport?
-  audit_rounds       AuditRound[]
+  credit_ledgers     CreditLedger[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -198,7 +199,6 @@ model Checkpoint {
   case                 Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
   lifecycle_units      LifecycleUnit[]
   reports              Report[]
-  audit_rounds         AuditRound[]
 
   document_records     DocumentRecord[]
   @@index([case_id])
@@ -284,7 +284,6 @@ model Report {
   case_id                   String
   checkpoint_id             String
   lifecycle_unit_id         String?
-  audit_round_id            String?
   report_type               String
   content_md                String    @db.Text
   status                    String    @default("draft")
@@ -299,7 +298,6 @@ model Report {
   checkpoint         Checkpoint     @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
   lifecycle_unit     LifecycleUnit? @relation(fields: [lifecycle_unit_id], references: [id])
   approved_by        User?          @relation("ReportApprover", fields: [approved_by_auth_user_id], references: [id])
-  audit_round        AuditRound?    @relation(fields: [audit_round_id], references: [id])
   events             CaseEvent[]
 
   @@index([case_id])
@@ -312,7 +310,7 @@ model Report {
 model Payment {
   id                       String    @id @default(uuid())
   case_id                  String
-  package_id               String
+  package_id               String?
   amount                   Int
   status                   String    @default("pending_verification")
   proof_file_url           String?
@@ -321,38 +319,17 @@ model Payment {
   verified_at              DateTime?
   created_at               DateTime  @default(now())
   updated_at               DateTime  @updatedAt
+  metadata_json             Json?
 
   case        Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  package     ServicePackage @relation(fields: [package_id], references: [id])
+  package     ServicePackage? @relation(fields: [package_id], references: [id])
   verified_by User?          @relation("PaymentVerifier", fields: [verified_by_auth_user_id], references: [id])
   events      CaseEvent[]
-  audit_rounds AuditRound[]
 
   @@index([case_id])
   @@index([package_id])
   @@index([verified_by_auth_user_id])
   @@map("payments")
-}
-
-model AuditRound {
-  id              String    @id @default(cuid())
-  case_id         String
-  round_number    Int
-  payment_id      String?
-  checkpoint_id   String?
-  sla_deadline_at DateTime?
-  status          String    @default("pending_payment")
-  created_at      DateTime  @default(now())
-
-  case       Case       @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  payment    Payment?   @relation(fields: [payment_id], references: [id])
-  checkpoint Checkpoint? @relation(fields: [checkpoint_id], references: [id])
-  reports    Report[]
-  events     CaseEvent[] @relation("AuditRoundEvents")
-
-  @@unique([case_id, round_number])
-  @@index([case_id])
-  @@map("audit_rounds")
 }
 
 model CaseMessage {
@@ -378,7 +355,6 @@ model CaseEvent {
   actor_auth_user_id String
   document_id        String?
   report_id          String?
-  audit_round_id     String?
   payment_id         String?
   meeting_id         String?
   metadata_json      Json?
@@ -388,7 +364,6 @@ model CaseEvent {
   actor                User     @relation("EventActor", fields: [actor_auth_user_id], references: [id])
   report               Report?  @relation(fields: [report_id], references: [id])
   payment              Payment? @relation(fields: [payment_id], references: [id])
-  audit_round          AuditRound? @relation("AuditRoundEvents", fields: [audit_round_id], references: [id])
 
   @@index([case_id])
   @@index([actor_auth_user_id])
@@ -427,4 +402,21 @@ model TeamFitReport {
   @@unique([case_id])
   @@index([case_id])
   @@map("team_fit_reports")
+}
+
+model CreditLedger {
+  id              String   @id @default(cuid())
+  case_id         String
+  amount          Int
+  balance_after   Int
+  type            String
+  reference_id    String?
+  idempotency_key String   @unique
+  metadata_json   Json?
+  created_at      DateTime @default(now())
+
+  case            Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@index([case_id, created_at])
+  @@map("credit_ledgers")
 }

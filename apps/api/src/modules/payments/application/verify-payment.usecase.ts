@@ -52,6 +52,10 @@ export async function verifyPaymentUseCase(
     );
   }
 
+  // verifyPayment in repository now handles:
+  // 1. credit ledger purchase entry (on 'paid')
+  // 2. case event 'credits_purchased'
+  // 3. audit round status cascade + SLA on lowest round
   const result = await verifyPayment({
     paymentId,
     caseId: payment.case_id,

@@ -52,11 +52,6 @@ export async function findManyCasesAdmin(where: any, take?: number) {
         where: { unit_type: "version" },
         take: 1,
       },
-      audit_rounds: {
-        where: { status: { notIn: ["completed", "cancelled"] } },
-        orderBy: { round_number: "desc" },
-        take: 1,
-      },
     },
     orderBy: { created_at: "desc" },
     take,
@@ -97,11 +92,6 @@ export async function findCaseByIdWithAllRelations(id: string) {
       },
       reports: {
         orderBy: { created_at: "desc" },
-      },
-      audit_rounds: {
-        include: {
-          payment: true,
-        },
       },
     },
   });
@@ -505,6 +495,15 @@ export async function createSupporterOutput(data: {
       throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
     }
 
+    const latestLedger = await tx.creditLedger.findFirst({
+      where: { case_id: caseId },
+      orderBy: { id: 'desc' },
+    });
+    const currentBalance = latestLedger?.balance_after ?? 0;
+    if (currentBalance < 1) {
+      throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.');
+    }
+
     await createDocumentRecordsForUnit(
       caseId,
       checkpointId,
@@ -535,6 +534,27 @@ export async function createSupporterOutput(data: {
           document_count: documents.length,
           note: note || null,
         },
+      },
+    });
+
+    const newBalance = currentBalance - 1;
+    await tx.creditLedger.create({
+      data: {
+        case_id: caseId,
+        amount: -1,
+        balance_after: newBalance,
+        type: 'consumption',
+        reference_id: unitCode,
+        idempotency_key: `consume-${unitCode}-${caseId}`,
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case_id: caseId,
+        event_type: 'credit_used',
+        actor_auth_user_id: userId,
+        metadata_json: { new_balance: newBalance },
       },
     });
 

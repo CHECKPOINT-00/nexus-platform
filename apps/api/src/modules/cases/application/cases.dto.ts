@@ -77,6 +77,26 @@ export interface DocumentTypeQueryRequest {
   unit_scope?: DocumentUnitScope;
 }
 
+export interface IntakeRequest {
+  contact: {
+    full_name: string;
+    student_code: string;
+    team_role: string;
+    zalo: string;
+    email: string;
+  };
+  current_blocker: string;
+  support_needs: {
+    primary_need: string;
+  };
+  documents: Array<{
+    file_url?: string;
+    drive_url?: string;
+    document_type: string;
+  }>;
+  boundary_confirmations: string[];
+}
+
 export interface UpdateCaseSettingsRequest {
   team_name?: string;
   school?: string;
