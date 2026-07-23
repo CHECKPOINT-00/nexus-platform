@@ -10,10 +10,10 @@ interface TeamFitResultStepProps {
   error: string | null;
   onReset: () => void;
   onSave?: () => void;
-  onBuy?: () => void;
   onXemCase?: () => void;
+  onUpgrade?: () => void;
   isSaving?: boolean;
-  isBuying?: boolean;
+  isUpgrading?: boolean;
   hasSaved?: boolean;
 }
 
@@ -23,10 +23,10 @@ export default function TeamFitResultStep({
   error,
   onReset,
   onSave,
-  onBuy,
   onXemCase,
+  onUpgrade,
   isSaving = false,
-  isBuying = false,
+  isUpgrading = false,
   hasSaved = false,
 }: TeamFitResultStepProps) {
   // Loading state
@@ -100,12 +100,6 @@ export default function TeamFitResultStep({
         </List>
       </Card>
 
-      {/* CTA subtext */}
-      <Text size="sm" c="dimmed" ta="center" py="sm">
-        Muốn biết cụ thể chỗ nào yếu, tại sao yếu, và sửa thế nào — mua 1 lượt
-        audit (39k).
-      </Text>
-
       {/* Buttons row */}
       <Group justify="center" gap="sm">
         <Button variant="subtle" color="gray" onClick={onReset}>
@@ -131,26 +125,34 @@ export default function TeamFitResultStep({
             </Button>
           </>
         ) : (
-          <>
-            <Button
-              variant="filled"
-              color="brand"
-              onClick={onSave}
-              loading={isSaving}
-            >
-              Lưu kết quả
-            </Button>
-            <Button
-              variant="outline"
-              color="brand"
-              onClick={onBuy}
-              loading={isBuying}
-            >
-              Mua audit 39k →
-            </Button>
-          </>
+          <Button
+            variant="filled"
+            color="brand"
+            onClick={onSave}
+            loading={isSaving}
+          >
+            Lưu kết quả
+          </Button>
         )}
       </Group>
+
+      {/* Upsell banner */}
+      <div className="mt-6 p-4 bg-brand-soft/10 border border-brand/20 rounded-lg">
+        <Text size="sm" fw={600} mb="xs">
+          Muốn được Supporter kiểm tra chuyên sâu?
+        </Text>
+        <Text size="xs" c="dimmed" mb="sm">
+          Nhận phản biện chi tiết từ Supporter giàu kinh nghiệm. Giá chỉ 39.000đ / lượt.
+        </Text>
+        <Button
+          size="sm"
+          color="brand"
+          onClick={onUpgrade}
+          loading={isUpgrading}
+        >
+          Mua kiểm tra chuyên sâu
+        </Button>
+      </div>
     </div>
   );
 }

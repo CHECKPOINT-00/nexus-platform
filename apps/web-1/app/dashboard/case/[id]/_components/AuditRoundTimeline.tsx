@@ -18,6 +18,7 @@ interface AuditRoundTimelineProps {
 
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Đang chờ thanh toán",
+  awaiting_verification: "Đã thanh toán — đang chờ xác nhận",
   payment_verified: "Đã thanh toán — đang chờ xử lý",
   in_review: "Supporter đang review",
   report_published: "Đã có báo cáo",
@@ -26,6 +27,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   pending_payment: "#f59e0b",
+  awaiting_verification: "#f97316",
   payment_verified: "#3b82f6",
   in_review: "#8b5cf6",
   report_published: "#10b981",
@@ -34,6 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_BG_CLASSES: Record<string, string> = {
   pending_payment: "bg-warning-soft text-warning border-warning/10",
+  awaiting_verification: "bg-orange-50 text-orange-600 border-orange-100",
   payment_verified: "bg-info-soft text-info border-info/10",
   in_review: "bg-purple-50 text-purple-600 border-purple-100",
   report_published: "bg-success-soft text-success border-success/10",
@@ -42,6 +45,7 @@ const STATUS_BG_CLASSES: Record<string, string> = {
 
 const STATUS_ICONS: Record<string, React.ElementType> = {
   pending_payment: CreditCard,
+  awaiting_verification: Clock,
   payment_verified: Clock,
   in_review: Loader2,
   report_published: FileText,

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Text, Group, Stack } from "@mantine/core";
+import { Modal, Button, Text, Group, Stack, NumberInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ export default function BuyRoundModal({
 }: BuyRoundModalProps) {
   const router = useRouter();
   const [idempotencyKey, setIdempotencyKey] = useState<string>("");
+  const [roundQuantity, setRoundQuantity] = useState<number>(1);
 
   useEffect(() => {
     if (opened) {
@@ -32,6 +33,7 @@ export default function BuyRoundModal({
       const res = await apiClient.post(`/cases/${caseId}/buy-round`, {
         packageId: "pkg_tf_audit",
         idempotencyKey,
+        quantity: roundQuantity,
       });
       return res.data;
     },
@@ -68,7 +70,7 @@ export default function BuyRoundModal({
       onClose={handleClose}
       title={
         <Text fw={700} size="sm">
-          Mua thêm lượt audit (39k)
+          Mua thêm lượt audit
         </Text>
       }
       size="md"
@@ -77,9 +79,25 @@ export default function BuyRoundModal({
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Bạn sắp mua thêm một lượt audit cho hồ sơ này. Giá mỗi lượt là{" "}
+          Bạn sắp mua thêm lượt audit cho hồ sơ này. Giá mỗi lượt là{" "}
           <b>{price.toLocaleString("vi-VN")}₫</b>.
           Sau khi xác nhận, bạn sẽ được chuyển đến trang thanh toán.
+        </Text>
+
+        <NumberInput
+          label="Số lượt"
+          description="Chọn số lượt audit muốn mua"
+          value={roundQuantity}
+          onChange={(val) => setRoundQuantity(Number(val) || 1)}
+          min={1}
+          max={50}
+          allowDecimal={false}
+          allowNegative={false}
+        />
+
+        <Text size="sm" fw={600}>
+          Tổng cộng:{" "}
+          {(roundQuantity * price).toLocaleString("vi-VN")}₫
         </Text>
 
         <Group justify="flex-end" mt="sm">
@@ -95,7 +113,8 @@ export default function BuyRoundModal({
             loading={mutation.isPending}
             disabled={mutation.isPending}
           >
-            Xác nhận mua
+            Xác nhận mua ({roundQuantity} lượt — tổng{" "}
+            {(roundQuantity * price).toLocaleString("vi-VN")}₫)
           </Button>
         </Group>
 

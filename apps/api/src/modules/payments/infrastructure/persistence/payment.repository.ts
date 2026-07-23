@@ -30,9 +30,9 @@ export async function createPaymentProof(data: {
   amount: number;
   proofFileUrl: string;
   userId: string;
-  auditRoundId: string;
+  auditRoundIds: string[];
 }) {
-  const { caseId, packageId, amount, proofFileUrl, userId, auditRoundId } = data;
+  const { caseId, packageId, amount, proofFileUrl, userId, auditRoundIds } = data;
   return await prisma.$transaction(async (tx: any) => {
     const payment = await tx.payment.create({
       data: {
@@ -44,11 +44,16 @@ export async function createPaymentProof(data: {
       },
     });
 
-    // Link payment to the pending audit_round
-    await tx.auditRound.update({
-      where: { id: auditRoundId },
-      data: { payment_id: payment.id },
-    });
+    // Link payment to ALL pending audit_rounds + set awaiting_verification
+    for (const roundId of auditRoundIds) {
+      await tx.auditRound.update({
+        where: { id: roundId },
+        data: {
+          payment_id: payment.id,
+          status: "awaiting_verification",
+        },
+      });
+    }
 
     await tx.case.update({
       where: { id: caseId },
@@ -62,7 +67,7 @@ export async function createPaymentProof(data: {
         case_id: caseId,
         event_type: "payment_proof_uploaded",
         actor_auth_user_id: userId,
-        metadata_json: { payment_id: payment.id, amount, audit_round_id: auditRoundId },
+        metadata_json: { payment_id: payment.id, amount, audit_round_ids: auditRoundIds },
       },
     });
 
@@ -105,20 +110,8 @@ export async function verifyPayment(data: {
       },
     });
 
-    if (status === "paid") {
-      await updateAuditRoundAfterPayment(tx, paymentId);
-    } else if (status === "rejected") {
-      // Update linked audit_round to payment_rejected on rejection
-      const linkedRound = await tx.auditRound.findFirst({
-        where: { payment_id: paymentId },
-      });
-      if (linkedRound) {
-        await tx.auditRound.update({
-          where: { id: linkedRound.id },
-          data: { status: "payment_rejected" },
-        });
-      }
-    }
+    // Cascade round status updates for both paid and rejected
+    await updateAuditRoundAfterPayment(tx, paymentId, status);
 
     return updatedPayment;
   });

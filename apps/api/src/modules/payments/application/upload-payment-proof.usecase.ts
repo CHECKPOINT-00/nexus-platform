@@ -3,7 +3,6 @@ import { fileStorageService } from "../infrastructure/file-storage.service.js";
 import { createPaymentProof } from "../infrastructure/persistence/payment.repository.js";
 import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
-import { isValidPrice } from "../../cases/domain/case.types.js";
 import { prisma } from "../../../db.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
@@ -54,47 +53,41 @@ export async function uploadPaymentProofUseCase(
     throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
   }
 
-  if (
-    caseObj.payment_status &&
-    caseObj.payment_status !== "unpaid" &&
-    caseObj.payment_status !== "rejected"
-  ) {
-    throw new AppError(
-      409,
-      "INVALID_PAYMENT_STATUS",
-      "Dự án đã có trạng thái thanh toán khác, không thể tạo minh chứng mới",
-    );
-  }
-
-  const lockedPrice = caseObj.locked_price;
-  if (!isValidPrice(lockedPrice)) {
-    throw new AppError(
-      400,
-      "INVALID_LOCKED_PRICE",
-      "Dự án thiếu thông tin giá đã khóa hợp lệ để tạo minh chứng thanh toán",
-    );
-  }
-
-  const amount = lockedPrice as number;
-  if (amount === 0) {
-    throw new AppError(
-      400,
-      "INVALID_AMOUNT",
-      "Gói dịch vụ không hợp lệ để tạo minh chứng thanh toán (gói miễn phí)",
-    );
-  }
-
-  // Verify active audit_round with pending_payment status exists
-  const auditRound = await prisma.auditRound.findFirst({
-    where: { case_id: caseId, status: "pending_payment" },
+  // Gate on round-level only: find ALL pending rounds (already linked to a Payment from buy flow)
+  const auditRounds = await prisma.auditRound.findMany({
+    where: { case_id: caseId, status: "pending_payment", payment_id: { not: null } },
   });
-  if (!auditRound) {
+  if (auditRounds.length === 0) {
+    const awaitingRounds = await prisma.auditRound.findMany({
+      where: { case_id: caseId, status: "awaiting_verification" },
+    });
+    if (awaitingRounds.length > 0) {
+      throw new AppError(
+        400,
+        "ALREADY_SUBMITTED",
+        "Minh chứng đã được gửi, đang chờ xác nhận từ Admin",
+      );
+    }
     throw new AppError(
       400,
       "NO_PENDING_ROUND",
       "Không tìm thấy round đang chờ thanh toán cho dự án này",
     );
   }
+
+  // Read amount from the pending (unpaid) Payment record — not from locked_price
+  const pendingPayment = await prisma.payment.findFirst({
+    where: { case_id: caseId, status: "unpaid" },
+    orderBy: { created_at: "desc" },
+  });
+  if (!pendingPayment) {
+    throw new AppError(
+      400,
+      "NO_PENDING_PAYMENT",
+      "Không tìm thấy thông tin thanh toán đang chờ",
+    );
+  }
+  const amount = pendingPayment.amount;
 
   const proofFile = (await saveProofFile(file)) as SavedProofFile;
 
@@ -105,7 +98,7 @@ export async function uploadPaymentProofUseCase(
       amount,
       proofFileUrl: proofFile.fileUrl,
       userId,
-      auditRoundId: auditRound.id,
+      auditRoundIds: auditRounds.map((r) => r.id),
     });
 
     return {

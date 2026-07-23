@@ -529,9 +529,13 @@ export async function buyRoundHandler(c: Context) {
   const caseId = c.req.param("id") || "";
 
   try {
-    const body = (await readJsonBody(c)) as { packageId?: string; idempotencyKey?: string };
+    const body = (await readJsonBody(c)) as { packageId?: string; idempotencyKey?: string; quantity?: number };
     const packageId = body?.packageId || "pkg_tf_audit";
     const idempotencyKey = body?.idempotencyKey;
+    const quantity = body?.quantity ?? 1;
+    if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > 50) {
+      throw new AppError(400, "INVALID_QUANTITY", "Số lượng phải từ 1 đến 50");
+    }
 
     // 1. Find case → 404
     const caseRecord = await findCaseById(caseId);
@@ -550,7 +554,7 @@ export async function buyRoundHandler(c: Context) {
     }
 
     // 3b. Stage validation: only allow buy-round at these stages
-    const allowedStages = ["under_review", "report_ready", "waiting_for_revision"];
+    const allowedStages = ["submitted", "report_ready", "waiting_for_revision"];
     if (!allowedStages.includes(caseRecord.user_facing_stage)) {
       throw new AppError(400, "INVALID_STAGE", "Không thể mua round ở giai đoạn này");
     }
@@ -604,33 +608,40 @@ export async function buyRoundHandler(c: Context) {
       const roundCount = await tx.auditRound.count({
         where: { case_id: caseId },
       });
-      const roundNumber = roundCount + 1;
 
-      // 8. Create AuditRound with status="pending_payment"
-      const auditRound = await tx.auditRound.create({
-        data: {
-          case_id: caseId,
-          round_number: roundNumber,
-          checkpoint_id: checkpointId,
-          status: "pending_payment",
-        },
-      });
+      const totalAmount = pkg.price * quantity;
+      const rounds: { id: string; roundNumber: number }[] = [];
+
+      // 8. Create N AuditRounds
+      for (let i = 0; i < quantity; i++) {
+        const auditRound = await tx.auditRound.create({
+          data: {
+            case_id: caseId,
+            round_number: roundCount + 1 + i,
+            checkpoint_id: checkpointId,
+            status: "pending_payment",
+          },
+        });
+        rounds.push({ id: auditRound.id, roundNumber: roundCount + 1 + i });
+      }
 
       // 9. Create Payment record
       const payment = await tx.payment.create({
         data: {
           case_id: caseId,
           package_id: packageId,
-          amount: pkg.price,
+          amount: totalAmount,
           status: "unpaid",
         },
       });
 
-      // 10. Link audit_round.payment_id
-      await tx.auditRound.update({
-        where: { id: auditRound.id },
-        data: { payment_id: payment.id },
-      });
+      // 10. Link all audit_rounds to payment
+      for (const round of rounds) {
+        await tx.auditRound.update({
+          where: { id: round.id },
+          data: { payment_id: payment.id },
+        });
+      }
 
       // Create case event
       await tx.caseEvent.create({
@@ -639,21 +650,19 @@ export async function buyRoundHandler(c: Context) {
           event_type: "buy_round",
           actor_auth_user_id: session.user.id,
           metadata_json: {
-            round_id: auditRound.id,
-            round_number: roundNumber,
+            quantity,
+            rounds: rounds.map((r) => ({ id: r.id, round_number: r.roundNumber })),
             payment_id: payment.id,
-            amount: pkg.price,
+            total_amount: totalAmount,
             package_id: packageId,
           },
         },
       });
 
       return {
-        roundId: auditRound.id,
-        roundNumber,
+        rounds,
         paymentId: payment.id,
-        amount: pkg.price,
-        caseId,
+        totalAmount,
       };
     });
 

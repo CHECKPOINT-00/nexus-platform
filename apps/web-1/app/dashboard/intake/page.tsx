@@ -9,8 +9,9 @@ import IntakeProgressStepper from "./_components/IntakeProgressStepper";
 import IntakeChatFlow, { checkStepValidity } from "./_components/IntakeChatFlow";
 import { IntakeStep, IntakeData } from "./_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
+import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
-import { Trash2, AlertTriangle, Clock } from "lucide-react";
+import { Trash2, AlertTriangle, Clock, AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 
 function IntakePageContent() {
@@ -24,6 +25,13 @@ function IntakePageContent() {
     queryKey: ["case-intake", caseId],
     queryFn: () => apiClient.get(`/cases/${caseId}`).then((r) => r.data),
     enabled: isUpdateMode,
+  });
+
+  // Fetch active packages for packageId validation (CREATE mode only)
+  const { data: packagesData, isLoading: isLoadingPackages } = useQuery({
+    queryKey: ["active-packages"],
+    queryFn: () => apiClient.get("/packages").then((r) => r.data),
+    enabled: !isUpdateMode,
   });
 
   const initialData: IntakeData | null =
@@ -71,7 +79,7 @@ function IntakePageContent() {
     }
   }
 
-  const isLoadingForm = !isLoaded || (isUpdateMode && isLoadingCase);
+  const isLoadingForm = !isLoaded || (isUpdateMode && isLoadingCase) || (!isUpdateMode && isLoadingPackages);
 
   if (isLoadingForm) {
     return (
@@ -84,6 +92,44 @@ function IntakePageContent() {
         </p>
       </div>
     );
+  }
+
+  // Validate packageId for CREATE mode
+  if (!isUpdateMode && packagesData) {
+    const isValidPackageId =
+      !!packageId &&
+      packagesData.some((pkg: { id: string }) => pkg.id === packageId);
+
+    if (!isValidPackageId) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px] p-6">
+          <Alert
+            icon={<AlertCircle className="w-5 h-5" />}
+            title="Lỗi"
+            color="red"
+            radius="md"
+            variant="light"
+            className="max-w-md"
+          >
+            <div className="space-y-4">
+              <p className="text-sm font-body">
+                Gói dịch vụ không hợp lệ. Vui lòng quay lại.
+              </p>
+              <Button
+                component={Link}
+                href="/"
+                color="red"
+                variant="outline"
+                fullWidth
+                className="font-body font-semibold cursor-pointer"
+              >
+                Quay lại trang chủ
+              </Button>
+            </div>
+          </Alert>
+        </div>
+      );
+    }
   }
 
   return (

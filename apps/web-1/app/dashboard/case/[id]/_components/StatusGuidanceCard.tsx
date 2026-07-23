@@ -64,6 +64,22 @@ export default function StatusGuidanceCard({
         </Alert>
       );
 
+    case "need_more_information":
+      return (
+        <Alert
+          variant="light"
+          color="orange"
+          radius="md"
+          title="Yêu cầu bổ sung thông tin từ Supporter"
+          icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <p className="text-text-muted text-xs leading-relaxed">
+            Vui lòng kiểm tra lại tài liệu đã tải lên và bổ sung theo yêu cầu của Supporter.
+          </p>
+        </Alert>
+      );
+
     case "under_review":
       return (
         <Alert
@@ -93,7 +109,7 @@ export default function StatusGuidanceCard({
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Nhấp nút bên dưới để mua thêm lượt audit và tiếp tục nộp tài liệu vòng mới.
+              Supporter đã hoàn thành đánh giá chi tiết. Nhấp nút bên dưới để Mua thêm lượt audit và tiếp tục nộp tài liệu vòng mới.
             </p>
             <Button
               size="xs"
@@ -101,7 +117,7 @@ export default function StatusGuidanceCard({
               className="font-semibold shrink-0 cursor-pointer"
               onClick={onOpenBuyRound}
             >
-              Mua thêm lượt audit (39k)
+              Mua thêm lượt audit
             </Button>
           </div>
         </Alert>
@@ -120,6 +136,22 @@ export default function StatusGuidanceCard({
         >
           <p className="text-text-muted text-xs leading-relaxed">
             Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn.
+          </p>
+        </Alert>
+      );
+
+    case "closed":
+      return (
+        <Alert
+          variant="light"
+          color="gray"
+          radius="md"
+          title="Hồ sơ đã đóng"
+          icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <p className="text-text-muted text-xs leading-relaxed">
+            Hồ sơ phản biện này đã được đóng. Vui lòng liên hệ Ban tổ chức nếu cần thêm thông tin.
           </p>
         </Alert>
       );

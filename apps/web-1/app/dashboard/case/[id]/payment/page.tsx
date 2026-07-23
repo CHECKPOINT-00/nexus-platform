@@ -20,6 +20,7 @@ import {
 import { Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { getCaseEffectivePrice, caseRequiresPayment, formatPrice, validatePaymentProof } from "@/lib/pricing";
+import type { AuditRound, Payment } from "@/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -127,7 +128,9 @@ export default function CasePaymentPage({ params }: PageProps) {
     );
   }
 
-  const amount = getCaseEffectivePrice(caseData);
+  const pendingRounds = (caseData.audit_rounds ?? []).filter((r: AuditRound) => r.status === "pending_payment");
+  const pendingPayment = (caseData.payments ?? []).find((p: Payment) => p.status === "unpaid");
+  const amount = pendingPayment?.amount ?? getCaseEffectivePrice(caseData);
   const addInfo = `${caseData.case_code} thanh toan`;
   const qrUrl = `https://img.vietqr.io/image/mb-0909090909-print.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=NEXUS%20PLATFORM`;
 
@@ -173,6 +176,12 @@ export default function CasePaymentPage({ params }: PageProps) {
                 <span className="text-text-muted font-medium">Chủ tài khoản</span>
                 <span className="font-bold text-text-app">NEXUS PLATFORM</span>
               </div>
+              {pendingRounds.length > 0 && (
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-text-muted font-medium">Số lượt</span>
+                  <span className="font-bold text-text-app">{pendingRounds.length}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center py-2">
                 <span className="text-text-muted font-medium">Số tiền cần chuyển</span>
                 <span className="font-bold text-brand text-sm">

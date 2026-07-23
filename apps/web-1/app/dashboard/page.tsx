@@ -32,11 +32,11 @@ export default function StudentDashboard() {
               <span>Đánh giá đội ngũ</span>
             </Link>
             <Link
-              href="/dashboard/team-fit?intent=paid"
+              href="/dashboard/intake?packageId=pkg_tf_audit"
               className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-4 py-2 h-10 rounded-lg transition-colors cursor-pointer"
             >
               <CreditCard className="w-4 h-4" />
-              <span>Mua audit ngay (39k)</span>
+              <span>Mua kiểm tra chuyên sâu</span>
             </Link>
           </div>
         )}

@@ -14,12 +14,14 @@ export function getCaseEffectivePrice(caseData?: {
 
 /**
  * Determines whether a case requires a payment to be made.
- * A case requires payment if its effective price is greater than 0
- * and its payment status is not "paid".
+ * Checks for any audit rounds with "pending_payment" status (round-level gating).
+ * This allows users to access the payment page for new unpaid rounds even after
+ * a previous case-level payment has been completed.
  */
 export function caseRequiresPayment(caseData: Case): boolean {
-  const price = getCaseEffectivePrice(caseData);
-  return price > 0 && caseData.payment_status !== "paid";
+  return caseData.audit_rounds?.some(
+    (r) => r.status === "pending_payment",
+  ) ?? false;
 }
 
 /**

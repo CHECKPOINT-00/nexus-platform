@@ -49,7 +49,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
   },
   {
     id: "pkg_tf_audit",
-    name: "Audit chuyên sâu 1 vòng",
+    name: "Kiểm tra chuyên sâu",
     price: 39000,
     features: {
       items: [

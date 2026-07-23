@@ -198,7 +198,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   <div className="space-y-0.5">
                     <h4 className="font-heading font-semibold text-sm text-text-app">Nâng cấp gói dịch vụ</h4>
                     <p className="font-body text-xs text-text-muted leading-relaxed">
-                      Bạn đang dùng bản đánh giá miễn phí. Nâng cấp lên Audit (39k) để được phân tích chuyên sâu.
+                      Bạn đang dùng bản đánh giá miễn phí. Nâng cấp lên Kiểm tra chuyên sâu để được phân tích chuyên sâu.
                     </p>
                   </div>
                 </div>
