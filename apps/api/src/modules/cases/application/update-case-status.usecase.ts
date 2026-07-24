@@ -15,6 +15,7 @@ import {
   applyTransition,
   canTransition,
 } from "../infrastructure/persistence/case-workflow-engine.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 /** Maps internal_status targets to symflow transition names */
 const SYMFLOW_TRANSITION_MAP: Record<string, string> = {
@@ -35,6 +36,9 @@ export async function updateCaseStatusUseCase(
   if (!caseObj) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
   }
+
+  const startTime = Date.now();
+  const fromStatus = caseObj.internal_status;
 
   if (
     userRole === "supporter" &&
@@ -91,12 +95,13 @@ export async function updateCaseStatusUseCase(
     typeof caseObj.internal_status === "string" &&
     caseObj.internal_status in statusToPlace;
 
+  let transitionName: string | undefined;
   if (
     isInSymflowState &&
     typeof nextStatus === "string" &&
     nextStatus in SYMFLOW_TRANSITION_MAP
   ) {
-    const transitionName = SYMFLOW_TRANSITION_MAP[nextStatus];
+    transitionName = SYMFLOW_TRANSITION_MAP[nextStatus];
     if (!canTransition(caseObj, transitionName)) {
       throw new AppError(
         409,
@@ -118,22 +123,33 @@ export async function updateCaseStatusUseCase(
   }
 
   // ── Persist ───────────────────────────────────────────────────────────────
-  const updateData: Record<string, unknown> = {};
-  if (nextStage !== undefined) updateData.user_facing_stage = nextStage;
-  if (nextStatus !== undefined) updateData.internal_status = nextStatus;
-  if (caseObj.sla_deadline_at) {
-    updateData.sla_deadline_at = caseObj.sla_deadline_at;
+  try {
+    const updateData: Record<string, unknown> = {};
+    if (nextStage !== undefined) updateData.user_facing_stage = nextStage;
+    if (nextStatus !== undefined) updateData.internal_status = nextStatus;
+    if (caseObj.sla_deadline_at) {
+      updateData.sla_deadline_at = caseObj.sla_deadline_at;
+    }
+
+    const updatedCase = await prisma.case.update({
+      where: { id: caseId },
+      data: updateData,
+    });
+
+    await createCaseEvent(caseId, userId, "status_updated", {
+      user_facing_stage: nextStage,
+      internal_status: nextStatus,
+    });
+
+    if (transitionName && nextStatus) {
+      logger.info({ caseId, transition: transitionName, fromState: fromStatus, toState: nextStatus, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, `case transition: ${transitionName}`);
+    } else {
+      logger.info({ caseId, fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case status updated');
+    }
+
+    return updatedCase;
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: transitionName ?? 'status_update', fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case transition failed: status_update');
+    throw error;
   }
-
-  const updatedCase = await prisma.case.update({
-    where: { id: caseId },
-    data: updateData,
-  });
-
-  await createCaseEvent(caseId, userId, "status_updated", {
-    user_facing_stage: nextStage,
-    internal_status: nextStatus,
-  });
-
-  return updatedCase;
 }

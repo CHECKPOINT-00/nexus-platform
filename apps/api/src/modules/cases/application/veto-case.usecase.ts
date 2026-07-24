@@ -3,8 +3,10 @@ import { applyTransition, canTransition } from "../infrastructure/persistence/ca
 import { findCaseById } from "../infrastructure/persistence/case.repository.js";
 import { getCreditBalanceForTx } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { prisma } from "../../../db.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 export async function vetoCaseUseCase(adminId: string, caseId: string, reason: string) {
+  const startTime = Date.now();
   const caseRecord = await findCaseById(caseId);
   if (!caseRecord) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
@@ -23,46 +25,53 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
     throw new AppError(400, "VETO_WINDOW_EXPIRED", "Đã quá 48 giờ kể từ khi tạo dự án, không thể từ chối");
   }
 
-  return await prisma.$transaction(async (tx: any) => {
-    // Get current credit balance
-    const currentBalance = await getCreditBalanceForTx(tx, caseId);
+  try {
+    return await prisma.$transaction(async (tx: any) => {
+      // Get current credit balance
+      const currentBalance = await getCreditBalanceForTx(tx, caseId);
 
-    // Apply symflow veto transition
-    applyTransition(caseRecord, 'veto');
+      // Apply symflow veto transition
+      applyTransition(caseRecord, 'veto');
 
-    // Insert refund ledger entry if credits exist
-    if (currentBalance > 0) {
-      await tx.creditLedger.create({
+      // Insert refund ledger entry if credits exist
+      if (currentBalance > 0) {
+        await tx.creditLedger.create({
+          data: {
+            case_id: caseId,
+            amount: -currentBalance,
+            balance_after: 0,
+            type: 'refund',
+            idempotency_key: `veto_${caseId}_${Date.now()}`,
+            metadata_json: { action: "admin_veto", admin_id: adminId, reason },
+          },
+        });
+      }
+
+      // Update case to rejected
+      await tx.case.update({
+        where: { id: caseId },
         data: {
-          case_id: caseId,
-          amount: -currentBalance,
-          balance_after: 0,
-          type: 'refund',
-          idempotency_key: `veto_${caseId}_${Date.now()}`,
-          metadata_json: { action: "admin_veto", admin_id: adminId, reason },
+          internal_status: 'rejected',
+          user_facing_stage: 'rejected',
         },
       });
-    }
 
-    // Update case to rejected
-    await tx.case.update({
-      where: { id: caseId },
-      data: {
-        internal_status: 'rejected',
-        user_facing_stage: 'rejected',
-      },
+      // Create case event
+      await tx.caseEvent.create({
+        data: {
+          case_id: caseId,
+          event_type: "vetoed",
+          actor_auth_user_id: adminId,
+          metadata_json: { reason },
+        },
+      });
+
+      logger.info({ caseId, transition: 'veto', fromState: caseRecord.internal_status, toState: 'rejected', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: veto');
+
+      return { success: true, case_id: caseId };
     });
-
-    // Create case event
-    await tx.caseEvent.create({
-      data: {
-        case_id: caseId,
-        event_type: "vetoed",
-        actor_auth_user_id: adminId,
-        metadata_json: { reason },
-      },
-    });
-
-    return { success: true, case_id: caseId };
-  });
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: 'veto', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: veto');
+    throw error;
+  }
 }

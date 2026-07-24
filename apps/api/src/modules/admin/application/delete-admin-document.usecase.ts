@@ -2,6 +2,7 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { prisma } from "../../../db.js";
 import type { Prisma } from "@prisma/client";
 import { deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 export async function deleteAdminDocumentUseCase(adminId: string, documentId: string) {
   const doc = await prisma.documentRecord.findUnique({
@@ -17,7 +18,7 @@ export async function deleteAdminDocumentUseCase(adminId: string, documentId: st
     try {
       await deleteManagedDocumentFile(doc.cloudinary_public_id);
     } catch (err) {
-      console.error(`Failed to delete Cloudinary file for document ${documentId}:`, err);
+      logger.error({ err, documentId }, 'Failed to delete Cloudinary file for document');
     }
   }
 

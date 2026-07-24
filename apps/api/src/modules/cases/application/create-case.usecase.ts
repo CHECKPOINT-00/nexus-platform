@@ -7,6 +7,7 @@ import {
   createCaseWithCheckpointAndIntake,
 } from "../infrastructure/persistence/case.repository.js";
 import { findPackageById as defaultFindPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import type { CreateCaseRequest } from "./cases.dto.js";
 
 type CreateCaseDeps = {
@@ -44,6 +45,7 @@ export async function createCaseUseCase(
   body: CreateCaseRequest,
   deps: CreateCaseDeps = {},
 ) {
+  const startTime = Date.now();
   const { findPackageById, createCaseWithCheckpointAndIntake } = {
     ...defaultDeps,
     ...deps,
@@ -96,7 +98,7 @@ export async function createCaseUseCase(
   for (let attempt = 0; attempt < MAX_CODE_RETRIES; attempt++) {
     const caseCode = `NX-${Math.floor(100000 + Math.random() * 900000)}`;
     try {
-      return await createCaseWithCheckpointAndIntake({
+      const result = await createCaseWithCheckpointAndIntake({
         caseCode,
         userId,
         teamName: team_name,
@@ -109,15 +111,20 @@ export async function createCaseUseCase(
         isFree,
         rawBody: normalizedBody,
       });
+      const caseId = result.id;
+      logger.info({ caseId, actorId: userId, duration_ms: Date.now() - startTime }, 'case created');
+      return result;
     } catch (err: any) {
       // P2002 = unique constraint violation on case_code → collision; retry with new code
       if (err?.code === "P2002") {
         continue;
       }
+      logger.error({ err, actorId: userId, duration_ms: Date.now() - startTime }, 'case created failed');
       throw err;
     }
   }
 
+  logger.error({ actorId: userId, duration_ms: Date.now() - startTime }, 'case created failed — unique code exhausted');
   throw new AppError(
     500,
     "INTERNAL_ERROR",

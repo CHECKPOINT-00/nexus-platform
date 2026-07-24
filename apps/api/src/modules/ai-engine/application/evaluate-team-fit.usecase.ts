@@ -4,6 +4,7 @@ import { TeamFitFreeReportSchema, type TeamFitFreeReport } from "@repo/validatio
 import { getGoogleModel } from "../../../services/google-provider.js";
 import { generateObject } from "ai";
 import { AppError } from "../../../shared/domain/app-error.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 const SYSTEM_PROMPT = `Bạn là chuyên gia đánh giá đội ngũ khởi nghiệp cho sinh viên EXE101 tại Đại học FPT.
 
@@ -74,8 +75,10 @@ export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamF
 
   const prompt = buildPrompt(input);
   const model = getGoogleModel();
+  const t0 = Date.now();
 
   try {
+    // t0 is defined at function scope for use in both try and catch + mapAIError
     const { object } = await generateObject({
       model,
       schema: TeamFitFreeReportSchema,
@@ -84,19 +87,15 @@ export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamF
       temperature: 0.3,
       maxOutputTokens: 2048,
     });
+    logger.info({ model: process.env.AI_TEAM_FIT_MODEL, promptLength: prompt.length, duration_ms: Date.now() - t0, gapCount: object.teamGaps?.length }, 'AI evaluation success');
     return object;
   } catch (error) {
-    console.error('[TeamFit] AI call failed:', {
-      name: (error as any)?.name,
-      message: (error as any)?.message,
-      statusCode: (error as any)?.statusCode,
-      statusText: (error as any)?.statusText,
-    });
-    throw mapAIError(error);
+    logger.error({ err: error, model: process.env.AI_TEAM_FIT_MODEL, duration_ms: Date.now() - t0 }, 'AI evaluation failed');
+    throw mapAIError(error, Date.now() - t0);
   }
 }
 
-function mapAIError(error: unknown): Error {
+function mapAIError(error: unknown, durationMs?: number): Error {
   if (error instanceof AppError) return error;
 
   const aiError = error as { name?: string; statusCode?: number; message?: string; statusText?: string };
@@ -126,12 +125,6 @@ function mapAIError(error: unknown): Error {
     return new AppError(500, "AI_INVALID_OUTPUT", "AI trả về định dạng không hợp lệ. Vui lòng thử lại.");
   }
 
-  console.error('[TeamFit] Unhandled AI error shape:', {
-    name: (error as any)?.name,
-    message: (error as any)?.message,
-    statusCode: (error as any)?.statusCode,
-    statusText: (error as any)?.statusText,
-    stack: (error as any)?.stack,
-  });
+    logger.error({ err: error, model: process.env.AI_TEAM_FIT_MODEL, duration_ms: durationMs }, 'AI evaluation unhandled error');
   return new AppError(500, "AI_INTERNAL_ERROR", "Lỗi hệ thống AI. Vui lòng thử lại sau.");
 }

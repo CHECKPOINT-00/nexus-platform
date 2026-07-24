@@ -1,6 +1,7 @@
 import path from "node:path";
 import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import { uploadFile, deleteFile } from "../../../services/cloudinary.js";
 import {
   MAX_DOCUMENT_FILE_SIZE_BYTES,
@@ -75,6 +76,7 @@ async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
       // Don't retry AppErrors — they signal domain-level failures
       if (error instanceof AppError) throw error;
       if (attempt < maxAttempts) {
+        logger.warn({ attempt, maxAttempts, err: lastError }, "Cloudinary upload retry");
         await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt - 1)));
       }
     }
@@ -86,10 +88,13 @@ export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promis
   const extension = validateManagedDocumentFile(file);
 
   try {
+    const t0 = Date.now();
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const publicId = generateSafeCloudinaryPublicId(file.name);
     const result = await withRetry(() => uploadFile(buffer, CLOUDINARY_FOLDER, publicId, "raw"));
+
+    logger.info({ publicId, originalName: file.name, fileSize: file.size, duration_ms: Date.now() - t0 }, "Cloudinary document upload success");
 
     return {
       original_name: file.name,
@@ -105,11 +110,7 @@ export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promis
     }
 
     // Log raw error for debugging, never leak SDK internals to client
-    console.error(
-      "[CloudinaryUpload]",
-      error?.message ?? "Unknown error",
-      error?.http_code ? `(http_code: ${error.http_code})` : "",
-    );
+    logger.error({ err: error, fileName: file?.name }, "Cloudinary document upload failed");
 
     throw new AppError(
       500,
