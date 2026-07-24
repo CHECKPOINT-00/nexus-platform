@@ -77,7 +77,7 @@ npx tsx scripts/temp-query.ts
 
 ## 3. Các bảng dữ liệu chính trong Schema `public`
 
-Bạn có thể query các bảng chính được cấu hình trong [schema.prisma](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/prisma/schema.prisma):
+Bạn có thể query các bảng chính được cấu hình trong [schema.prisma](../prisma/schema.prisma):
 * `users` - Người dùng hệ thống.
 * `cases` - Dự án phản biện/đánh giá.
 * `reports` - Báo cáo kết quả/đánh giá.

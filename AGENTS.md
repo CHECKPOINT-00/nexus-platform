@@ -104,15 +104,30 @@ npm test                       # Only in apps/api: tsx --test (Node built-in run
 npm run format                 # Prettier (not in CI pipeline)
 ```
 
+## CRITICAL — DATABASE SAFETY
+
+> ⚠️ **ĐỌC TRƯỚC KHI LÀM BẤT CỨ VIỆC GÌ LIÊN QUAN DATABASE**
+
+**[.agents/rules/prisma-migration-safety.md](.agents/rules/prisma-migration-safety.md)** — Migration safety, DB mutation rules, target DB classification.
+
+**Absolute forbidden commands (kể cả qua subagent):**
+- `prisma migrate dev` (full run) — chỉ được `--create-only`
+- `prisma migrate reset` / `prisma migrate reset --force`
+- `prisma db push`
+- `DROP TABLE`, `DROP COLUMN`, `DELETE FROM`, `TRUNCATE`
+
+Nếu DATABASE_URL trỏ `supabase.co` hoặc `pooler.supabase.com` → **tuyệt đối không chạy destructive command**. Orchestrator phải inject safety block vào mọi subagent prompt (xem `.agents/rules/orchestration-protocol.md` → DB SAFETY PROTOCOL).
+
+**Vi phạm = data loss = irrecoverable.** Đã xảy ra 1 lần. Không được phép lần 2.
+
 ## NOTES
 
 - `apps/web-1/AGENTS.md` is child-specific Mantine UI note; sync with web work.
-- **Agent Rules**: [.agents/rules/](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/) contains project-wide guidelines:
-  - [development-rules.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, no direct `apiClient` calls in UI.
-  - [documentation-management.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
-  - [orchestration-protocol.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution.
-  - [primary-workflow.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations.
-  - [prisma-migration-safety.md](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/.agents/rules/prisma-migration-safety.md): Migration safety, DB mutation rules, target DB classification.
+- **Agent Rules**: [.agents/rules/](.agents/rules/) contains project-wide guidelines:
+  - [development-rules.md](.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, no direct `apiClient` calls in UI.
+  - [documentation-management.md](.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
+  - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution — **includes DB Safety Protocol**.
+  - [primary-workflow.md](.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations — **includes DB Migration Safety Gate**.
 - Apps/api: 51 endpoints across 8 modules. Clean Architecture (domain/application/infrastructure/http). Some modules lack infrastructure layer (admin, supporter). Direct module-to-module calls (no event bus).
 - Apps/web-1: 16 custom hooks across 4 route groups. Auth entirely client-side (no middleware guard). Vietnamese-first UI.
 - Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
