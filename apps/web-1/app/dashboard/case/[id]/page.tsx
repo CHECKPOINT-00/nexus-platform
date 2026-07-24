@@ -11,6 +11,7 @@ import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
+import CreditQuantityModal from "./_components/CreditQuantityModal";
 import IntakeFormModal from "./_components/IntakeFormModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
@@ -134,6 +135,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         latestVersionNo={documentWorkspace?.checkpoints?.[0]?.latest_version_no || 1}
       />
 
+      <CreditQuantityModal
+        caseId={id}
+        opened={creditBuyOpened}
+        onClose={() => setCreditBuyOpened(false)}
+      />
     </div>
   );
 }

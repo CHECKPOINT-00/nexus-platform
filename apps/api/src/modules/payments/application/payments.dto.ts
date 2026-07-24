@@ -41,6 +41,7 @@ export interface GetPaymentResponse {
 
 export interface BankInfo {
   bankName: string;
+  bankShortCode: string;
   accountNumber: string;
   accountName: string;
   transferContent: string;

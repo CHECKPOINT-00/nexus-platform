@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findCaseByIdWithMembers as defaultFindCaseByIdWithMembers } from "../../cases/infrastructure/persistence/case.repository.js";
 import { createUnpaidPayment as defaultCreateUnpaidPayment } from "../infrastructure/persistence/payment.repository.js";
@@ -14,13 +15,22 @@ const defaultDeps = {
   createUnpaidPayment: defaultCreateUnpaidPayment,
 };
 
-function getBankInfo(caseCode: string) {
+// Service type prefix cho SePay auto-matching (future):
+// CR = credit purchase, UP = upgrade, RF = refund
+const SERVICE_PREFIX = "CR";
+
+function generateTransferContent(caseCode: string): string {
+  const suffix = crypto.randomBytes(2).toString("hex").toUpperCase(); // 4 uppercase hex chars
+  return `${SERVICE_PREFIX}${caseCode.toUpperCase()}${suffix}`;
+}
+
+function getBankInfo(transferContent: string) {
   return {
     bankName: process.env["BANK_NAME"] || "MB Bank (Ngân hàng Quân Đội)",
+    bankShortCode: process.env["BANK_SHORT_CODE"] || "MB",
     accountNumber: process.env["BANK_ACCOUNT_NUMBER"] || "0909090909",
     accountName: process.env["BANK_ACCOUNT_NAME"] || "NEXUS PLATFORM",
-    transferContent: process.env["BANK_TRANSFER_CONTENT"]
-      || `${caseCode} thanh toan`,
+    transferContent,
   };
 }
 
@@ -50,14 +60,20 @@ export async function createPaymentUseCase(
       throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
     }
 
+    const transferContent = generateTransferContent(caseObj.case_code);
+    const metadataWithTransfer = {
+      ...(body.metadataJson ?? {}),
+      transfer_content: transferContent,
+    };
+
     const payment = await createUnpaidPayment({
       caseId: body.caseId,
       packageId: caseObj.package_id,
       amount: body.amount,
-      metadataJson: body.metadataJson ?? null,
+      metadataJson: metadataWithTransfer,
     });
 
-    const bankInfo = getBankInfo(caseObj.case_code);
+    const bankInfo = getBankInfo(transferContent);
 
     logger.info({ paymentId: payment.id, caseId: body.caseId, packageId: caseObj.package_id, amount: body.amount, duration_ms: Date.now() - __log_start }, "payment created");
 

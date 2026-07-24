@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findPaymentById as defaultFindPaymentById } from "../infrastructure/persistence/payment.repository.js";
 import type { GetPaymentResponse } from "./payments.dto.js";
@@ -10,13 +11,13 @@ const defaultDeps = {
   findPaymentById: defaultFindPaymentById,
 };
 
-function getBankInfo(caseCode: string) {
+function getBankInfo(transferContent: string) {
   return {
     bankName: process.env["BANK_NAME"] || "MB Bank (Ngân hàng Quân Đội)",
+    bankShortCode: process.env["BANK_SHORT_CODE"] || "MB",
     accountNumber: process.env["BANK_ACCOUNT_NUMBER"] || "0909090909",
     accountName: process.env["BANK_ACCOUNT_NAME"] || "NEXUS PLATFORM",
-    transferContent: process.env["BANK_TRANSFER_CONTENT"]
-      || `${caseCode} thanh toan`,
+    transferContent,
   };
 }
 
@@ -33,14 +34,17 @@ export async function getPaymentUseCase(
     throw new AppError(404, "PAYMENT_NOT_FOUND", "Không tìm thấy thông tin giao dịch");
   }
 
-  // Verify access: owner or admin passed in as userId (controller checks role)
-  // The controller already enforces auth; here we ensure payment belongs to user's case
-  // OR the user is admin (handled at controller level)
-
   const caseRecord = (payment as any).case;
   const caseCode: string = caseRecord?.case_code ?? "";
 
-  const bankInfo = getBankInfo(caseCode);
+  // Read transfer content from stored metadata; fallback to generated
+  const SERVICE_PREFIX = "CR";
+  const metadataJson = (payment as any).metadata_json as Record<string, unknown> | null;
+  const transferContent =
+    (metadataJson?.transfer_content as string) ||
+    `${SERVICE_PREFIX}${caseCode.toUpperCase()}${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+
+  const bankInfo = getBankInfo(transferContent);
 
   return {
     id: payment.id,

@@ -84,37 +84,49 @@ export default function PaymentPage() {
           </span>
         </div>
 
-        {/* Bank info */}
-        <div className="bg-brand-subtle/20 border border-brand/10 rounded-xl p-5 space-y-4">
-          <h3 className="font-heading font-semibold text-sm text-brand flex items-center gap-2">
-            <CreditCard className="w-4 h-4" />
-            Thông tin chuyển khoản
-          </h3>
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between py-1">
-              <span className="text-text-muted">Ngân hàng</span>
-              <span className="font-bold">{payment.bankInfo?.bankName || "MB Bank (Ngân hàng Quân Đội)"}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-text-muted">Số tài khoản</span>
-              <span className="font-bold">{payment.bankInfo?.accountNumber || "0909090909"}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-text-muted">Chủ tài khoản</span>
-              <span className="font-bold">{payment.bankInfo?.accountName || "NEXUS PLATFORM"}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-text-muted">Số tiền</span>
-              <span className="font-bold text-brand">{payment.amount?.toLocaleString("vi-VN")}₫</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-text-muted">Nội dung CK</span>
-              <span className="font-bold text-xs uppercase font-mono px-2 py-1 bg-brand-soft/30 border border-brand/10 rounded text-brand">
-                {payment.transferContent || (payment.case_code ? `${payment.case_code} thanh toan` : "Thanh toan credit")}
-              </span>
-            </div>
-          </div>
-        </div>
+	        {/* Bank info + QR */}
+	        <div className="bg-brand-subtle/20 border border-brand/10 rounded-xl p-5 space-y-4">
+	          <h3 className="font-heading font-semibold text-sm text-brand flex items-center gap-2">
+	            <CreditCard className="w-4 h-4" />
+	            Thông tin chuyển khoản
+	          </h3>
+
+	          {/* QR Code */}
+	          {payment.bankInfo?.accountNumber && (
+	            <div className="flex justify-center py-2">
+	              <img
+	                src={`https://img.vietqr.io/image/${payment.bankInfo.bankShortCode || "MB"}-${payment.bankInfo.accountNumber}-qr_only.png?amount=${payment.amount}&addInfo=${encodeURIComponent(payment.bankInfo.transferContent)}&accountName=${encodeURIComponent(payment.bankInfo.accountName)}`}
+	                alt="QR thanh toán"
+	                className="w-48 h-48 rounded-lg border border-border-app bg-white"
+	              />
+	            </div>
+	          )}
+
+	          <div className="space-y-3 text-xs">
+	            <div className="flex justify-between py-1">
+	              <span className="text-text-muted">Ngân hàng</span>
+	              <span className="font-bold">{payment.bankInfo?.bankName || "MB Bank (Ngân hàng Quân Đội)"}</span>
+	            </div>
+	            <div className="flex justify-between py-1">
+	              <span className="text-text-muted">Số tài khoản</span>
+	              <span className="font-bold">{payment.bankInfo?.accountNumber || "0909090909"}</span>
+	            </div>
+	            <div className="flex justify-between py-1">
+	              <span className="text-text-muted">Chủ tài khoản</span>
+	              <span className="font-bold">{payment.bankInfo?.accountName || "NEXUS PLATFORM"}</span>
+	            </div>
+	            <div className="flex justify-between py-1">
+	              <span className="text-text-muted">Số tiền</span>
+	              <span className="font-bold text-brand">{payment.amount?.toLocaleString("vi-VN")}₫</span>
+	            </div>
+	            <div className="flex justify-between py-1">
+	              <span className="text-text-muted">Nội dung CK</span>
+	              <span className="font-bold text-xs uppercase font-mono px-2 py-1 bg-brand-soft/30 border border-brand/10 rounded text-brand">
+	                {payment.bankInfo?.transferContent || "Thanh toan credit"}
+	              </span>
+	            </div>
+	          </div>
+	        </div>
 
         {/* Payment actions */}
         {payment.status === "unpaid" && (

@@ -46,6 +46,7 @@ export async function createUnpaidPayment(data: {
       package_id: data.packageId,
       amount: data.amount,
       status: "unpaid",
+      metadata_json: data.metadataJson ?? undefined,
     },
   });
 }
