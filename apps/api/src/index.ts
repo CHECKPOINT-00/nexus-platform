@@ -17,6 +17,7 @@ import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
+import logger from './shared/infrastructure/logger.js'
 
 
 type Variables = { correlationId: string }
@@ -28,22 +29,43 @@ app.use(
   cors({
     origin: (origin) =>
       /^http:\/\/localhost:(3000|3001)$/.test(origin) ? origin : null,
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   }),
 )
 
-// Correlation ID middleware — injects per-request UUID
+// Correlation ID + request logging middleware
 app.use('/api/*', async (c, next) => {
   const correlationId = crypto.randomUUID()
   c.set('correlationId', correlationId)
+
+  const start = Date.now()
   await next()
+  const duration = Date.now() - start
+
+  // Log completed requests (skip healthcheck noise in production)
+  const path = c.req.path
+  if (path === '/health' || path === '/ready') return
+
+  logger.info({
+    correlationId,
+    method: c.req.method,
+    path,
+    status: c.res.status,
+    duration_ms: duration,
+  }, 'request completed')
 })
 
 // Idempotency middleware — Stripe-style Idempotency-Key for POST/PATCH
+// cacheKeyPrefix: userId-based isolation prevents cross-tenant replay.
+// Falls back to "anon:" for unauthenticated routes (/api/packages).
 app.use("/api/*", idempotency({
   store: memoryStore(),
+  cacheKeyPrefix: (c) => {
+    const userId = (c.get("user") as { id: string } | undefined)?.id;
+    return userId ? `${userId}:` : "anon:";
+  },
   required: false,
   methods: ["POST", "PATCH"],
   maxKeyLength: 256,
@@ -116,7 +138,7 @@ app.route('/api/documents', documentsRouter)
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {
   const correlationId = (c.get('correlationId') as string) ?? 'unknown'
-  console.error('[Unhandled]', { correlationId, error: err instanceof Error ? err.message : String(err) })
+  logger.error({ correlationId, err }, `Unhandled error: ${err instanceof Error ? err.message : String(err)}`)
 
   if (err instanceof AppError) {
     return c.json({ code: err.code, message: err.message }, err.status as 200)
@@ -132,6 +154,6 @@ if (process.env.NODE_ENV !== 'test') {
     fetch: app.fetch,
     port
   }, (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`)
+    logger.info({ port: info.port }, 'server started')
   })
 }
