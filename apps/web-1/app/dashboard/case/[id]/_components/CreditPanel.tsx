@@ -1,99 +1,102 @@
 "use client";
 
-import React from "react";
-import { Coins, AlertCircle, CreditCard } from "lucide-react";
+import React, { useState } from "react";
+import { Coins, AlertCircle } from "lucide-react";
 import { Button } from "@mantine/core";
+import CreditBalanceCard from "./CreditBalanceCard";
+import CreditActions from "./CreditActions";
+import CreditTransactionHistory from "./CreditTransactionHistory";
 
 interface CreditPanelProps {
   creditBalance: number | null | undefined;
+  creditLedger?: Array<{
+    id: string;
+    amount: number;
+    balance_after: number;
+    type: "purchase" | "consumption" | "refund";
+    reference_id: string | null;
+    created_at: string;
+  }>;
+  packageName?: string;
+  pricePerCredit?: number;
   onBuyCredits: () => void;
 }
 
-export default function CreditPanel({ creditBalance, onBuyCredits }: CreditPanelProps) {
-  // State 1: No credit yet (balance = 0, never bought)
+export default function CreditPanel({
+  creditBalance,
+  creditLedger,
+  packageName,
+  pricePerCredit,
+  onBuyCredits,
+}: CreditPanelProps) {
+  const balance = creditBalance ?? 0;
+  const hasCredits = balance > 0;
+  const isZero = balance === 0 && creditBalance !== null && creditBalance !== undefined;
+  const [showHistory, setShowHistory] = useState(hasCredits && (creditLedger?.length ?? 0) > 0);
+
+  // State: never bought credits (balance is null/undefined)
   if (creditBalance === undefined || creditBalance === null) {
     return (
-      <div className="bg-surface-app border border-border-app rounded-lg p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-brand-soft/30 text-brand flex items-center justify-center">
-            <Coins className="w-5 h-5" />
+      <div className="space-y-5 animate-fade-in">
+        {/* Hero CTA — gọn gàng, không bị kéo full width */}
+        <div className="bg-surface-app border border-border-app rounded-xl p-8 flex flex-col sm:flex-row items-center gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-brand-soft/30 text-brand flex items-center justify-center shrink-0">
+            <Coins className="w-7 h-7" />
           </div>
-          <div>
-            <h3 className="font-heading font-bold text-sm text-text-app">Credit</h3>
-            <p className="font-body text-xs text-text-muted">Gói miễn phí</p>
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="text-lg font-bold text-text-app">Mua credit để bắt đầu</h2>
+            <p className="text-sm text-text-muted mt-1 max-w-md">
+              Mua credit để mở khoá đầy đủ tính năng đánh giá chuyên sâu từ Supporter.
+              Mỗi credit tương ứng một lượt đánh giá.
+            </p>
           </div>
+          <Button
+            onClick={onBuyCredits}
+            color="brand"
+            size="md"
+            leftSection={<Coins className="w-4 h-4" />}
+            className="font-semibold shrink-0 cursor-pointer"
+          >
+            Mua credit
+          </Button>
         </div>
-        <p className="font-body text-xs text-text-muted leading-relaxed">
-          Mua credit để mở khoá đầy đủ tính năng đánh giá chuyên sâu.
-        </p>
-        <Button
-          onClick={onBuyCredits}
-          color="brand"
-          fullWidth
-          leftSection={<CreditCard className="w-4 h-4" />}
-          className="font-body font-semibold text-xs h-9"
-        >
-          Mua credit
-        </Button>
       </div>
     );
   }
 
-  // State 2: Has credit balance
-  if (creditBalance > 0) {
-    return (
-      <div className="bg-surface-app border border-border-app rounded-lg p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-success-soft text-success flex items-center justify-center">
-            <Coins className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-heading font-bold text-sm text-text-app">Credit</h3>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-success-soft text-success border border-success/20">
-              Còn {creditBalance} credit
-            </span>
-          </div>
-        </div>
-        <Button
-          onClick={onBuyCredits}
-          color="brand"
-          variant="light"
-          fullWidth
-          leftSection={<CreditCard className="w-4 h-4" />}
-          className="font-body font-semibold text-xs h-9"
-        >
-          Mua thêm credit
-        </Button>
-      </div>
-    );
-  }
-
-  // State 3: Zero credit (exhausted)
   return (
-    <div className="bg-surface-app border border-danger/20 rounded-lg p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-danger-soft text-danger flex items-center justify-center">
-          <AlertCircle className="w-5 h-5" />
+    <div className="space-y-5 animate-fade-in">
+      {/* ── 3 stat cards: balance | price | package ── */}
+      <CreditBalanceCard
+        creditBalance={balance}
+        packageName={packageName}
+        pricePerCredit={pricePerCredit}
+      />
+
+      {/* ── Action bar ── */}
+      <CreditActions
+        onBuyCredits={onBuyCredits}
+        onViewHistory={() => setShowHistory(!showHistory)}
+        hasCredits={hasCredits}
+      />
+
+      {/* ── Zero credit warning ── */}
+      {isZero && (
+        <div className="bg-danger-soft border border-danger/10 rounded-xl px-5 py-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-danger shrink-0" />
+          <p className="text-sm font-medium text-danger">
+            Bạn đã dùng hết credit. Mua thêm để tiếp tục sử dụng dịch vụ.
+          </p>
         </div>
-        <div>
-          <h3 className="font-heading font-bold text-sm text-text-app">Credit</h3>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-danger-soft text-danger border border-danger/20">
-            Hết credit
-          </span>
-        </div>
-      </div>
-      <p className="font-body text-xs text-text-muted leading-relaxed">
-        Bạn cần mua thêm credit để tiếp tục sử dụng dịch vụ.
-      </p>
-      <Button
-        onClick={onBuyCredits}
-        color="brand"
-        fullWidth
-        leftSection={<CreditCard className="w-4 h-4" />}
-        className="font-body font-semibold text-xs h-9"
-      >
-        Mua thêm credit
-      </Button>
+      )}
+
+      {/* ── Transaction history ── */}
+      {showHistory && (
+        <CreditTransactionHistory entries={creditLedger} />
+      )}
+
+      {/* ── Future sections slot ── */}
+      {/* Add more credit-related sections here (auto-refill, promo, gifting, etc.) */}
     </div>
   );
 }

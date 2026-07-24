@@ -19,6 +19,21 @@ export async function getCreditBalanceForTx(tx: any, caseId: string): Promise<nu
   return latest?.balance_after ?? 0;
 }
 
+export async function getCreditLedgerByCaseId(caseId: string) {
+  return await prisma.creditLedger.findMany({
+    where: { case_id: caseId },
+    orderBy: { created_at: "desc" },
+    select: {
+      id: true,
+      amount: true,
+      balance_after: true,
+      type: true,
+      reference_id: true,
+      created_at: true,
+    },
+  });
+}
+
 export async function createCreditEntry(data: {
   caseId: string;
   amount: number;
