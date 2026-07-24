@@ -37,17 +37,8 @@ export async function getAdminStatsUseCase(): Promise<AdminStatsResponse> {
   });
   const totalRevenue = revenueAgg._sum.amount ?? 0;
 
-  // 5. SLA breach — active cases with overdue audit rounds
-  const slaResult: { count: bigint }[] = await prisma.$queryRaw`
-    SELECT COUNT(DISTINCT c.id)::bigint as count
-    FROM cases c
-    WHERE c.internal_status NOT IN ('completed', 'cancelled')
-      AND EXISTS (
-        SELECT 1 FROM audit_rounds ar
-        WHERE ar.case_id = c.id AND ar.sla_deadline_at < NOW()
-      )
-  `;
-  const slaBreachCount = Number(slaResult[0]?.count ?? 0);
+  // 5. SLA breach — removed audit_rounds dependency (table no longer exists)
+  const slaBreachCount = 0;
 
   // 6. Cases by stage
   const stageGroups = await prisma.case.groupBy({

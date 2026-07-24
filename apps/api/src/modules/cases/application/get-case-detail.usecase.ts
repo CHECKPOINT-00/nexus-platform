@@ -12,7 +12,7 @@ import {
   findLatestApprovedReport,
   findApprovedReports,
 } from "../../reports/infrastructure/persistence/report.repository.js";
-import { getCreditBalance } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { canTransition } from "../infrastructure/persistence/case-workflow-engine.js";
 import { caseWorkflow } from "../domain/case-workflow.js";
 import { prisma } from "../../../db.js";
@@ -74,16 +74,6 @@ function toBaseResponse(caseDetails: any) {
     payments: caseDetails.payments,
     messages: caseDetails.messages,
     events: caseDetails.events,
-    audit_rounds: (caseDetails.audit_rounds || []).map((ar: any) => ({
-      id: ar.id,
-      caseId: ar.case_id,
-      roundNumber: ar.round_number,
-      paymentId: ar.payment_id,
-      checkpointId: ar.checkpoint_id,
-      slaDeadlineAt: ar.sla_deadline_at ? new Date(ar.sla_deadline_at).toISOString() : null,
-      status: ar.status,
-      createdAt: new Date(ar.created_at).toISOString(),
-    })),
   };
 }
 
@@ -155,12 +145,16 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     : baseCase;
 
   // ── Derived fields ────────────────────────────────────────────────────────
-  const credit_balance = await getCreditBalance(caseId);
+  const [credit_balance, credit_ledger] = await Promise.all([
+    getCreditBalance(caseId),
+    getCreditLedgerByCaseId(caseId),
+  ]);
   const allowed_transitions = caseWorkflow.transitions
     .filter(t => canTransition(caseDetails, t.name))
     .map(t => t.name);
 
   (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
+  (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;
   (caseResponse as Record<string, unknown>).allowed_transitions = allowed_transitions;
 
   return {

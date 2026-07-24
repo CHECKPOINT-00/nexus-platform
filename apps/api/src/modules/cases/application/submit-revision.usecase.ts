@@ -291,7 +291,14 @@ export async function submitSupporterOutputUploadUseCase(
   }
 
   const uploadedDocuments = validatePostIntakeDocumentInputs(body.documents);
-  await validateDocumentsByFlow(findActiveDocumentTypeByCode, uploadedDocuments, "supporter_output", "version");
+  // Override ALL documents to supporter_output — the frontend no longer sends a
+  // meaningful document_type_code after the merge-supporter-output-doc-types refactor.
+  // This also protects against stale frontend clients still sending
+  // doc_type: "supporter_attachment" after the DB deactivation (T3).
+  const normalizedDocuments = uploadedDocuments.map(
+    (d) => ({ ...d, doc_type: "supporter_output" as const }),
+  );
+  await validateDocumentsByFlow(findActiveDocumentTypeByCode, normalizedDocuments, "supporter_output", "version");
 
   const checkpoint = selectCheckpoint(caseDetails);
   if (!checkpoint) {
@@ -304,7 +311,7 @@ export async function submitSupporterOutputUploadUseCase(
       checkpointId: checkpoint.id,
       userId,
       note: body.note,
-      documents: uploadedDocuments,
+      documents: normalizedDocuments,
     });
     logger.info({ caseId, transition: 'supporter_output', actorId: userId, actorRole: 'supporter', duration_ms: Date.now() - startTime }, 'case transition: supporter_output');
     return result;

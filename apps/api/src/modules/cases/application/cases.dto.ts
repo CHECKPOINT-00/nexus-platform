@@ -57,7 +57,7 @@ export interface SubmitRevisionUploadRequest {
 }
 
 export interface SupporterOutputUploadRequest {
-  document_type_code: string;
+  document_type_code?: string;
   note?: string;
   documents: UploadedDocumentDraftInput[];
 }
