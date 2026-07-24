@@ -39,7 +39,7 @@ export default function StatsDashboard({ data, isLoading }: StatsDashboardProps)
     },
     {
       label: "Doanh thu",
-      value: `${data.totalRevenue.toLocaleString("vi-VN")}₫`,
+      value: `${data.totalRevenue.toLocaleString("vi-VN")} VND`,
       icon: DollarSign,
       color: "#22c55e",
       valueClass: "text-green-500",

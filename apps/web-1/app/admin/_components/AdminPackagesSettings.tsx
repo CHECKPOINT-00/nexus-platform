@@ -144,7 +144,7 @@ export default function AdminPackagesSettings({
                     />
                   </Table.Td>
                   <Table.Td>
-                    <Text fw={600}>{formatPrice(pkg.price)}</Text>
+                    <Text fw={600} c="red">{formatPrice(pkg.price)}</Text>
                   </Table.Td>
                   <Table.Td>
                     <NumberInput
