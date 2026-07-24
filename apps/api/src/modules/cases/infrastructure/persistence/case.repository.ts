@@ -443,7 +443,6 @@ export async function submitCaseRevision(data: {
       where: { id: caseId },
       data: {
         user_facing_stage: "revision_submitted",
-        internal_status: "assigned",
       },
     });
 

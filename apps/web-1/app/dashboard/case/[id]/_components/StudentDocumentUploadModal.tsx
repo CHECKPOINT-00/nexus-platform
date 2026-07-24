@@ -1,62 +1,53 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { Modal, Button, Textarea, Select } from "@mantine/core";
+import React, { useState } from "react";
+import { Modal, Button, Textarea } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
-import {
-  useCaseRevisionUpload,
-  useDocumentTypeOptions,
-} from "../hooks/useCaseDocumentUploads";
+import { useStudentDocumentUpload } from "../hooks/useCaseDocumentUploads";
 
-interface RevisionSubmitModalProps {
+interface StudentDocumentUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   caseId: string;
 }
 
-export default function RevisionSubmitModal({ isOpen, onClose, caseId }: RevisionSubmitModalProps) {
-  const [changeSummary, setChangeSummary] = useState("");
-  const [remainingBlockers, setRemainingBlockers] = useState("");
-  const [documentTypeCode, setDocumentTypeCode] = useState("");
+const MAX_FILES = 5;
+
+export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: StudentDocumentUploadModalProps) {
+  const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: typeOptionsData } = useDocumentTypeOptions("revision", "version");
-  const { submitRevisionUpload, isSubmitting } = useCaseRevisionUpload(caseId);
-
-  const typeOptions = useMemo(
-    () =>
-      (typeOptionsData?.items || []).map((item) => ({
-        value: item.code,
-        label: item.label,
-      })),
-    [typeOptionsData],
-  );
+  const { submitStudentUpload, isSubmitting } = useStudentDocumentUpload(caseId);
 
   const handleSubmit = async () => {
     setError(null);
     try {
-      await submitRevisionUpload({
-        change_summary: changeSummary,
-        remaining_blockers: remainingBlockers || undefined,
-        document_type_code: documentTypeCode,
+      await submitStudentUpload({
+        note: note || undefined,
         files,
       });
       notifications.show({
-        title: "Nộp bản sửa thành công",
-        message: "Đã gửi bản sửa đổi thành công. Hồ sơ sẽ quay lại hàng chờ phản biện.",
+        title: "Tải tài liệu thành công",
+        message: "Đã tải tài liệu bản sửa thành công.",
         color: "green",
       });
       handleClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi gửi bản sửa đổi.");
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tải tài liệu.");
     }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(event.target.files || []);
-    setFiles(selected);
+    const combined = [...files, ...selected];
+    if (combined.length > MAX_FILES) {
+      setError(`Chỉ được tải tối đa ${MAX_FILES} tài liệu. Bạn đã chọn ${combined.length} tệp.`);
+      return;
+    }
+    setError(null);
+    setFiles(combined);
   };
 
   const removeFile = (index: number) => {
@@ -64,24 +55,19 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
   };
 
   const handleClose = () => {
-    setChangeSummary("");
-    setRemainingBlockers("");
-    setDocumentTypeCode("");
+    setNote("");
     setFiles([]);
     setError(null);
     onClose();
   };
 
-  const isFormValid =
-    changeSummary.trim().length >= 10 &&
-    documentTypeCode.trim().length > 0 &&
-    files.length > 0;
+  const isFormValid = files.length > 0;
 
   return (
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title={<span className="font-heading font-bold text-sm text-text-app">Nộp bản sửa đổi</span>}
+      title={<span className="font-heading font-bold text-sm text-text-app">Tải tài liệu</span>}
       size="lg"
       radius="md"
       centered
@@ -94,29 +80,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
           </div>
         )}
 
-        <Textarea
-          label="Tóm tắt thay đổi (Tối thiểu 10 ký tự)"
-          placeholder="Ví dụ: Nhóm đã cập nhật problem framing, bổ sung dẫn chứng và chỉnh lại solution flow..."
-          value={changeSummary}
-          onChange={(e) => setChangeSummary(e.target.value)}
-          required
-          minRows={3}
-          autosize
-          variant="default"
-          radius="md"
-        />
-
-        <Select
-          label="Loại tài liệu"
-          placeholder="Chọn loại tài liệu bản sửa"
-          data={typeOptions}
-          value={documentTypeCode}
-          onChange={(value) => setDocumentTypeCode(value || "")}
-          searchable
-          nothingFoundMessage="Không có lựa chọn"
-        />
-
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label className="text-xs font-semibold text-text-app block">Tệp đính kèm</label>
           <label className="border-2 border-dashed border-border-strong hover:border-brand/40 bg-surface-soft/40 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3">
             <input
@@ -131,16 +95,21 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             </div>
             <div className="space-y-1">
               <p className="font-body text-xs font-semibold text-text-app">
-                Chọn một hoặc nhiều tệp bản sửa
+                Tải lên tài liệu bản sửa của nhóm...
               </p>
               <p className="font-body text-[10px] text-text-muted">
-                Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp.
+                Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp. Tối đa {MAX_FILES} tài liệu.
               </p>
             </div>
           </label>
 
           {files.length > 0 && (
             <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-text-muted">
+                  {files.length}/{MAX_FILES} tài liệu
+                </p>
+              </div>
               {files.map((file, index) => (
                 <div
                   key={`${file.name}-${index}`}
@@ -171,10 +140,10 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
         </div>
 
         <Textarea
-          label="Khó khăn còn lại cần giải đáp thêm (Tùy chọn)"
-          placeholder="Nếu còn điểm vướng mắc, hãy ghi tại đây để supporter giải đáp kỹ hơn ở round tới..."
-          value={remainingBlockers}
-          onChange={(e) => setRemainingBlockers(e.target.value)}
+          label="Ghi chú (Tùy chọn)"
+          placeholder="Mô tả ngắn về tài liệu này..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
           minRows={2}
           autosize
           variant="default"
@@ -192,7 +161,7 @@ export default function RevisionSubmitModal({ isOpen, onClose, caseId }: Revisio
             leftSection={<Send className="w-3.5 h-3.5" />}
             className="flex-1 font-semibold cursor-pointer"
           >
-            <span>{isSubmitting ? "Đang gửi..." : "Gửi bản sửa"}</span>
+            <span>{isSubmitting ? "Đang tải..." : "Tải lên"}</span>
           </Button>
         </div>
       </div>

@@ -14,7 +14,7 @@ import CreditPanel from "./_components/CreditPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 import IntakeFormModal from "./_components/IntakeFormModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
-import RevisionSubmitModal from "./_components/RevisionSubmitModal";
+import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import { Users } from "lucide-react";
@@ -36,7 +36,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   } = useCaseDetails(id);
 
   const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings" | "credits">("documents");
-  const [isRevisionOpen, setIsRevisionOpen] = useState(false);
+  const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
   const [intakeFormOpened, setIntakeFormOpened] = useState(false);
@@ -100,9 +100,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 size="sm"
                 color="brand"
                 className="font-semibold cursor-pointer h-8.5 text-xs shrink-0"
-                onClick={() => setIsRevisionOpen(true)}
+                onClick={() => setIsStudentUploadOpen(true)}
               >
-                Nộp bản sửa
+                Tải tài liệu
               </Button>
             </div>
           )}
@@ -126,9 +126,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   size="sm"
                   color="brand"
                   className="font-semibold cursor-pointer h-8.5 text-xs"
-                  onClick={() => setIsRevisionOpen(true)}
+                  onClick={() => setIsStudentUploadOpen(true)}
                 >
-                  Nộp bản sửa
+                  Tải tài liệu
                 </Button>
                 <Button
                   size="sm"
@@ -162,7 +162,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         </div>
       </div>
 
-      <RevisionSubmitModal isOpen={isRevisionOpen} onClose={() => setIsRevisionOpen(false)} caseId={id} />
+      <StudentDocumentUploadModal isOpen={isStudentUploadOpen} onClose={() => setIsStudentUploadOpen(false)} caseId={id} />
       <IntakeFormModal caseId={id} opened={intakeFormOpened} onClose={() => setIntakeFormOpened(false)} />
       <ExternalFeedbackUploadModal
         isOpen={isFeedbackOpen}

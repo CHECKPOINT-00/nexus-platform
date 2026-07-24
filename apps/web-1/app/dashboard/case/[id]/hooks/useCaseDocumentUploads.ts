@@ -156,3 +156,37 @@ export function useExternalFeedbackUpload(caseId: string) {
     error: mutation.error,
   };
 }
+
+export function useStudentDocumentUpload(caseId: string) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (payload: { note?: string; files: File[] }) => {
+      const documents = await Promise.all(
+        payload.files.map(async (file) => {
+          const uploaded = await uploadManagedDocument(file);
+          return {
+            ...uploaded,
+            doc_type: "revision_document",
+          };
+        }),
+      );
+
+      const changeSummary = `Tải lên: ${payload.files.map(f => f.name).join(', ')}`;
+
+      await apiClient.post(`/cases/${caseId}/revisions/upload`, {
+        change_summary: changeSummary,
+        documents,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+    },
+  });
+
+  return {
+    submitStudentUpload: mutation.mutateAsync,
+    isSubmitting: mutation.isPending,
+    error: mutation.error,
+  };
+}

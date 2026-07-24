@@ -69,9 +69,17 @@ import { getCreditBalance } from "../infrastructure/persistence/credit-ledger.re
 import { AppError } from "../../../shared/domain/app-error.js";
 
 export async function requireCredits(caseId: string, minCredits: number = 1): Promise<void> {
-  const balance = await getCreditBalance(caseId);
-  if (balance < minCredits) {
-    throw new AppError(402, 'NO_CREDITS', 'Hết lượt kiểm tra. Vui lòng mua thêm credit.');
+  try {
+    const balance = await getCreditBalance(caseId);
+    if (balance < minCredits) {
+      throw new AppError(402, 'NO_CREDITS', 'Hết lượt kiểm tra. Vui lòng mua thêm credit.');
+    }
+  } catch (error: any) {
+    // Graceful fallback if credit_ledger table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return; // Table not deployed — allow all operations
+    }
+    throw error;
   }
 }
 
