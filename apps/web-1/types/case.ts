@@ -34,7 +34,6 @@ export interface Case {
   payments?: Payment[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
-  // XOÁ: audit_rounds?: AuditRound[];
 }
 
 export interface CaseMember {
@@ -81,7 +80,6 @@ export interface Report {
   case_id: string;
   checkpoint_id: string;
   lifecycle_unit_id?: string | null;
-  // XOÁ: audit_round_id?: string | null;
   report_type: string;
   content_md: string;
   status: "draft" | "sent" | "APPROVED" | string;
@@ -113,7 +111,6 @@ export interface CaseEvent {
   actor_auth_user_id: string;
   document_id?: string | null;
   report_id?: string | null;
-  // XOÁ: audit_round_id?: string | null;
   payment_id?: string | null;
   meeting_id?: string | null;
   metadata_json?: any;
@@ -122,18 +119,6 @@ export interface CaseEvent {
   report?: Report | null;
   payment?: Payment | null;
 }
-
-// XOÁ toàn bộ:
-// export interface AuditRound {
-//   id: string;
-//   caseId: string;
-//   roundNumber: number;
-//   paymentId: string | null;
-//   checkpointId: string | null;
-//   slaDeadlineAt: string | null;
-//   status: string;
-//   createdAt: string;
-// }
 
 export interface DocumentWorkspace {
   selected_checkpoint_id: string | null;

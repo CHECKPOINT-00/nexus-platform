@@ -80,7 +80,6 @@ export function useSupporterOutputUpload(caseId: string) {
 
   const mutation = useMutation({
     mutationFn: async (payload: {
-      document_type_code: string;
       note?: string;
       files: File[];
     }) => {
@@ -89,13 +88,12 @@ export function useSupporterOutputUpload(caseId: string) {
           const uploaded = await uploadManagedDocument(file);
           return {
             ...uploaded,
-            doc_type: payload.document_type_code,
+            doc_type: "supporter_output",
           };
         }),
       );
 
       const response = await apiClient.post(`/cases/${caseId}/supporter-outputs/upload`, {
-        document_type_code: payload.document_type_code,
         note: payload.note || undefined,
         documents,
       });

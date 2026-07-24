@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Case } from "@/types";
 import { statusThemeMap } from "@/types";
-import VersionSelector from "./VersionSelector";
 import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 

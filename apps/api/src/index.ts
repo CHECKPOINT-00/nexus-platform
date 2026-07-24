@@ -10,6 +10,7 @@ import { auth } from './auth.js'
 import { casesRouter } from './modules/cases/http/cases.routes.js'
 import { reportsRouter } from './modules/reports/http/reports.routes.js'
 import { paymentsRouter } from './modules/payments/http/payments.routes.js'
+import { sepayRouter } from './modules/payments/http/sepay.routes.js'
 import { packagesRouter } from './modules/packages/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
@@ -58,9 +59,9 @@ app.use('/api/*', async (c, next) => {
 })
 
 // Idempotency middleware — Stripe-style Idempotency-Key for POST/PATCH
-// cacheKeyPrefix: userId-based isolation prevents cross-tenant replay.
-// Falls back to "anon:" for unauthenticated routes (/api/packages).
-app.use("/api/*", idempotency({
+// Skip multipart uploads (body consumed by middleware breaks file parsing).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const idempMw: any = idempotency({
   store: memoryStore(),
   cacheKeyPrefix: (c) => {
     const userId = (c.get("user") as { id: string } | undefined)?.id;
@@ -69,7 +70,13 @@ app.use("/api/*", idempotency({
   required: false,
   methods: ["POST", "PATCH"],
   maxKeyLength: 256,
-}))
+});
+
+app.use("/api/*", async (c, next) => {
+  const ct = c.req.header("content-type") || "";
+  if (ct.startsWith("multipart/")) return next();
+  return idempMw(c, next);
+});
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -129,6 +136,7 @@ app.get('/session', async (c) => {
 app.route('/api/cases', casesRouter)
 app.route('/api/reports', reportsRouter)
 app.route('/api/payments', paymentsRouter)
+app.route('/api/payments', sepayRouter)
 app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)

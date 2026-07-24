@@ -54,6 +54,9 @@ export function handleError(c: any, e: unknown) {
       e.status,
     );
   }
-  logger.error({ err: e, code: 'INTERNAL_ERROR' }, 'handleError: unhandled controller error');
+  const msg = e instanceof Error ? e.message : String(e);
+  const stack = e instanceof Error ? e.stack : undefined;
+  logger.error({ err: e, code: 'INTERNAL_ERROR' }, `handleError: unhandled controller error — ${msg}`);
+  console.error('[handleError]', msg, stack ?? '');
   return c.json({ code: "INTERNAL_ERROR", message: "Lỗi hệ thống" }, 500);
 }
