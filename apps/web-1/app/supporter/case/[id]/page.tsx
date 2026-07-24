@@ -66,8 +66,8 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         hideCredits
       />
 
-      <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
+      <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
+        {activeTab !== "discussion" && <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />}
 
         {caseRequiresPayment(caseData) && (
           <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
@@ -75,7 +75,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="flex-grow min-h-0">
+        <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end">

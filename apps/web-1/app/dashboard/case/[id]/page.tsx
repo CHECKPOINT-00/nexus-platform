@@ -14,6 +14,7 @@ import CreditPanel from "./_components/CreditPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 import IntakeFormModal from "./_components/IntakeFormModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
+import RevisionSubmitModal from "./_components/RevisionSubmitModal";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import { Users } from "lucide-react";
@@ -35,11 +36,15 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   } = useCaseDetails(id);
 
   const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings" | "credits">("documents");
+  const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
   const [intakeFormOpened, setIntakeFormOpened] = useState(false);
 
   const creditBalance = caseData?.credit_balance ?? null;
+  const creditLedger = caseData?.credit_ledger ?? undefined;
+  const packageName = caseData?.package?.name ?? undefined;
+  const pricePerCredit = caseData?.package?.price ?? undefined;
 
   if (isLoading) {
     return (
@@ -71,19 +76,38 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         creditBalance={creditBalance}
       />
 
-      <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        {activeTab !== "discussion" && activeTab !== "credits" && (
-          <>
-            <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
+      <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
+        {activeTab !== "discussion" && <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />}
 
-            <UnpaidAlertBanner
-              caseData={caseData}
-              onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
-            />
-          </>
+        {(activeTab === "timeline" || activeTab === "settings") && (
+          <UnpaidAlertBanner
+            caseData={caseData}
+            onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
+          />
         )}
 
-        <div className="flex-grow min-h-0">
+        {/* Revision prompt banner — visible on report_ready / waiting_for_revision */}
+        {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") &&
+          (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
+            <div className="p-4 bg-brand-soft/20 border border-brand/10 rounded-xl font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
+              <div className="space-y-1">
+                <h5 className="font-bold text-brand">Hồ sơ đã có báo cáo phản biện</h5>
+                <p className="text-text-muted">
+                  Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới để Supporter thẩm định vòng tiếp theo.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                color="brand"
+                className="font-semibold cursor-pointer h-8.5 text-xs shrink-0"
+                onClick={() => setIsRevisionOpen(true)}
+              >
+                Nộp bản sửa
+              </Button>
+            </div>
+          )}
+
+        <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">
@@ -98,6 +122,14 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                     Cập nhật thông tin
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="font-semibold cursor-pointer h-8.5 text-xs"
+                  onClick={() => setIsRevisionOpen(true)}
+                >
+                  Nộp bản sửa
+                </Button>
                 <Button
                   size="sm"
                   color="brand"
@@ -117,6 +149,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "credits" && (
             <CreditPanel
               creditBalance={creditBalance}
+              creditLedger={creditLedger}
+              packageName={packageName}
+              pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
               onBuyCredits={() => setCreditBuyOpened(true)}
             />
           )}
@@ -127,6 +162,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         </div>
       </div>
 
+      <RevisionSubmitModal isOpen={isRevisionOpen} onClose={() => setIsRevisionOpen(false)} caseId={id} />
       <IntakeFormModal caseId={id} opened={intakeFormOpened} onClose={() => setIntakeFormOpened(false)} />
       <ExternalFeedbackUploadModal
         isOpen={isFeedbackOpen}
