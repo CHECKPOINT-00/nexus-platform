@@ -45,4 +45,5 @@ export interface BankInfo {
   accountNumber: string;
   accountName: string;
   transferContent: string;
+  qrUrl: string;
 }

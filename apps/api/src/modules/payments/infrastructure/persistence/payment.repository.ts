@@ -46,24 +46,21 @@ export async function createUnpaidPayment(data: {
       package_id: data.packageId,
       amount: data.amount,
       status: "unpaid",
-      metadata_json: data.metadataJson ?? undefined,
+      metadata_json: (data.metadataJson ?? undefined) as any,
     },
   });
 }
 
-export async function createPaymentProof(data: {
+export async function submitPaymentProof(data: {
+  paymentId: string;
   caseId: string;
-  packageId: string;
-  amount: number;
   proofFileUrl: string;
   userId: string;
 }) {
   return await prisma.$transaction(async (tx: any) => {
-    const payment = await tx.payment.create({
+    const payment = await tx.payment.update({
+      where: { id: data.paymentId },
       data: {
-        case_id: data.caseId,
-        package_id: data.packageId,
-        amount: data.amount,
         status: "pending_verification",
         proof_file_url: data.proofFileUrl,
       },
@@ -81,8 +78,8 @@ export async function createPaymentProof(data: {
         case_id: data.caseId,
         event_type: "payment_proof_uploaded",
         actor_auth_user_id: data.userId,
-        payment_id: payment.id,
-        metadata_json: { payment_id: payment.id, amount: data.amount },
+        payment_id: data.paymentId,
+        metadata_json: { payment_id: data.paymentId, amount: payment.amount },
       },
     });
 
@@ -129,7 +126,12 @@ export async function verifyPayment(data: {
     if (status === "paid") {
       // --- Credit purchase on successful verification ---
       const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
-      const quantity = paymentRecord?.amount ?? 1;
+      // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)
+      // Fallback: derive from payment.amount / CREDIT_PRICE (handles old data where metadata was lost)
+      const metaQuantity = (paymentRecord?.metadata_json as Record<string, unknown> | null)?.quantity;
+      const quantity = typeof metaQuantity === 'number'
+        ? metaQuantity
+        : Math.round((paymentRecord?.amount ?? 0) / 39000) || 1;
 
       // Get current credit balance
       const latestLedger = await tx.creditLedger.findFirst({
@@ -160,36 +162,6 @@ export async function verifyPayment(data: {
           payment_id: paymentId,
           metadata_json: { quantity, new_balance: newBalance, payment_id: paymentId },
         },
-      });
-
-      // Update audit rounds: set all linked rounds in_progress + SLA on lowest round
-      const updatedRounds = await tx.auditRound.updateMany({
-        where: { payment_id: paymentId },
-        data: {
-          status: "in_progress",
-          sla_deadline_at: null,
-        },
-      });
-
-      if (updatedRounds.count > 0) {
-        const firstRound = await tx.auditRound.findFirst({
-          where: { payment_id: paymentId },
-          orderBy: { round_number: "asc" },
-        });
-        if (firstRound) {
-          await tx.auditRound.update({
-            where: { id: firstRound.id },
-            data: {
-              sla_deadline_at: new Date(Date.now() + 48 * 60 * 60 * 1000),
-            },
-          });
-        }
-      }
-    } else {
-      // rejected: set linked rounds to payment_rejected
-      await tx.auditRound.updateMany({
-        where: { payment_id: paymentId },
-        data: { status: "payment_rejected" },
       });
     }
 

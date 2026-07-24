@@ -1,6 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { fileStorageService } from "../infrastructure/file-storage.service.js";
-import { createPaymentProof } from "../infrastructure/persistence/payment.repository.js";
+import { submitPaymentProof } from "../infrastructure/persistence/payment.repository.js";
 import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
@@ -17,14 +17,14 @@ type UploadPaymentProofDeps = {
   findCaseById?: typeof findCaseById;
   saveProofFile?: typeof fileStorageService.saveProofFile;
   deleteFile?: typeof fileStorageService.deleteFile;
-  createPaymentProof?: typeof createPaymentProof;
+  submitPaymentProof?: typeof submitPaymentProof;
 };
 
 const defaultDeps = {
   findCaseById,
   saveProofFile: fileStorageService.saveProofFile.bind(fileStorageService),
   deleteFile: fileStorageService.deleteFile.bind(fileStorageService),
-  createPaymentProof,
+  submitPaymentProof,
 };
 
 export async function uploadPaymentProofUseCase(
@@ -37,7 +37,7 @@ export async function uploadPaymentProofUseCase(
     findCaseById,
     saveProofFile,
     deleteFile,
-    createPaymentProof,
+    submitPaymentProof,
   } = {
     ...defaultDeps,
     ...deps,
@@ -77,10 +77,9 @@ export async function uploadPaymentProofUseCase(
     _fileUrl = proofFile.fileUrl;
 
     try {
-      const payment = await createPaymentProof({
+      const payment = await submitPaymentProof({
+        paymentId: unpaidPayment.id,
         caseId,
-        packageId,
-        amount: unpaidPayment.amount,
         proofFileUrl: proofFile.fileUrl,
         userId,
       });

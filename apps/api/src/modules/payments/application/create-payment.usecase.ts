@@ -21,16 +21,23 @@ const SERVICE_PREFIX = "CR";
 
 function generateTransferContent(caseCode: string): string {
   const suffix = crypto.randomBytes(2).toString("hex").toUpperCase(); // 4 uppercase hex chars
-  return `${SERVICE_PREFIX}${caseCode.toUpperCase()}${suffix}`;
+  const clean = caseCode.replace(/[^a-zA-Z0-9]/g, "");
+  return `${SERVICE_PREFIX}${clean.toUpperCase()}${suffix}`;
 }
 
-function getBankInfo(transferContent: string) {
+function getBankInfo(transferContent: string, amount: number) {
+  const bankShortCode = process.env["BANK_SHORT_CODE"] || "MB";
+  const accountNumber = process.env["BANK_ACCOUNT_NUMBER"] || "0909090909";
+  const accountName = process.env["BANK_ACCOUNT_NAME"] || "NEXUS PLATFORM";
+  const bankName = process.env["BANK_NAME"] || "MB Bank (Ngân hàng Quân Đội)";
+  const qrUrl = `https://vietqr.app/img?acc=${accountNumber}&bank=${bankShortCode}&amount=${amount}&des=${encodeURIComponent(transferContent)}&template=compact`;
   return {
-    bankName: process.env["BANK_NAME"] || "MB Bank (Ngân hàng Quân Đội)",
-    bankShortCode: process.env["BANK_SHORT_CODE"] || "MB",
-    accountNumber: process.env["BANK_ACCOUNT_NUMBER"] || "0909090909",
-    accountName: process.env["BANK_ACCOUNT_NAME"] || "NEXUS PLATFORM",
+    bankName,
+    bankShortCode,
+    accountNumber,
+    accountName,
     transferContent,
+    qrUrl,
   };
 }
 
@@ -73,7 +80,7 @@ export async function createPaymentUseCase(
       metadataJson: metadataWithTransfer,
     });
 
-    const bankInfo = getBankInfo(transferContent);
+    const bankInfo = getBankInfo(transferContent, body.amount);
 
     logger.info({ paymentId: payment.id, caseId: body.caseId, packageId: caseObj.package_id, amount: body.amount, duration_ms: Date.now() - __log_start }, "payment created");
 
