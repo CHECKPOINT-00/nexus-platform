@@ -165,7 +165,8 @@ Khi Báo cáo thẩm định lần 1 của gói 79k hiện ra:
   3. **Công đoạn 3 (Rubric Evaluation):** Bóc tách và đối chiếu 13 trường dữ liệu bài nộp với bộ tiêu chí chuẩn.
   4. **Công đoạn 4 (Report Formatting):** Đóng gói báo cáo chuẩn hóa gồm bảng tổng kết, điểm trừ và hướng dẫn hành động.
 
-* **13 Trường dữ liệu nộp bài Checkpoint 1 FPT EXE101:**
+* **13 Trường dữ liệu Checkpoint 1 FPT EXE101 (Được AI bóc tách từ tài liệu bài nộp):**
+  > 💡 **Lưu ý Codebase-First:** Trên giao diện web thực tế (`apps/web-1/app/dashboard/intake/` tuân thủ `Cp1IntakeSchema` trong `packages/validation`), sinh viên nộp bài bằng cách tải lên file tài liệu (PDF, DOCX, Slide) hoặc đính kèm link Google Drive. Sinh viên KHÔNG nhập 13 ô text riêng lẻ trên web. 13 trường dữ liệu dưới đây là **cấu trúc thông tin cốt lõi bên trong tài liệu bài làm** mà AI Engine có nhiệm vụ trích xuất (extract & parse) trước khi đưa vào bộ Rubrics:
   1. *Idea name* (Tên ý tưởng)
   2. *Target customer* (Khách hàng mục tiêu)
   3. *Customer story* (Bối cảnh/Câu chuyện thực tế)
@@ -179,7 +180,6 @@ Khi Báo cáo thẩm định lần 1 của gói 79k hiện ra:
   11. *Business model* (Mô hình kiếm tiền sơ khởi)
   12. *MVP / Validation path* (Lộ trình kiểm chứng nhỏ nhất)
   13. *Team feasibility* (Khả năng thực thi của nhóm)
-
 ### 5.2. So sánh 4 Hướng Triển khai Tiêu chí
 Trong buổi brainstorm, 4 hướng triển khai tiêu chí kỹ thuật đã được phân tích và đánh giá:
 
@@ -570,25 +570,35 @@ PR #34 (`feat/payment-flow-shortcut-fix`) đã giải quyết rất xuất sắc
 #### A. Bối cảnh & Nguyên nhân cốt lõi:
 Nguyên lý cốt lõi của buổi brainstorm là: *"Bên ngoài bán Gói — Bên trong cấp Hạn mức Vòng đời"* (Gói 79k được cấp hạn mức: 1 lần quét đầu + 1 lần quét lại bản sửa trong vòng 24 giờ). Tuy nhiên, đây mới chỉ là khái niệm trừu tượng trong văn bản.
 
-#### B. Khoảng trống trong Cơ sở dữ liệu:
-1. **Bảng `cases` thiếu trường lưu trữ hạn mức:**
-   * Kiểm tra định nghĩa bảng `cases` trong `prisma/schema.prisma` (dòng 315–358):
-     * Không có cột `resubmissions_left` (số lượt quét lại còn lại).
-     * Không có cột `resubmission_deadline_at` (thời điểm hết hạn 24h).
-   * Nếu không có cột lưu trong DB, Backend lấy dữ liệu ở đâu để kiểm tra xem sinh viên có còn quyền quét lại hay không?
-2. **Bảng `reports` thiếu cơ chế Versioning / Round Number:**
-   * Định nghĩa bảng `reports` (`prisma/schema.prisma:476-499`) hiện tại chỉ có:
-     `id`, `case_id`, `checkpoint_id`, `lifecycle_unit_id`, `report_type`, `content_md`, `status`, `created_by`, `approved_by_auth_user_id`, `sent_at`, `document_id`.
-   * Bảng này hoàn toàn **không có cột `version` hay `round`**!
-   * Khi sinh viên nộp bài quét lại lần 2 (V2): Hệ thống sẽ tạo một bản ghi `Report` mới hay ghi đè nội dung Markdown vào bản ghi `Report` cũ?
-     * Nếu ghi đè: Toàn bộ lịch sử Báo cáo Lần 1 (V1) bị xóa sổ, không thể so sánh tiến bộ điểm số.
-     * Nếu tạo bản ghi mới: Làm sao Frontend biết bản ghi nào là V1 (lần 1), bản ghi nào là V2 (lần 2) khi cả hai đều có cùng `checkpoint_id` và cùng `report_type`?
-3. **Endpoint nộp lại không kiểm tra hạn ngạch:**
-   * `apps/api/src/modules/cases/application/resubmit-case.usecase.ts`: Endpoint `/api/cases/:id/resubmit` hiện chỉ gọi FSM transitions `T3/T4`, hoàn toàn không có logic trừ hạn ngạch hay đối chiếu mốc 24h.
+#### B. Sự thật từ Codebase & Điểm nghẽn kỹ thuật thực tế:
+1. **Cơ chế Report Versioning ĐÃ CÓ trong Codebase (Đính chính nhận định cũ):**
+   * Kiểm tra mã nguồn `get-case-detail.usecase.ts` (dòng 115–125):
+     ```typescript
+     const round_history = lifecycleUnits
+       .map((unit: any) => {
+         const report = reports.find((r: any) => r.lifecycle_unit_id === unit.id);
+         return {
+           round_no: unit.version_no,
+           submitted_at: unit.created_at,
+           submission: unit,
+           report: report || null,
+         };
+       })
+       .sort((a: any, b: any) => b.round_no - a.round_no);
+     ```
+   * Hệ thống **ĐÃ CÓ SẴN** cơ chế định danh vòng nộp và liên kết báo cáo thông qua bảng `lifecycle_units` (`version_no`, `unit_code` như `v00`, `v01`, `v02`) và trường khóa ngoại `reports.lifecycle_unit_id`.
+   * Backend đã tự động ghép từng lần nộp (`LifecycleUnit`) với `Report` tương ứng và trả về `round_history` cho Frontend hiển thị.
+2. **Tử huyệt thực sự: Thiếu Use Case AI Re-audit & Thiếu cột kiểm soát Hạn ngạch 24h:**
+   * **Luồng nộp bài sửa hiện tại bị trói vào Supporter:** Khi sinh viên nộp bài sửa, tiến trình đi qua `submitRevisionUploadUseCase` (`apps/api/src/modules/cases/application/submit-revision.usecase.ts:180-186`). Usecase này kích hoạt transition `T9_SUBMIT_REVISION`, vốn chỉ đẩy hồ sơ về trạng thái `supporter_working` cho Supporter người thật đọc bài. **Hoàn toàn chưa có usecase hay nhánh rẽ nào để kích hoạt AI Re-audit tự động cho gói 79k.**
+   * **Bảng `cases` thiếu cột kiểm soát hạn ngạch:**
+     * Không có cột `resubmissions_left` (để kiểm tra xem sinh viên đã dùng hết 1 lượt quét lại miễn phí chưa).
+     * Không có cột `resubmission_deadline_at` (mốc thời gian hết hạn đúng 24h tính từ lúc xuất bản Báo cáo V1).
+   * **Chưa có cơ chế kiểm tra tài liệu thay đổi (Diff Guardrail):** Sinh viên nộp bài CP1 là nộp file tài liệu (File PDF/Docx/Link Drive) qua `Cp1IntakeSchema` (`packages/validation/src/index.ts:288-370`). Hệ thống chưa có logic so sánh hash hoặc URL của tài liệu mới trong `document_records` để ngăn chặn việc bấm quét lại khi file bài làm chưa hề được chỉnh sửa.
 
-#### C. Bằng chứng thực tế từ Scout Agent (`ScoutPrismaSchema`):
-* `prisma/schema.prisma`: Bảng `cases` và `reports` hoàn toàn vắng bóng các trường versioning và resubmission quota.
-
+#### C. Bằng chứng thực tế từ Codebase:
+* `apps/api/src/modules/cases/application/get-case-detail.usecase.ts` (dòng 115–125): Đã map `round_history` qua `lifecycle_unit_id`.
+* `prisma/schema.prisma` (dòng 315–358): Bảng `cases` hoàn toàn không có cột `resubmissions_left` hay `resubmission_deadline_at`.
+* `apps/api/src/modules/cases/application/submit-revision.usecase.ts` (dòng 180–186): `T9_SUBMIT_REVISION` chỉ phục vụ bàn giao bài cho Supporter người thật.
 ---
 
 ### 9.6. Tử huyệt 6: Lỗ hổng vận hành Gói 149k (Thiếu Auto-assign Supporter & Giới hạn Chat 24h)
@@ -674,9 +684,11 @@ Khi xâu chuỗi và so khớp các phát hiện từ cả 6 subagent scout đ�
 ├───────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ 2. MẮT XÍCH NỘP LẠI V2 ──► DATA MODEL ──► SUPPORTER FSM (Scout 6 ↔ Scout 2 ↔ Scout 1):             │
 │    • Sinh viên bấm nộp bài sửa lần 2 trong vòng 24h.                                              │
-│    • Bảng cases KHÔNG có cột lưu hạn mức (resubmissions_left).                                    │
-│    • Bảng reports KHÔNG có cột version/round để phân biệt Báo cáo V1 vs Báo cáo V2.               │
-│    • FSM chuyển qua T19_REOPEN ──► ĐẨY VỀ supporter_working VÀ GÁN SLA 48H CHO SUPPORTER NGƯỜI THẬT!│
+│    • Bảng reports ĐÃ map qua lifecycle_units (round_history có sẵn trong get-case-detail).        │
+│    • NHƯNG bảng cases KHÔNG có cột lưu hạn mức (resubmissions_left, resubmission_deadline_at).    │
+│    • Luồng nộp bài sửa hiện tại (submitRevisionUploadUseCase) gọi T9_SUBMIT_REVISION ──► ĐẨY VỀ    │
+│      supporter_working VÀ GÁN SLA 48H CHO SUPPORTER NGƯỜI THẬT!                                   │
+│    • KHÔNG có Use Case hay event nào kích hoạt AI Re-audit tự động cho gói 79k.                   │
 │    ==> HẬU QUẢ: Gói máy chấm 79k biến thành bắt Supporter con người đi đọc bài sửa miễn phí!      │
 ├───────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ 3. MẮT XÍCH SUPPORTER 149K ──► FRONTEND SUPPORTER ──► CHAT 24H (Scout 5 ↔ Scout 6 ↔ Scout 2):      │
