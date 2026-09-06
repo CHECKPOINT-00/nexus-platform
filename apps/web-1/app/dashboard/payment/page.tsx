@@ -9,6 +9,13 @@ import { WALLET_COPY, getDepositDisplay } from "@/lib/deposit-display";
 import { useDepositDetail } from "./hooks/usePayment";
 import { ProofPreview } from "./_components/ProofPreview";
 import { ProofUpload } from "./_components/ProofUpload";
+import {
+  readBuyCreditAfterDepositIntent,
+  clearBuyCreditAfterDepositIntent,
+} from "./credit-after-deposit-intent";
+import { useFulfillCreditAfterDeposit } from "./hooks/use-fulfill-credit-after-deposit";
+import { PaymentBankInfo } from "./_components/PaymentBankInfo";
+import { PaymentDepositMeta } from "./_components/PaymentDepositMeta";
 
 const STATUS_ICONS: Record<string, LucideIcon> = {
   pending: Clock,
@@ -29,6 +36,7 @@ export default function PaymentPage() {
   const router = useRouter();
   const paymentId = useSearchParams().get("pid");
   const { data: payment, isLoading, error } = useDepositDetail(paymentId);
+  useFulfillCreditAfterDeposit(payment);
 
   if (!paymentId) {
     return (
@@ -52,13 +60,22 @@ export default function PaymentPage() {
   }
 
   if (error || !payment) {
+    const errorIntent = readBuyCreditAfterDepositIntent(paymentId);
+    const handleErrorBack = () => {
+      if (errorIntent?.caseId) {
+        router.push(`/dashboard/case/${errorIntent.caseId}`);
+      } else {
+        clearBuyCreditAfterDepositIntent(paymentId);
+        router.push("/dashboard/wallet");
+      }
+    };
     return (
       <div className="mx-auto max-w-3xl space-y-4 p-6">
         <Alert color="red" title="Lỗi">
           Không thể tải thông tin nạp tiền.
         </Alert>
-        <Button className="min-h-11" onClick={() => router.push("/dashboard/wallet")}>
-          {WALLET_COPY.backToWallet}
+        <Button className="min-h-11" onClick={handleErrorBack}>
+          {errorIntent?.caseId ? WALLET_COPY.backToCase : WALLET_COPY.backToWallet}
         </Button>
       </div>
     );
@@ -72,15 +89,24 @@ export default function PaymentPage() {
     ? new Date(payment.bank_credited_at).toLocaleString("vi-VN")
     : null;
 
+  const intent = readBuyCreditAfterDepositIntent(payment.id);
+  const handleBack = () => {
+    if (intent?.caseId) {
+      router.push(`/dashboard/case/${intent.caseId}`);
+    } else {
+      clearBuyCreditAfterDepositIntent(payment.id);
+      router.push("/dashboard/wallet");
+    }
+  };
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 motion-reduce:animate-none sm:p-6">
       <button
         type="button"
-        onClick={() => router.push("/dashboard/wallet")}
+        onClick={handleBack}
         className="flex min-h-11 cursor-pointer items-center gap-2 text-base text-text-muted hover:text-text-app"
       >
         <ArrowLeft className="h-4 w-4" />
-        {WALLET_COPY.backToWallet}
+        {intent?.caseId ? WALLET_COPY.backToCase : WALLET_COPY.backToWallet}
       </button>
 
       <div className="space-y-6 rounded-2xl border border-border-app bg-surface-app p-5 sm:p-8">
@@ -99,61 +125,16 @@ export default function PaymentPage() {
         </div>
         <p className="text-base text-text-app">{display.explanation}</p>
 
-        <div className="space-y-2 text-base">
-          <div className="flex justify-between gap-3 border-b border-border-app/40 py-1.5">
-            <span className="text-text-muted">{WALLET_COPY.requestCreated}</span>
-            <span className="text-right font-medium">{createdAt}</span>
-          </div>
-          {bankCreditedAt ? (
-            <div className="flex justify-between gap-3 border-b border-border-app/40 py-1.5">
-              <span className="text-text-muted">{WALLET_COPY.bankCredited}</span>
-              <span className="text-right font-medium">{bankCreditedAt}</span>
-            </div>
-          ) : null}
-          <div className="flex justify-between gap-3 border-b border-border-app/40 py-1.5">
-            <span className="text-text-muted">Số tiền</span>
-            <span className="text-right font-semibold">
-              {payment.amount.toLocaleString("vi-VN")} {payment.currency}
-            </span>
-          </div>
-          <div className="flex justify-between gap-3 border-b border-border-app/40 py-1.5">
-            <span className="text-text-muted">{WALLET_COPY.activityDescription}</span>
-            <span className="text-right font-medium">{WALLET_COPY.depositActivityText}</span>
-          </div>
-          <div className="flex justify-between gap-3 py-1.5">
-            <span className="text-text-muted">{WALLET_COPY.transferContent}</span>
-            <span className="text-right font-mono font-semibold">
-              {payment.transfer_content}
-            </span>
-          </div>
-        </div>
+        <PaymentDepositMeta
+          createdAt={createdAt}
+          bankCreditedAt={bankCreditedAt}
+          amount={payment.amount}
+          currency={payment.currency}
+          transferContent={payment.transfer_content}
+        />
 
         {payment.status === "pending" && payment.bankInfo?.accountNumber ? (
-          <div className="rounded-xl bg-brand-subtle/20 p-4">
-            <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
-              {payment.bankInfo.qrUrl ? (
-                <img
-                  src={payment.bankInfo.qrUrl}
-                  alt="QR chuyển khoản nạp tiền"
-                  className="h-56 w-56 rounded-xl bg-white"
-                />
-              ) : null}
-              <div className="w-full min-w-0 flex-1 space-y-3 text-base">
-                <div className="flex justify-between py-1.5">
-                  <span className="text-text-muted">Ngân hàng</span>
-                  <span className="font-semibold">{payment.bankInfo.bankName}</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-text-muted">Số tài khoản</span>
-                  <span className="font-semibold">{payment.bankInfo.accountNumber}</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-text-muted">Chủ tài khoản</span>
-                  <span className="font-semibold">{payment.bankInfo.accountName}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PaymentBankInfo bankInfo={payment.bankInfo} />
         ) : null}
 
         {hasProof && payment.proof_file_url ? (

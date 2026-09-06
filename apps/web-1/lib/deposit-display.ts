@@ -21,6 +21,7 @@ export const WALLET_COPY = {
   ledgerError: "Không thể tải hoạt động ví.",
   retry: "Thử lại",
   backToWallet: "Về trang ví",
+  backToCase: "Quay lại hồ sơ",
   newDeposit: "Tạo yêu cầu nạp mới",
   requestCreated: "Thời điểm tạo yêu cầu",
   bankCredited: "Thời điểm ngân hàng ghi nhận",
