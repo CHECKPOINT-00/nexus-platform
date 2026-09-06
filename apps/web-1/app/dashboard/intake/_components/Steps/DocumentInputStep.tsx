@@ -229,7 +229,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
                   <label className="text-sm font-semibold text-text-app">
-                    Tải lên tài liệu hồ sơ <span className="text-danger">*</span>
+                    Tải lên tài liệu <span className="text-danger">*</span>
                   </label>
                   <Tooltip
                     label="Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Dung lượng tối đa 15MB mỗi file."
