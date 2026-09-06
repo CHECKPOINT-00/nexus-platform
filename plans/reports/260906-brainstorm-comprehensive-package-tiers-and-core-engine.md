@@ -400,123 +400,178 @@ Sau khi đối chiếu trực tiếp các kết luận từ buổi brainstorm v�
 Báo cáo mới dừng ở mức định hình khái niệm nghiệp vụ (Product Concept & Pricing Framing). Nếu phân công kỹ sư hoặc subagent lập trình ngay lúc này, hệ thống sẽ gặp phải **7 tử huyệt kiến trúc cốt lõi (Core Blockers)** dưới đây:
 
 ### 9.1. Tử huyệt 1: State Machine kẹt cứng — Gói 79k chạy trên trạng thái nào? Ai trigger transition?
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG CODEBASE.**
-* **Bằng chứng mã nguồn:**
-  * `apps/api/src/modules/cases/domain/case-machine.ts` (dòng 240–243) & `case.types.ts` (dòng 17–26):
-    ```typescript
-    export const VALID_STATES: readonly InternalStatus[] = [
-      'triage_pending', 'accepted_unassigned', 'assigned', 'supporter_working',
-      'waiting_user', 'report_ready_to_publish', 'done', 'cancelled',
-    ]
-    ```
-    Toàn bộ 8 trạng thái chỉ phục vụ quy trình thủ công: Admin triage/accept, Admin gán Supporter, Supporter nhận việc và nộp báo cáo. **Hoàn toàn KHÔNG CÓ** bất kỳ trạng thái nào cho AI (`ai_evaluating`, `ai_completed`).
-  * `case-machine.ts` (dòng 74–77) — Lối thoát duy nhất của `triage_pending`:
-    ```typescript
-    T5_ACCEPT: {
-      target: 'accepted_unassigned',
-      guard: and(['isAdmin', 'hasCredit', 'hasPaymentComplete']),
-    }
-    ```
-    Bắt buộc actor là `ADMIN` (`roleVerified === 'ADMIN'`). Sinh viên thanh toán gói AI 79k xong thì Case vẫn bị kẹt cứng ở `triage_pending` cho đến khi Admin vào bấm duyệt tay!
-  * `case-machine.ts` (dòng 153–157) — Bàn giao báo cáo:
-    ```typescript
-    T11_SUBMIT_OUTPUT: {
-      target: 'report_ready_to_publish',
-      guard: and(['isAssignedSupporter', 'hasCredit']),
-      actions: ['subtractCredit', 'lockPrice'],
-    }
-    ```
-    Bắt buộc actor là `isAssignedSupporter`. AI Service không thể gọi transition này vì không phải là assigned supporter.
-  * `case-machine.ts` (dòng 213–217) — Luồng nộp lại sau khi xong:
-    ```typescript
-    done: {
-      on: {
-        T19_REOPEN: {
-          target: 'supporter_working',
-          guard: 'isOwner',
-          actions: 'setSlaDeadline', // Gán thêm SLA 48h cho Supporter
-        },
-      },
-    }
-    ```
-    Nếu sinh viên gói 79k nộp lại bản sửa V2, case nhảy thẳng sang `supporter_working` và giao hạn SLA 48h cho Supporter người thật, hoàn toàn không có đường ray cho AI tự động quét lại!
+* **Hiện trạng Codebase (`apps/api/src/modules/cases/domain/case-machine.ts`):**
+  * Tập hợp trạng thái `VALID_STATES` hiện tại chỉ phục vụ quy trình thẩm định thủ công:
+    $$\text{triage\_pending} \longrightarrow \text{accepted\_unassigned} \longrightarrow \text{assigned} \longrightarrow \text{supporter\_working} \longrightarrow \text{report\_ready\_to\_publish} \longrightarrow \text{done} \longrightarrow \text{cancelled}$$
+  * Khi một Case mới được tạo, trạng thái luôn mặc định là `triage_pending`.
+  * Lối thoát duy nhất để rời khỏi `triage_pending` là sự kiện `T5_ACCEPT`, được khóa cứng bởi guard: `isAdmin && hasCredit && hasPaymentComplete`.
+  * Sự kiện bàn giao báo cáo `T11_SUBMIT_OUTPUT` bắt buộc guard `isAssignedSupporter`.
+* **Xung đột thực tế với Gói 79k (Basic AI):**
+  1. Gói 79k được định vị là **"100% máy chấm tức thì sau 1 phút, không có can thiệp con người"**. Nhưng trong `caseMachine`, **hoàn toàn không có trạng thái `ai_evaluating` hay `ai_delivered`**, cũng không có cơ chế rẽ nhánh để bypass Admin hay Supporter.
+  2. Sau khi sinh viên thanh toán 79k, nếu Case vẫn nằm ở `triage_pending`, màn hình sinh viên sẽ hiển thị "Đang chờ Admin duyệt", làm phá vỡ hoàn toàn cam kết SLA tức thì.
+  3. Khi AI Service chạy xong, tiến trình này lấy tư cách danh tính gì (`actorId`) để gọi transition sang `report_ready_to_publish` khi mà guard chỉ chấp nhận `isAssignedSupporter`?
+* **Xung đột với Lượt Quét Lại Lần 2 (Resubmission V2 trong 24h):**
+  * Khi sinh viên nhận xong Báo cáo V1, Case chuyển sang `done` hoặc `report_ready_to_publish`.
+  * Khi sinh viên bấm "Quét lại bài đã sửa", transition nào cho phép mở lại case để máy quét tiếp?
+  * Hiện tại chỉ có sự kiện `T19_REOPEN` đưa trạng thái về `supporter_working` (chờ supporter), hoàn toàn không có đường quay lại cho AI Service.
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG CODEBASE.**
+  * `apps/api/src/modules/cases/domain/case-machine.ts` (dòng 240–243) & `case.types.ts` (dòng 17–26): Chỉ có 8 trạng thái manual, hoàn toàn không có state node nào cho AI.
+  * `case-machine.ts` (dòng 74–77): `T5_ACCEPT` bắt buộc `guard: and(['isAdmin', 'hasCredit', 'hasPaymentComplete'])`.
+  * `case-machine.ts` (dòng 153–157): `T11_SUBMIT_OUTPUT` bắt buộc `guard: and(['isAssignedSupporter', 'hasCredit'])`.
+  * `case-machine.ts` (dòng 213–217): `T19_REOPEN` đưa target về `supporter_working` và action `setSlaDeadline` (gán SLA 48h cho Supporter người thật).
+  * `case-machine.ts` (dòng 171–177): Khi sinh viên nộp revision, `T9_SUBMIT_REVISION` chỉ đưa về `supporter_working`, không có luồng AI re-audit.
 
 ### 9.2. Tử huyệt 2: Rủi ro Schema "Strong Spine, Flexible Ribs", Cold-Start & Nguy cơ Crash Foreign Key (P2003)
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG DATABASE LAYER.**
-* **Bằng chứng mã nguồn:**
-  * `prisma/schema.prisma`: Hoàn toàn **KHÔNG TỒN TẠI** các model `EvaluationCriteria`, `EvaluationIndicator`, `CaseAuditViolation`.
-  * `prisma/migrations/`: Không có migration nào chứa các bảng này. Bảng `audit_rounds` từng được tạo ở migration cũ `20260722000000_add_audit_rounds` nhưng đã bị **DROP sạch sẽ** ở migration `20260723182330_add_credit_ledger`.
-  * **Nguy cơ sập Foreign Key (P2003):** Nếu LLM sinh ra `indicator_id` lạ không có trong bảng seed, câu lệnh insert vào `case_audit_violations` sẽ ném ngoại lệ P2003 và làm sập toàn bộ transaction lưu báo cáo.
-  * **Lỗ hổng Cold-Start:** Khi mới deploy, `case_audit_violations` rỗng (0 dòng). Câu lệnh `SELECT indicator_id, COUNT(*) ... GROUP BY indicator_id ORDER BY count DESC LIMIT 3;` sẽ trả về rỗng, làm tê liệt tính năng Fast-Path Screening nếu không có bộ Fallback tĩnh được hardcode trong code.
+* **Hiện trạng Codebase & Quy tắc An toàn DB (`.agents/rules/prisma-migration-safety.md`):**
+  * Target DB của hệ thống là **Supabase PostgreSQL Production**. Quy tắc dự án nghiêm cấm chạy `prisma migrate dev` tự do, cấm mọi lệnh destructive, bắt buộc kiểm soát chặt qua `--create-only`.
+  * 3 bảng được đề xuất trong báo cáo (`evaluation_criteria`, `evaluation_indicators`, `case_audit_violations`) **chưa hề tồn tại** trong `prisma/schema.prisma`.
+* **3 Lỗ hổng kỹ thuật chí mạng chưa có lời giải:**
+  1. **Chưa có Dữ liệu Mồi (Seed Data) thực tế:** Muốn AI đối chiếu được 13 trường của Checkpoint 1, cần tối thiểu bao nhiêu criteria và bao nhiêu indicators? Báo cáo chỉ đưa ra đúng 1 ví dụ minh họa (`IND-01`). Nếu chưa biên soạn danh mục Indicators chuẩn xác, hệ thống lấy gì để seed vào DB?
+  2. **Nguy cơ sập Foreign Key (P2003 Constraint Failure) do LLM Ảo giác:**
+     * LLM sinh output dạng JSON có chứa mảng vi phạm: `[{ "indicator_id": "...", "severity": "..." }]`.
+     * Nếu LLM tự ý sinh ra một mã `indicator_id` không có sẵn trong bảng `evaluation_indicators` (hoặc định dạng sai một ký tự), khi Backend insert vào bảng `case_audit_violations`, PostgreSQL sẽ lập tức ném lỗi vi phạm khóa ngoại (**Foreign Key Violation**) và crash toàn bộ transaction lưu báo cáo!
+  3. **Lỗ hổng Khởi động nguội (Cold-Start Problem):**
+     * Báo cáo đề xuất cơ chế Fast-Path Screening: *"Agent query Top 3 chỉ báo vi phạm nhiều nhất từ `case_audit_violations` trong < 1ms"*.
+     * Nhưng khi hệ thống mới deploy lên production, bảng `case_audit_violations` hoàn toàn rỗng (0 bản ghi). Câu lệnh `GROUP BY` sẽ trả về **0 kết quả**.
+     * Chưa hề có cơ chế Fallback tĩnh (Default Hardcoded Top Indicators) để hệ thống hoạt động trong giai đoạn đầu.
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG DATABASE LAYER.**
+  * `prisma/schema.prisma`: Không có bất kỳ model nào tên `EvaluationCriteria`, `EvaluationIndicator`, `CaseAuditViolation`.
+  * `prisma/migrations/`: Không có migration nào tạo 3 bảng này. Bảng `audit_rounds` từng có ở migration cũ `20260722000000_add_audit_rounds` nhưng đã bị DROP sạch ở migration `20260723182330_add_credit_ledger`.
+  * Khi `case_audit_violations` rỗng, câu lệnh `SELECT indicator_id, COUNT(*) ... GROUP BY indicator_id ORDER BY hit_frequency DESC LIMIT 3;` sẽ trả về 0 bản ghi, gây chết đứng tính năng Fast-Path Screening nếu thiếu hardcoded fallback.
 
 ### 9.3. Tử huyệt 3: Ngộ nhận giữa "Agent tự query DB siêu tốc" và thực tế Stateless Backend Service
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG AI ENGINE.**
-* **Bằng chứng mã nguồn:**
-  * `apps/api/src/modules/ai-engine/`: Toàn bộ thư mục chỉ phục vụ Team-Idea Fit (`evaluateTeamFitUseCase`, `saveTeamFitUseCase`).
-  * `apps/api/src/modules/ai-engine/application/evaluate-team-fit.usecase.ts` (dòng 75–96): Sử dụng Vercel AI SDK (`ai: ^5.0.44` kết hợp `@ai-sdk/google: ^2.0.83`), cấu hình model mặc định `gemini-2.0-flash` tại `apps/api/src/services/google-provider.ts:23`.
-  * Cơ chế chạy: Gửi HTTP POST đồng bộ một lần duy nhất qua hàm `generateObject()`. Không có agent loop, không có tool calls, không có memory hay background queue (BullMQ/Celery).
-  * **Vắng bóng hoàn toàn CP1 Audit:** Trong `ai-engine` hoàn toàn chưa có bất kỳ file prompt, service hay usecase nào cho Checkpoint 1, Rubrics, Indicators hay Triad Framework. Từ khóa `checkpoint_1_review` chỉ là string enum thô trong `report.repository.ts:55,67`.
+* **Hiện trạng Codebase (`apps/api/src/modules/ai-engine/`):**
+  * Kiến trúc AI hiện tại của Nexus chạy trên Hono backend, sử dụng Vercel AI SDK (`generateObject`, `generateText`) để gửi API request sang Google Gemini hoặc OpenAI.
+  * Đây là một **Stateless Backend Service**, hoàn toàn không phải một Autonomous Agent chạy vòng lặp ReAct có khả năng tự gọi Tool hay tự query PostgreSQL.
+* **Cần chuẩn hóa hợp đồng kỹ thuật (Technical Contract):**
+  * Báo cáo dùng văn phong nhân hóa: *"Agent nạp payload vào bộ nhớ làm việc, trong 2 giây đầu tiên đọc bài nộp, Agent đối chiếu ngay..."*. Cách viết này che giấu bản chất thực thi thực tế.
+  * Bản chất kỹ thuật bắt buộc phải là một **TypeScript Service Function** tuần tự:
+    $$\text{Đọc DB lấy Top Indicators} \longrightarrow \text{Ghép vào System/User Prompt} \longrightarrow \text{Gọi LLM API (1-pass/2-pass)} \longrightarrow \text{Validate JSON} \longrightarrow \text{Lưu DB}$$
+  * Các tham số kỹ thuật sống còn chưa được chốt:
+    * Sử dụng model nào chính thức (`gemini-2.0-flash` hay `gpt-4o`)?
+    * Token budget tối đa là bao nhiêu?
+    * Timeout của API call là bao nhiêu giây?
+    * Xử lý retry thế nào khi LLM API bị rate limit (429) hoặc gateway timeout (504)?
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG AI ENGINE.**
+  * `apps/api/src/modules/ai-engine/`: Chỉ có 2 usecase Team-Fit (`evaluate-team-fit.usecase.ts`, `save-team-fit.usecase.ts`), hoàn toàn chưa có bất kỳ file prompt, service hay usecase nào cho Checkpoint 1, Rubrics, Indicators hay Triad Framework.
+  * `apps/api/src/modules/ai-engine/application/evaluate-team-fit.usecase.ts` (dòng 75–96): Sử dụng `ai: ^5.0.44` kết hợp `@ai-sdk/google: ^2.0.83`, model mặc định `gemini-2.0-flash` tại `apps/api/src/services/google-provider.ts:23`. Chạy đồng bộ một lần qua `generateObject()`, không có agent loop hay background queue.
 
 ### 9.4. Tử huyệt 4: Dây nối thanh toán (PR #34 Cutover) vẫn bị khóa cứng vào gói 39k cũ
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG LUỒNG THANH TOÁN.**
-* **Bằng chứng mã nguồn:**
-  * `apps/api/src/modules/orders/application/credit-audit-order.helpers.ts` (dòng 7):
+* **Hiện trạng Codebase (`apps/api/src/modules/orders/application/credit-audit-order.helpers.ts`):**
+  * Mặc dù đã merge PR #34 và hoàn thành plan `260906-1225-free-upgrade-after-order`, nhưng toàn bộ mã nguồn bên trong vẫn đang gắn cứng vào gói 39.000đ đã bị vô hiệu hóa:
     ```typescript
-    export const FREE_PACKAGE_KEY = "pkg_tf_free";
-    export const AUDIT_PACKAGE_KEY = "pkg_tf_audit"; // Hardcode gói 39k cũ
+    export const AUDIT_PACKAGE_KEY = "pkg_tf_audit"; // Gói 39k cũ (is_active = false)
     ```
-  * `credit-audit-order.helpers.ts` (dòng 58–76): Hàm `resolveCreditAuditPrice` query trực tiếp giá của `AUDIT_PACKAGE_KEY` (`pkg_tf_audit`), không có cơ chế nào để client truyền gói muốn mua.
-  * `credit-audit-order.helpers.ts` (dòng 107–112, 121–126): Hàm `applyPaidCreditCaseUpdate` hardcode ép `package_id: AUDIT_PACKAGE_KEY`.
-  * `apps/api/src/modules/cases/application/upgrade-package.usecase.ts` (dòng 10, 17–19):
-    ```typescript
-    const ALLOWED_UPGRADE_TARGET = "pkg_tf_audit";
-    if (targetPackageId !== ALLOWED_UPGRADE_TARGET) {
-      throw new AppError(400, "INVALID_PACKAGE", "Gói dịch vụ không hợp lệ để nâng cấp");
-    }
-    ```
-  * `apps/api/src/modules/orders/application/create-order.usecase.ts` (dòng 31–40): Endpoint `POST /orders` chỉ nhận `service_type === "credit_audit"`, không nhận `target_package_id`.
-  * `apps/api/src/modules/orders/application/create-order.usecase.ts` (dòng 90–167): Sau khi trừ ví thành công, chỉ bắn outbox event `DOMAIN_EVENTS.ORDER_PAID`. Listener duy nhất của event này là gửi notification (`recipients.ts:27`), **HOÀN TOÀN KHÔNG CÓ listener nào kích hoạt AI Audit cho gói 79k**.
+  * Hàm `resolveCreditAuditPrice` chỉ tìm duy nhất gói `pkg_tf_audit`.
+  * Endpoint `POST /orders` chỉ nhận `service_type: "credit_audit"`, hoàn toàn không có trường để nhận `target_package_id` (`pkg_ai_audit` 79k hay `pkg_supporter_audit` 149k).
+* **Lỗ hổng hợp đồng dữ liệu:**
+  * Khi sinh viên bấm chọn gói 79k hoặc 149k, Frontend gửi payload gì lên `POST /orders`?
+  * Sau khi SePay bắn Webhook xác nhận tiền vào ví $\rightarrow$ Hệ thống tự trừ tiền trong ví $\rightarrow$ Webhook/Order sẽ gọi Use Case nào để khởi chạy tiến trình AI Audit? Hiện tại chưa hề có Use Case này.
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG LUỒNG THANH TOÁN.**
+  * `apps/api/src/modules/orders/application/credit-audit-order.helpers.ts` (dòng 7): Hardcode `AUDIT_PACKAGE_KEY = "pkg_tf_audit"`.
+  * `credit-audit-order.helpers.ts` (dòng 58–76): `resolveCreditAuditPrice` query cố định `AUDIT_PACKAGE_KEY`.
+  * `credit-audit-order.helpers.ts` (dòng 107–112, 121–126): `applyPaidCreditCaseUpdate` hardcode gán `package_id: AUDIT_PACKAGE_KEY`.
+  * `apps/api/src/modules/cases/application/upgrade-package.usecase.ts` (dòng 10, 17–19): `ALLOWED_UPGRADE_TARGET = "pkg_tf_audit"`, ném `INVALID_PACKAGE` nếu nâng lên gói khác.
+  * `apps/api/src/modules/orders/application/create-order.usecase.ts` (dòng 31–40): Chỉ kiểm tra `service_type === CREDIT_AUDIT_SERVICE`, không nhận `target_package_id`.
+  * `create-order.usecase.ts` (dòng 90–167): Sau khi trừ ví, chỉ bắn event `DOMAIN_EVENTS.ORDER_PAID` để gửi notification (`recipients.ts:27`), **HOÀN TOÀN KHÔNG CÓ listener nào kích hoạt AI Audit cho gói 79k**.
 
 ### 9.5. Tử huyệt 5: Hạn mức Vòng đời (Resubmission Quota 24h) chưa có nơi lưu trữ vật lý trong Schema
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG DATA MODEL.**
-* **Bằng chứng mã nguồn:**
-  * `prisma/schema.prisma` (dòng 315–358) — Model `Case`: Hoàn toàn không có cột nào tên `resubmissions_left`, `resubmission_deadline_at`, hay `revision_quota`.
-  * `apps/api/src/modules/cases/application/resubmit-case.usecase.ts`: Endpoint `/api/cases/:id/resubmit` chỉ gọi transition FSM `T3_RESUBMIT_AFTER_REJECT` / `T4_RESUBMIT_AFTER_VETO`, không hề kiểm tra hay trừ quota lượt nộp lại.
-  * `prisma/schema.prisma` (dòng 476–499) — Model `Report`: Không có trường `version` hay `round` để phân biệt Report V1 vs. Report V2. Chỉ có `lifecycle_unit_id` nullable trỏ sang `lifecycle_units`.
+* **Hiện trạng Codebase:**
+  * Bảng `Case` hiện tại không có các trường quản lý lượt nộp lại (như `resubmissions_left`, `resubmission_deadline_at`).
+  * Bảng `Report` không có trường `version` hay `round` mà chỉ liên kết với `lifecycle_unit_id`.
+* **Lỗ hổng quản lý vòng đời tài liệu:**
+  * Báo cáo đề ra nguyên lý *"Bên ngoài bán Gói — Bên trong cấp Hạn mức Vòng đời"*, nhưng **chưa chỉ định hạn mức này nằm ở đâu trong Database**:
+    * Thêm cột trực tiếp vào bảng `cases`?
+    * Hay lưu dưới dạng bản ghi quyền lợi trong `credit_ledgers`?
+  * Khi sinh viên nộp bài quét lại lần 2 (V2):
+    * Theo tài liệu `LIFECYCLE_IMPLEMENTATION_SPEC.md`, hệ thống phải tạo lifecycle unit `v02` hoặc `a02-v02`.
+    * Báo cáo lần 2 sẽ được lưu thành một dòng mới trong bảng `reports` hay ghi đè lên dòng cũ?
+    * Nếu tạo dòng mới, làm sao Frontend phân biệt được đâu là Báo cáo Lần 1 và đâu là Báo cáo Lần 2 để hiển thị màn hình so sánh điểm số tiến bộ?
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG DATA MODEL.**
+  * `prisma/schema.prisma` (dòng 315–358) — Model `Case`: Không có bất kỳ cột nào tên `resubmissions_left`, `resubmission_deadline_at`, hay `revision_quota`.
+  * `apps/api/src/modules/cases/application/resubmit-case.usecase.ts`: Endpoint `/api/cases/:id/resubmit` chỉ gọi transition FSM `T3/T4`, không kiểm tra hay trừ quota 24h.
+  * `prisma/schema.prisma` (dòng 476–499) — Model `Report`: Không có trường `version` hay `round`.
 
 ### 9.6. Tử huyệt 6: Lỗ hổng vận hành Gói 149k (Thiếu Auto-assign Supporter & Giới hạn Chat 24h)
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG WORKFLOW VẬN HÀNH.**
-* **Bằng chứng mã nguồn:**
-  * `apps/api/src/modules/admin/application/assign-supporter.usecase.ts` (dòng 12–55) & `apps/api/src/modules/cases/application/assign-supporter.usecase.ts` (dòng 30–108): 100% phụ thuộc vào Admin chọn `supporterId` thủ công để chuyển `T6_ASSIGN_SUPPORTER`. Không có hàng chờ nhận case hay phân bổ tự động.
-  * `apps/api/src/modules/cases/application/send-message.usecase.ts` (dòng 10–89): Chỉ kiểm tra độ dài $\le 5000$ ký tự và rate limit 1s/tin (`claimMessageSendSlot`), **hoàn toàn không có biến đếm số lượng câu hỏi sinh viên đã gửi (luật 3 câu hỏi)**.
-  * `apps/api/src/modules/cases/application/chat-access.ts` (dòng 29–44): Hạn 24h (`CHAT_LOCK_WINDOW_MS = 24 * 3600_000`) tính từ lúc case sang stage `completed` (`T14_COMPLETE`) hoặc `creditExhaustedAt`, **không phải** tính từ thời điểm publish report.
-  * Trường `post_closure_chat_expires_at` **không tồn tại** trong `prisma/schema.prisma` (thời gian hết hạn chat đang được tính on-the-fly trong code).
-  * **Mặt trận Frontend Supporter:** `apps/web-1/app/supporter/case/[id]/page.tsx` (dòng 89–94, 153–157) chỉ có modal upload file tài liệu (`SupporterOutputUploadModal.tsx`). Mặc dù backend có API draft report (`/supporter/reports/:reportId`), nhưng **giao diện web hoàn toàn không có component nào cho Supporter xem và biên tập AI draft report**.
+* **Hiện trạng Codebase:**
+  * Hệ thống hoàn toàn không có cơ chế Tự động phân bổ Supporter (Auto-assignment). Hiện tại phụ thuộc 100% vào việc Admin đăng nhập thủ công để bấm gán qua `T6_ASSIGN_SUPPORTER`.
+  * Bảng `CaseMessage` không có trường phân loại câu hỏi hay đếm số lượt tin nhắn của sinh viên.
+* **Lỗ hổng quy trình vận hành:**
+  1. **Nghẽn cổ chai Admin:** Nếu sinh viên thanh toán gói 149k vào ban đêm mà Admin không online để gán Supporter, hồ sơ sẽ bị treo vô thời hạn. SLA 24h-48h bắt đầu tính từ thời điểm nào (lúc thanh toán hay lúc supporter nhận bài)?
+  2. **Thực thi Luật Chat 24h & 3 câu hỏi:** Báo cáo đặt ra luật: *"Nhóm được gửi tối đa 3 câu hỏi, mỗi câu $\le 500$ ký tự trong vòng 24 giờ"*. Chưa có logic kiểm tra số lượng câu hỏi trong `send-message.usecase.ts`.
+  3. **Giao diện Supporter Editor:** Khi Supporter vào xem bản nháp của AI, họ sửa đổi trực tiếp vào nội dung Markdown hay sửa qua các ô nhận xét có cấu trúc? Chưa có đặc tả UI cho Supporter Dashboard của gói 149k.
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG WORKFLOW VẬN HÀNH.**
+  * `apps/api/src/modules/admin/application/assign-supporter.usecase.ts` (dòng 12–55) & `apps/api/src/modules/cases/application/assign-supporter.usecase.ts` (dòng 30–108): 100% gán thủ công qua Admin, không có auto-assign hay round-robin.
+  * `apps/api/src/modules/cases/application/send-message.usecase.ts` (dòng 10–89): Chỉ kiểm tra độ dài $\le 5000$ ký tự và rate limit 1s/tin (`claimMessageSendSlot`), hoàn toàn không có biến đếm 3 câu hỏi của sinh viên.
+  * `apps/api/src/modules/cases/application/chat-access.ts` (dòng 29–44): Hạn 24h (`CHAT_LOCK_WINDOW_MS = 24 * 3600_000`) tính từ lúc case sang `completed` (`T14_COMPLETE`) hoặc `creditExhaustedAt`, không tính từ lúc publish report.
+  * `prisma/schema.prisma`: Hoàn toàn KHÔNG CÓ trường `post_closure_chat_expires_at` trên model `Case`.
+  * `apps/web-1/app/supporter/case/[id]/page.tsx` (dòng 89–94, 153–157): Chỉ có modal upload file tài liệu (`SupporterOutputUploadModal.tsx`), hoàn toàn không có UI cho Supporter xem và biên tập AI draft report.
 
 ### 9.7. Tử huyệt 7: Công thức tính điểm cơ học (Deterministic Scoring) cào bằng trọng số 13 trường
-* **Xác nhận thực tế:** 👉 **VẤN ĐỀ CÓ THẬT 100% TRONG SCORING VÀ DRAFT REPORT PIPELINE.**
-* **Bằng chứng mã nguồn:**
-  * `apps/api/src/modules/reports/domain/report.types.ts` (dòng 60–66):
-    ```typescript
-    export function normalizeReportDraftContent(payload: ReportDraftContentInput): AiCritiqueReport {
-      return {
-        overall_summary: toText(payload.overall_summary),
-        completeness_score: Math.min(100, Math.max(0, toNumber(payload.completeness_score))),
-        findings: ...
-      };
-    }
-    ```
-    Chỉ có duy nhất `completeness_score` được kẹp `Math.min/max` thô, chưa có bất kỳ công thức tính điểm trừ (penalty) hay khóa trần (clamping) nào.
-  * `apps/api/src/modules/reports/infrastructure/persistence/report.repository.ts` (dòng 34–74): Hàm `upsertReportDraft` là **hàm mồ côi (dead code)**, không có bất kỳ caller nào trong toàn bộ mã nguồn. Hệ thống hiện tại hoàn toàn chưa có luồng tự động tạo draft report từ Intake!
-  * `packages/validation/src/index.ts`: Chỉ có `TeamFitFreeReportSchema` và `Cp1IntakeSchema`, hoàn toàn không có Zod schema cho kết quả CP1 Audit, Rubrics, hay Indicators.
+* **Lỗ hổng toán học trong Mục 6.2:**
+  $$\text{Điểm ban đầu} = \left(\frac{\text{Số trường Good enough}}{13}\right) \times 100$$
+  * Công thức này ngầm định **tất cả 13 trường đều có tầm quan trọng ngang nhau (tỷ trọng 1:1)**.
+  * **Nghịch lý thực tế môn EXE101:** Trường "Tên ý tưởng" (Idea name) hay "Câu chuyện khách hàng" (Customer story) không thể có trọng số tương đương với "Khách hàng mục tiêu" (Target customer), "Nỗi đau thực tế" (Pain point), hay "Mô hình kinh doanh" (Business model).
+  * Một bài nộp viết tên ý tưởng rất kêu, câu chuyện rất cảm động (được tính 2 trường Good enough) nhưng sai lệch hoàn toàn về khách hàng mục tiêu và giải pháp thì không thể được cộng điểm tương đương với một bài làm tốt phần khách hàng mục tiêu.
+  * Bắt buộc phải thiết lập **Bảng trọng số (Weight Matrix)** cho từng trường trong 13 trường thay vì tính trung bình cộng cào bằng.
+  * Chưa có file schema Zod chuẩn để validate dữ liệu đầu ra từ LLM trước khi đưa vào hàm tính điểm.
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: VẤN ĐỀ CÓ THẬT 100% TRONG SCORING VÀ DRAFT REPORT PIPELINE.**
+  * `apps/api/src/modules/reports/domain/report.types.ts` (dòng 60–66): Chỉ có `completeness_score` parse thô từ JSON, kẹp `Math.min/max`, chưa có penalty hay clamping.
+  * `apps/api/src/modules/reports/infrastructure/persistence/report.repository.ts` (dòng 34–74): Hàm `upsertReportDraft` là **dead code / mồ côi 100%** (không có bất kỳ caller nào trong mã nguồn). Chưa có luồng tự động tạo draft report từ Intake!
+  * `packages/validation/src/index.ts`: Thiếu toàn bộ Zod schema cho kết quả CP1 Audit, Rubrics, hay Indicators.
 
 ### 9.8. Bằng chứng thực tế trên Frontend (`apps/web-1`)
-* **Xác nhận thực tế:** 👉 **GIAO DIỆN VẪN CHẠY LOGIC CREDIT CŨ VÀ HARDCODE 39K.**
-* **Bằng chứng mã nguồn:**
-  * `apps/web-1/lib/pricing.ts` (dòng 3–9): Khai báo `PACKAGE_KEYS.AUDIT = "pkg_tf_audit"`.
-  * `apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx` (dòng 25, 111–120): Vẫn hiển thị `NumberInput` cho phép chọn "Từ 1 đến 50 credit" và gửi order `credit_audit`. Chưa hề bỏ ô chọn credit như mục tiêu ADR-03.
+* **Xác nhận từ Scout Agent & Địa chỉ Evidence cụ thể:**
+  * 👉 **Xác nhận: GIAO DIỆN VẪN CHẠY LOGIC CREDIT CŨ VÀ HARDCODE 39K.**
+  * `apps/web-1/lib/pricing.ts` (dòng 3–9): `PACKAGE_KEYS.AUDIT = "pkg_tf_audit"`.
+  * `apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx` (dòng 25, 111–120): Vẫn còn `NumberInput` cho phép chọn "Từ 1 đến 50 credit" và gửi order `credit_audit`. Chưa hề bỏ ô chọn credit như mục tiêu ADR-03.
   * `apps/web-1/app/dashboard/case/[id]/page.tsx` (dòng 234): Hardcode truyền `packageId={PACKAGE_KEYS.AUDIT}` (`pkg_tf_audit`) vào modal mua credit.
-  * `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`: Hoàn toàn chưa có radar screen, animation quét, hay thanh tiến trình AI nào. Chưa có nút "Quét lại bài đã sửa" (Resubmit V2) và modal cảnh báo chưa sửa bài.
+  * `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`: Hoàn toàn chưa có radar screen hay thanh tiến trình AI nào. Chưa có nút "Quét lại bài đã sửa" (Resubmit V2) và modal cảnh báo chưa sửa bài.
+
+### 9.9. Ma trận đối chiếu chéo (Cross-check Matrix) — Toàn bộ dây xích đứt gãy ở đâu
+
+Khi xâu chuỗi kết quả từ cả 6 agent scout, hệ thống bộc lộ **4 mắt xích đứt gãy dây chuyền (Chain of Failures)**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│ 1. MẮT XÍCH THANH TOÁN ──► STATE MACHINE ──► AI ENGINE:                                 │
+│    • Khách trả tiền 79k thành công qua VietQR (PR #34).                                 │
+│    • POST /orders trừ ví, bắn ORDER_PAID ──► CHỈ GỬI NOTIFICATION (recipients.ts:27).   │
+│    • KHÔNG có event listener nào gọi AI Engine.                                         │
+│    • Case vẫn kẹt ở triage_pending ──► BẮT BUỘC ADMIN BẤM T5_ACCEPT TAY.                │
+│    • upsertReportDraft trong report.repository.ts là DEAD CODE không ai gọi!            │
+│    ==> KẾT QUẢ: Khách trả tiền xong hệ thống đứng im 100%, vỡ cam kết SLA 1 phút.       │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│ 2. MẮT XÍCH NỘP LẠI V2 ──► DATA MODEL ──► SUPPORTER:                                    │
+│    • Sinh viên bấm nộp bài sửa lần 2 trong 24h.                                         │
+│    • Bảng cases KHÔNG có cột lưu hạn mức (resubmissions_left).                          │
+│    • Bảng reports KHÔNG có version/round để phân biệt Báo cáo 1 vs Báo cáo 2.           │
+│    • State machine chuyển qua T19_REOPEN ──► ĐẨY VỀ supporter_working VÀ GÁN SLA 48H.   │
+│    ==> KẾT QUẢ: Gói máy chấm 79k biến thành bắt Supporter người thật đi đọc bài!        │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│ 3. MẮT XÍCH SUPPORTER 149K ──► FRONTEND SUPPORTER ──► CHAT 24H:                         │
+│    • Backend có API draft report (/supporter/reports/:reportId).                        │
+│    • Giao diện web Supporter CHỈ CÓ NÚT UPLOAD FILE (PDF/DOCX), không gọi API draft!   │
+│    • Khung chat KHÔNG có biến đếm 3 câu hỏi (sinh viên có thể gửi vô hạn tin nhắn).     │
+│    • Khóa chat 24h tính từ lúc đóng case (completed), không tính từ lúc trả báo cáo.    │
+│    ==> KẾT QUẢ: Supporter bị "mù" draft report trên web; khung chat bị hở luật.         │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│ 4. MẮT XÍCH DỮ LIỆU RUBRIC ──► AI SERVICE ──► TÍNH ĐIỂM:                                │
+│    • 3 bảng evaluation_criteria, evaluation_indicators, case_audit_violations KHÔNG CÓ.│
+│    • Cold-start khiến query Top 3 lỗi bị rỗng (0 row).                                  │
+│    • LLM hallucinate mã indicator lạ sẽ crash transaction do lỗi Foreign Key (P2003).   │
+│    • Công thức tính điểm cào bằng 13 trường (1/13); thiếu ma trận trọng số.             │
+│    ==> KẾT QUẢ: Điểm số tính ra thiếu cơ sở sư phạm; nguy cơ sập DB khi lưu báo cáo.    │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 10. BẢNG ĐỐI CHIẾU ĐÃ ĐỦ VS. CÒN THIẾU & 3 QUYẾT ĐỊNH CỐT LÕI CHO PHIÊN TIẾP THEO
