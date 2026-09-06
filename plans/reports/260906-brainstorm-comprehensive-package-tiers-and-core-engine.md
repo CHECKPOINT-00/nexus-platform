@@ -3,7 +3,7 @@
 > **Tài liệu nguồn:** `temp/omp-session-2026-09-06-dialogue-clean.txt` (Phiên làm việc `01a07584-6ce3-702a-bbd2-1762647c03e3`)  
 > **Thời điểm niêm phong:** 06/09/2026  
 > **Người chủ trì brainstorm:** User (Product Owner / Tech Lead) & Solution Brainstormer Agent  
-> **Trạng thái:** Đã chốt kiến trúc (Architecture Frozen) — Sẵn sàng lập kế hoạch triển khai mã nguồn
+> **Trạng thái:** Đang đánh giá tính sẵn sàng lập kế hoạch (Plan Readiness Assessment) — Phát hiện 7 tử huyệt kiến trúc cần giải quyết trước khi lên Plan
 
 ---
 
@@ -16,6 +16,8 @@
 6. [Cơ chế chuyển đổi điểm số toán học (Deterministic Scoring) & Cứu hộ định dạng](#6-cơ-chế-chuyển-đổi-điểm-số-toán-học-deterministic-scoring--cứu-hộ-định-dạng)
 7. [Kiến trúc Cơ sở dữ liệu động cho Agent: "Strong Spine, Flexible Ribs"](#7-kiến-trúc-cơ-sở-dữ-liệu-động-cho-agent-strong-spine-flexible-ribs)
 8. [Tổng hợp Quyết định kiến trúc (ADR Summary) & Kế hoạch 4 giai đoạn](#8-tổng-hợp-quyết-định-kiến-trúc-adr-summary--kế-hoạch-4-giai-đoạn)
+9. [Đánh giá tính sẵn sàng lập kế hoạch & 7 tử huyệt kiến trúc (Plan Readiness & Core Blockers)](#9-đánh-giá-tính-sẵn-sàng-lập-kế-hoạch--7-tử-huyệt-kiến-trúc-plan-readiness--core-blockers)
+10. [Bảng đối chiếu Đã đủ vs. Còn thiếu & 3 Quyết định cốt lõi cho phiên tiếp theo](#10-bảng-đối-chiếu-đã-đủ-vs-còn-thiếu--3-quyết-định-cốt-lõi-cho-phiên-tiếp-theo)
 
 ---
 
@@ -388,6 +390,133 @@ Nhờ kiến trúc "Strong Spine", Agent thực hiện cơ chế rà soát 2 gia
 │ • Thêm Banner nhắc nhở 24h & Modal cảnh báo chống lãng phí lượt quét lại   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 9. ĐÁNH GIÁ TÍNH SẴN SÀNG LẬP KẾ HOẠCH & 7 TỬ HUYỆT KIẾN TRÚC (PLAN READINESS & CORE BLOCKERS)
+
+Sau khi đối chiếu trực tiếp các kết luận từ buổi brainstorm với mã nguồn thực tế của hệ thống (`apps/api`, `case-machine.ts`, Prisma schema, PR #34), phát hiện **BẢN BRAINSTORM NÀY CHƯA ĐỦ ĐIỀU KIỆN ĐỂ LẬP IMPLEMENTATION PLAN**.
+
+Báo cáo mới dừng ở mức định hình khái niệm nghiệp vụ (Product Concept & Pricing Framing). Nếu phân công kỹ sư hoặc subagent lập trình ngay lúc này, hệ thống sẽ gặp phải **7 tử huyệt kiến trúc cốt lõi (Core Blockers)** dưới đây:
+
+### 9.1. Tử huyệt 1: State Machine kẹt cứng — Gói 79k chạy trên trạng thái nào? Ai trigger transition?
+* **Hiện trạng Codebase (`apps/api/src/modules/cases/domain/case-machine.ts`):**
+  * Tập hợp trạng thái `VALID_STATES` hiện tại chỉ phục vụ quy trình thẩm định thủ công:
+    $$\text{triage\_pending} \longrightarrow \text{accepted\_unassigned} \longrightarrow \text{assigned} \longrightarrow \text{supporter\_working} \longrightarrow \text{report\_ready\_to\_publish} \longrightarrow \text{done} \longrightarrow \text{cancelled}$$
+  * Khi một Case mới được tạo, trạng thái luôn mặc định là `triage_pending`.
+  * Lối thoát duy nhất để rời khỏi `triage_pending` là sự kiện `T5_ACCEPT`, được khóa cứng bởi guard: `isAdmin && hasCredit && hasPaymentComplete`.
+  * Sự kiện bàn giao báo cáo `T11_SUBMIT_OUTPUT` bắt buộc guard `isAssignedSupporter`.
+* **Xung đột thực tế với Gói 79k (Basic AI):**
+  1. Gói 79k được định vị là **"100% máy chấm tức thì sau 1 phút, không có can thiệp con người"**. Nhưng trong `caseMachine`, **hoàn toàn không có trạng thái `ai_evaluating` hay `ai_delivered`**, cũng không có cơ chế rẽ nhánh để bypass Admin hay Supporter.
+  2. Sau khi sinh viên thanh toán 79k, nếu Case vẫn nằm ở `triage_pending`, màn hình sinh viên sẽ hiển thị "Đang chờ Admin duyệt", làm phá vỡ hoàn toàn cam kết SLA tức thì.
+  3. Khi AI Service chạy xong, tiến trình này lấy tư cách danh tính gì (`actorId`) để gọi transition sang `report_ready_to_publish` khi mà guard chỉ chấp nhận `isAssignedSupporter`?
+* **Xung đột với Lượt Quét Lại Lần 2 (Resubmission V2 trong 24h):**
+  * Khi sinh viên nhận xong Báo cáo V1, Case chuyển sang `done` hoặc `report_ready_to_publish`.
+  * Khi sinh viên bấm "Quét lại bài đã sửa", transition nào cho phép mở lại case để máy quét tiếp?
+  * Hiện tại chỉ có sự kiện `T19_REOPEN` đưa trạng thái về `supporter_working` (chờ supporter), hoàn toàn không có đường quay lại cho AI Service.
+
+### 9.2. Tử huyệt 2: Rủi ro Schema "Strong Spine, Flexible Ribs", Cold-Start & Nguy cơ Crash Foreign Key (P2003)
+* **Hiện trạng Codebase & Quy tắc An toàn DB (`.agents/rules/prisma-migration-safety.md`):**
+  * Target DB của hệ thống là **Supabase PostgreSQL Production**. Quy tắc dự án nghiêm cấm chạy `prisma migrate dev` tự do, cấm mọi lệnh destructive, bắt buộc kiểm soát chặt qua `--create-only`.
+  * 3 bảng được đề xuất trong báo cáo (`evaluation_criteria`, `evaluation_indicators`, `case_audit_violations`) **chưa hề tồn tại** trong `prisma/schema.prisma`.
+* **3 Lỗ hổng kỹ thuật chí mạng chưa có lời giải:**
+  1. **Chưa có Dữ liệu Mồi (Seed Data) thực tế:** Muốn AI đối chiếu được 13 trường của Checkpoint 1, cần tối thiểu bao nhiêu criteria và bao nhiêu indicators? Báo cáo chỉ đưa ra đúng 1 ví dụ minh họa (`IND-01`). Nếu chưa biên soạn danh mục Indicators chuẩn xác, hệ thống lấy gì để seed vào DB?
+  2. **Nguy cơ sập Foreign Key (P2003 Constraint Failure) do LLM Ảo giác:**
+     * LLM sinh output dạng JSON có chứa mảng vi phạm: `[{ "indicator_id": "...", "severity": "..." }]`.
+     * Nếu LLM tự ý sinh ra một mã `indicator_id` không có sẵn trong bảng `evaluation_indicators` (hoặc định dạng sai một ký tự), khi Backend insert vào bảng `case_audit_violations`, PostgreSQL sẽ lập tức ném lỗi vi phạm khóa ngoại (**Foreign Key Violation**) và crash toàn bộ transaction lưu báo cáo!
+  3. **Lỗ hổng Khởi động nguội (Cold-Start Problem):**
+     * Báo cáo đề xuất cơ chế Fast-Path Screening: *"Agent query Top 3 chỉ báo vi phạm nhiều nhất từ `case_audit_violations` trong < 1ms"*.
+     * Nhưng khi hệ thống mới deploy lên production, bảng `case_audit_violations` hoàn toàn rỗng (0 bản ghi). Câu lệnh `GROUP BY` sẽ trả về **0 kết quả**.
+     * Chưa hề có cơ chế Fallback tĩnh (Default Hardcoded Top Indicators) để hệ thống hoạt động trong giai đoạn đầu.
+
+### 9.3. Tử huyệt 3: Ngộ nhận giữa "Agent tự query DB siêu tốc" và thực tế Stateless Backend Service
+* **Hiện trạng Codebase (`apps/api/src/modules/ai-engine/`):**
+  * Kiến trúc AI hiện tại của Nexus chạy trên Hono backend, sử dụng Vercel AI SDK (`generateObject`, `generateText`) để gửi API request sang Google Gemini hoặc OpenAI.
+  * Đây là một **Stateless Backend Service**, hoàn toàn không phải một Autonomous Agent chạy vòng lặp ReAct có khả năng tự gọi Tool hay tự query PostgreSQL.
+* **Cần chuẩn hóa hợp đồng kỹ thuật (Technical Contract):**
+  * Báo cáo dùng văn phong nhân hóa: *"Agent nạp payload vào bộ nhớ làm việc, trong 2 giây đầu tiên đọc bài nộp, Agent đối chiếu ngay..."*. Cách viết này che giấu bản chất thực thi thực tế.
+  * Bản chất kỹ thuật bắt buộc phải là một **TypeScript Service Function** tuần tự:
+    $$\text{Đọc DB lấy Top Indicators} \longrightarrow \text{Ghép vào System/User Prompt} \longrightarrow \text{Gọi LLM API (1-pass/2-pass)} \longrightarrow \text{Validate JSON} \longrightarrow \text{Lưu DB}$$
+  * Các tham số kỹ thuật sống còn chưa được chốt:
+    * Sử dụng model nào chính thức (`gemini-2.0-flash` hay `gpt-4o`)?
+    * Token budget tối đa là bao nhiêu?
+    * Timeout của API call là bao nhiêu giây?
+    * Xử lý retry thế nào khi LLM API bị rate limit (429) hoặc gateway timeout (504)?
+
+### 9.4. Tử huyệt 4: Dây nối thanh toán (PR #34 Cutover) vẫn bị khóa cứng vào gói 39k cũ
+* **Hiện trạng Codebase (`apps/api/src/modules/orders/application/credit-audit-order.helpers.ts`):**
+  * Mặc dù đã merge PR #34 và hoàn thành plan `260906-1225-free-upgrade-after-order`, nhưng toàn bộ mã nguồn bên trong vẫn đang gắn cứng vào gói 39.000đ đã bị vô hiệu hóa:
+    ```typescript
+    export const AUDIT_PACKAGE_KEY = "pkg_tf_audit"; // Gói 39k cũ (is_active = false)
+    ```
+  * Hàm `resolveCreditAuditPrice` chỉ tìm duy nhất gói `pkg_tf_audit`.
+  * Endpoint `POST /orders` chỉ nhận `service_type: "credit_audit"`, hoàn toàn không có trường để nhận `target_package_id` (`pkg_ai_audit` 79k hay `pkg_supporter_audit` 149k).
+* **Lỗ hổng hợp đồng dữ liệu:**
+  * Khi sinh viên bấm chọn gói 79k hoặc 149k, Frontend gửi payload gì lên `POST /orders`?
+  * Sau khi SePay bắn Webhook xác nhận tiền vào ví $\rightarrow$ Hệ thống tự trừ tiền trong ví $\rightarrow$ Webhook/Order sẽ gọi Use Case nào để khởi chạy tiến trình AI Audit? Hiện tại chưa hề có Use Case này.
+
+### 9.5. Tử huyệt 5: Hạn mức Vòng đời (Resubmission Quota 24h) chưa có nơi lưu trữ vật lý trong Schema
+* **Hiện trạng Codebase:**
+  * Bảng `Case` hiện tại không có các trường quản lý lượt nộp lại (như `resubmissions_left`, `resubmission_deadline_at`).
+  * Bảng `Report` không có trường `version` hay `round` mà chỉ liên kết với `lifecycle_unit_id`.
+* **Lỗ hổng quản lý vòng đời tài liệu:**
+  * Báo cáo đề ra nguyên lý *"Bên ngoài bán Gói — Bên trong cấp Hạn mức Vòng đời"*, nhưng **chưa chỉ định hạn mức này nằm ở đâu trong Database**:
+    * Thêm cột trực tiếp vào bảng `cases`?
+    * Hay lưu dưới dạng bản ghi quyền lợi trong `credit_ledgers`?
+  * Khi sinh viên nộp bài quét lại lần 2 (V2):
+    * Theo tài liệu `LIFECYCLE_IMPLEMENTATION_SPEC.md`, hệ thống phải tạo lifecycle unit `v02` hoặc `a02-v02`.
+    * Báo cáo lần 2 sẽ được lưu thành một dòng mới trong bảng `reports` hay ghi đè lên dòng cũ?
+    * Nếu tạo dòng mới, làm sao Frontend phân biệt được đâu là Báo cáo Lần 1 và đâu là Báo cáo Lần 2 để hiển thị màn hình so sánh điểm số tiến bộ?
+
+### 9.6. Tử huyệt 6: Lỗ hổng vận hành Gói 149k (Thiếu Auto-assign Supporter & Giới hạn Chat 24h)
+* **Hiện trạng Codebase:**
+  * Hệ thống hoàn toàn không có cơ chế Tự động phân bổ Supporter (Auto-assignment). Hiện tại phụ thuộc 100% vào việc Admin đăng nhập thủ công để bấm gán qua `T6_ASSIGN_SUPPORTER`.
+  * Bảng `CaseMessage` không có trường phân loại câu hỏi hay đếm số lượt tin nhắn của sinh viên.
+* **Lỗ hổng quy trình vận hành:**
+  1. **Nghẽn cổ chai Admin:** Nếu sinh viên thanh toán gói 149k vào ban đêm mà Admin không online để gán Supporter, hồ sơ sẽ bị treo vô thời hạn. SLA 24h-48h bắt đầu tính từ thời điểm nào (lúc thanh toán hay lúc supporter nhận bài)?
+  2. **Thực thi Luật Chat 24h & 3 câu hỏi:** Báo cáo đặt ra luật: *"Nhóm được gửi tối đa 3 câu hỏi, mỗi câu $\le 500$ ký tự trong vòng 24 giờ"*. Chưa có logic kiểm tra số lượng câu hỏi trong `send-message.usecase.ts`.
+  3. **Giao diện Supporter Editor:** Khi Supporter vào xem bản nháp của AI, họ sửa đổi trực tiếp vào nội dung Markdown hay sửa qua các ô nhận xét có cấu trúc? Chưa có đặc tả UI cho Supporter Dashboard của gói 149k.
+
+### 9.7. Tử huyệt 7: Công thức tính điểm cơ học (Deterministic Scoring) cào bằng trọng số 13 trường
+* **Lỗ hổng toán học trong Mục 6.2:**
+  $$\text{Điểm ban đầu} = \left(\frac{\text{Số trường Good enough}}{13}\right) \times 100$$
+  * Công thức này ngầm định **tất cả 13 trường đều có tầm quan trọng ngang nhau (tỷ trọng 1:1)**.
+  * **Nghịch lý thực tế môn EXE101:** Trường "Tên ý tưởng" (Idea name) hay "Câu chuyện khách hàng" (Customer story) không thể có trọng số tương đương với "Khách hàng mục tiêu" (Target customer), "Nỗi đau thực tế" (Pain point), hay "Mô hình kinh doanh" (Business model).
+  * Một bài nộp viết tên ý tưởng rất kêu, câu chuyện rất cảm động (được tính 2 trường Good enough) nhưng sai lệch hoàn toàn về khách hàng mục tiêu và giải pháp thì không thể được cộng điểm tương đương với một bài làm tốt phần khách hàng mục tiêu.
+  * Bắt buộc phải thiết lập **Bảng trọng số (Weight Matrix)** cho từng trường trong 13 trường thay vì tính trung bình cộng cào bằng.
+  * Chưa có file schema Zod chuẩn để validate dữ liệu đầu ra từ LLM trước khi đưa vào hàm tính điểm.
+
+---
+
+## 10. BẢNG ĐỐI CHIẾU ĐÃ ĐỦ VS. CÒN THIẾU & 3 QUYẾT ĐỊNH CỐT LÕI CHO PHIÊN TIẾP THEO
+
+### 10.1. Bảng Đối Chiếu Hiện Trạng Brainstorm
+
+| Thành phần | Trạng thái trong Brainstorm | Đã đủ lên Plan chưa? | Việc cụ thể cần giải quyết dứt điểm |
+| :--- | :---: | :---: | :--- |
+| **1. Định vị 2 Gói (79k / 149k)** | Đã chốt rõ ràng, logic thực tế vững | **ĐỦ** | Sẵn sàng chuyển giao cho Copywriting & UI Pricing Cards. |
+| **2. State Machine Cases** | Chưa thiết kế luồng rẽ nhánh cho AI | **THIẾU** | Mở rộng `caseMachine`: bổ sung trạng thái AI tự động và luồng nộp lại V2. |
+| **3. Database Criteria & Indicators** | Mới có ý tưởng schema cơ bản | **THIẾU** | Biên soạn danh mục seed ban đầu; xử lý fallback Cold-start; giải pháp chống lỗi FK. |
+| **4. AI Engine Pipeline** | Mới có tên gọi các file prompt | **THIẾU** | Viết spec kỹ thuật cho TypeScript Service, chốt model, token, và Zod schema. |
+| **5. Dây nối PR #34 sang 79k/149k** | Đang bị khóa cứng vào gói 39k cũ | **THIẾU** | Refactor `credit-audit-order.helpers.ts` và `POST /orders` để nhận động `package_id`. |
+| **6. Lưu trữ Hạn ngạch 24h** | Mới là khái niệm trừu tượng | **THIẾU** | Chỉ định chính xác tên bảng, tên cột trong schema để lưu hạn ngạch 1 lần quét lại. |
+| **7. Quản trị Supporter & Chat 149k** | Mới có luật nghiệp vụ trên giấy | **THIẾU** | Thiết kế cơ chế hàng chờ/auto-assign Supporter; thêm logic đếm 3 tin nhắn chat. |
+| **8. Trọng số chấm điểm** | Cào bằng 13 trường (1/13) | **THIẾU** | Thiết lập bảng trọng số (%) thực tế cho 13 trường Checkpoint 1 FPT EXE101. |
+
+### 10.2. 3 Quyết Định Cốt Lõi Cần Tech Lead Chốt Để Hoàn Thiện Brainstorm
+
+Để bản brainstorm này đủ độ hoàn thiện và chuyển hóa thành Implementation Plan chuẩn xác, phiên làm việc tiếp theo cần tập trung giải quyết 3 bài toán sau:
+
+1. **Quyết định về State Machine:**
+   * *Phương án A:* Mở rộng trực tiếp `case-machine.ts` hiện tại, thêm các trạng thái mới (`ai_evaluating`, `ai_completed`) và các transition riêng cho gói AI.
+   * *Phương án B:* Tách riêng một State Machine phụ (Sub-machine / Automated Pipeline) dành riêng cho các Case thuộc gói AI thuần túy, giữ nguyên `case-machine.ts` gốc cho các Case có Supporter người thật.
+2. **Quyết định về Lưu trữ Bộ Tiêu chí & Chỉ báo (Criteria & Indicators):**
+   * *Phương án A (An toàn tuyệt đối cho DB):* Giai đoạn 1 lưu bộ Indicators dưới dạng **File cấu hình TypeScript/JSON tĩnh** trong mã nguồn (`apps/api/src/modules/ai-engine/config/`). AI service đọc thẳng từ code, không sợ lỗi Foreign Key, không cần migration trên Supabase.
+   * *Phương án B (Lưu hoàn toàn trong DB):* Thực hiện Prisma Migration thêm 3 bảng `evaluation_criteria`, `evaluation_indicators`, `case_audit_violations`, chấp nhận độ phức tạp của việc seed dữ liệu và xử lý bắt lỗi runtime.
+3. **Quyết định về Vị trí Lưu Hạn Mức Nộp Lại 24H (Resubmission Quota):**
+   * *Phương án A:* Bổ sung trực tiếp 2 cột vào bảng `cases`: `resubmissions_left Int @default(0)` và `resubmission_deadline_at DateTime?`.
+   * *Phương án B:* Quản lý thông qua cơ chế đếm số lượng bản ghi `lifecycle_units` loại `version` gắn với Checkpoint hiện tại của Case (nếu đã có `v02` thì khóa không cho nộp tiếp).
+
 
 ---
 *Báo cáo được chuẩn hóa và niêm phong đầy đủ toàn bộ ngữ cảnh kỹ thuật, kinh doanh và dữ liệu thực tế từ buổi làm việc.*
