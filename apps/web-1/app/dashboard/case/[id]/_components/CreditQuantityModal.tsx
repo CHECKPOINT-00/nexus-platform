@@ -6,35 +6,31 @@ import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
-import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { formatPrice } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
+import { useShortageDepositRedirect } from "./use-shortage-deposit-redirect";
 
 interface CreditQuantityModalProps {
   caseId: string;
   opened: boolean;
   onClose: () => void;
   packageId: string;
-  currentPackageId?: string;
 }
 
 const MIN_TOPUP_AMOUNT = 2000;
 
-export default function CreditQuantityModal({ caseId, opened, onClose, packageId, currentPackageId }: CreditQuantityModalProps) {
+export default function CreditQuantityModal({ caseId, opened, onClose, packageId }: CreditQuantityModalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
 
+  const { startShortageDeposit, isPending: isShortagePending } = useShortageDepositRedirect(caseId);
   const { data: pkg } = usePackagePrice(packageId, opened);
 
   const unitPrice = pkg?.price ?? 0;
 
     const mutation = useMutation({
     mutationFn: async () => {
-      if (currentPackageId === PACKAGE_KEYS.FREE) {
-        await apiClient.post(`/cases/${caseId}/upgrade-package`, {
-          packageId: PACKAGE_KEYS.AUDIT,
-        });
-      }
       const res = await apiClient.post("/orders", {
         idempotency_key: crypto.randomUUID(),
         items: [
@@ -79,28 +75,8 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           ? Math.max(Number(details.required) - Number(details.current), 0)
           : quantity * unitPrice;
         const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
-        notifications.show({
-          title: "Số dư không đủ",
-          message: (
-            <Stack gap="xs">
-              <Text size="sm">{message}</Text>
-              <Text size="sm" c="dimmed">
-                Bạn chỉ cần nạp thêm tối thiểu{" "}
-                {formatPrice(suggestedTopup)} để tiếp tục.
-              </Text>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => {
-                  router.push(`/dashboard/wallet?amount=${suggestedTopup}`);
-                }}
-              >
-                Nạp tiền ngay
-              </Button>
-            </Stack>
-          ),
-          color: "red",
-          autoClose: false,
+        void startShortageDeposit({ quantity, suggestedTopup }).finally(() => {
+          handleClose();
         });
         return;
       }
@@ -161,13 +137,17 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         </div>
 
         <Group justify="flex-end" mt="sm">
-          <Button variant="default" onClick={handleClose} disabled={mutation.isPending}>
+          <Button
+            variant="default"
+            onClick={handleClose}
+            disabled={mutation.isPending || isShortagePending}
+          >
             Hủy
           </Button>
           <Button
             onClick={() => mutation.mutate()}
-            loading={mutation.isPending}
-            disabled={mutation.isPending}
+            loading={mutation.isPending || isShortagePending}
+            disabled={mutation.isPending || isShortagePending}
           >
             Xác nhận mua
           </Button>
