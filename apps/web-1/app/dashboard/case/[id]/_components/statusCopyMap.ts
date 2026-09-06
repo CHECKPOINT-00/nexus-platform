@@ -19,7 +19,7 @@ export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
   submitted: {
     title: "Hồ sơ đã gửi thành công — Chờ xét duyệt",
     description:
-      "Ban tổ chức đang kiểm tra hồ sơ và phân công Supporter chuyên môn phụ trách dự án (thường mất 12-24 giờ). Hiện tại bạn không cần làm gì thêm.",
+      "Đội ngũ Nexus đang kiểm tra hồ sơ và phân công Supporter chuyên môn phụ trách dự án (thường mất 12-24 giờ). Hiện tại bạn không cần làm gì thêm.",
     tone: "info",
     icon: "clock",
   },
@@ -47,7 +47,7 @@ export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
   closed: {
     title: "Hồ sơ đã đóng",
     description:
-      "Hồ sơ phản biện này đã được đóng. Vui lòng liên hệ Ban tổ chức nếu cần thêm thông tin.",
+      "Hồ sơ phản biện này đã được đóng. Vui lòng liên hệ Đội ngũ Nexus nếu cần thêm thông tin.",
     tone: "neutral",
     icon: "alert",
   },

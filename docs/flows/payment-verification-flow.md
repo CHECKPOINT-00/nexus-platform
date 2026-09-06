@@ -24,6 +24,15 @@ Sinh viên nạp tiền vào ví, mua lượt đánh giá cho case, và case đ�
 3. Nạp tiền vào ví không làm case "Đã thanh toán". Chỉ hành động mua lượt mới đánh dấu thanh toán.
 4. Mua lượt **không** đổi trạng thái hồ sơ (ngoại lệ: case đã hoàn tất thì mua lượt = mở lại case, xem flow vòng đời).
 5. Mỗi lần supporter nộp báo cáo, hệ thống trừ 1 lượt. Sinh viên gửi bản sửa thì **không** bị trừ lượt.
+6. **Case thuộc gói miễn phí (`pkg_tf_free` / `locked_price = 0`):** Giá lượt đánh giá tự động lấy theo gói chuyên sâu (`pkg_tf_audit`). Chỉ sau khi trừ ví VND thành công trong giao dịch mua lượt, case mới được tự động nâng cấp sang `pkg_tf_audit`, khóa giá (`locked_price = unitPrice`), đánh dấu `Đã thanh toán` (`payment_status: paid`) và ghi nhận event `package_upgraded`. Frontend không gọi nâng cấp trước (không pre-upgrade); nếu ví không đủ số dư, case vẫn giữ nguyên trạng thái miễn phí và banner không bị chuyển sang Chưa thanh toán.
+
+## Click học viên (rút ngắn 2026-09)
+
+- Đủ ví: Mua credit trên hồ sơ → trừ ví + cộng lượt. Không QR.
+- Thiếu ví từ hồ sơ: mở QR nạp ổ thiếu. Không bắt qua trang ví.
+- Còn trang QR: SePay hoặc admin verified → hệ thống mua lượt cho hồ sơ vừa chọn.
+- Rời QR / vào Ví của tôi: chỉ cộng VND. Học viên bấm Mua credit lại khi đủ ví.
+- Nạp từ trang ví: không gắn hồ sơ, không tự mua lượt.
 
 ## Sơ đồ luồng
 
@@ -67,4 +76,4 @@ flowchart TD
 ## Thiếu / chưa rõ
 
 - Chưa có hoàn tiền khi sinh viên muốn rút tiền khỏi ví (chỉ hoàn tự động khi case kết thúc không trọn vẹn).
-- Chưa khóa chính sách giá cho gói miễn phí nếu mở rộng thêm gói mới.
+- ~~Chưa khóa chính sách giá cho gói miễn phí nếu mở rộng thêm gói mới.~~ ✅ Đã chuẩn hóa: case gói miễn phí (`pkg_tf_free`) khi mua lượt đánh giá được hệ thống resolve theo giá gói chuyên sâu (`pkg_tf_audit`) và nâng cấp tự động sau khi trừ ví thành công.

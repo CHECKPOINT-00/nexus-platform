@@ -5,7 +5,7 @@ import { useCaseChat } from "../hooks/useCaseChat";
 import { useCaseUnreadCount } from "../hooks/useCaseUnreadCount";
 import { useCaseChatVirtualizer } from "../hooks/useCaseChatVirtualizer";
 import { useSession } from "@/lib/auth-client";
-import { ArrowUp, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowUp, MessageCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
 
 interface TabDiscussionChatProps {
@@ -143,7 +143,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
         style={{ background: "var(--color-surface-soft)" }}
       >
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-brand" />
+          <MessageCircle className="w-4 h-4 text-brand" />
           <span className="text-[13px] font-semibold text-text-app tracking-wide">Trao đổi</span>
         </div>
 
@@ -177,7 +177,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{ background: "var(--color-brand-soft)" }}
             >
-              <MessageSquare className="w-5 h-5 text-brand" />
+              <MessageCircle className="w-5 h-5 text-brand" />
             </div>
             <div className="text-center">
               <p className="text-[14px] font-semibold text-text-app mb-0.5">Chưa có trao đổi nào</p>

@@ -137,7 +137,7 @@ export default function StatusGuidanceCard({
           <p className="text-text-muted text-xs leading-relaxed">
             {rejectionReason
               ? rejectionReason
-              : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận."}
+              : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Đội ngũ Nexus hoặc gửi thắc mắc qua phần Thảo luận."}
           </p>
           {onOpenIntake && canResubmit && (
             <div className="pt-1">
@@ -269,7 +269,7 @@ export default function StatusGuidanceCard({
         <p className="text-text-muted text-xs leading-relaxed">
           {hasSupporter
             ? "Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn."
-            : "Bản sửa đổi đã được ghi nhận. Ban tổ chức (Admin) đang phân công Supporter chuyên môn thẩm định bản mới này."}
+            : "Bản sửa đổi đã được ghi nhận. Đội ngũ Nexus đang phân công Supporter chuyên môn thẩm định bản mới này."}
         </p>
       </Alert>
     );
@@ -365,7 +365,7 @@ export default function StatusGuidanceCard({
       >
         <div className="space-y-3">
           <p className="text-text-muted text-xs leading-relaxed">
-            Hồ sơ đã gửi thành công. Ban tổ chức chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
+            Hồ sơ đã gửi thành công. Đội ngũ Nexus chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
           </p>
           {onOpenPayment && (
             <Button
