@@ -472,9 +472,11 @@ Hệ thống quản lý trạng thái hồ sơ của Nexus dựa trên thư vi�
 Báo cáo brainstorm đề xuất một mô hình cơ sở dữ liệu rất hấp dẫn về mặt lý thuyết: "Cột sống cứng, xương sườn mềm" (PostgreSQL JSONB) gồm 3 bảng `EvaluationCriteria`, `EvaluationIndicator`, và `CaseAuditViolation`. Tuy nhiên, khi đối chiếu với quy chuẩn kỹ thuật và môi trường thực tế, thiết kế này đang chứa đựng 3 rủi ro chí mạng:
 
 #### B. 3 Rủi ro kỹ thuật chưa có lời giải:
-1. **Vi phạm Quy tắc An toàn Database Production (`.agents/rules/prisma-migration-safety.md`):**
-   * Cơ sở dữ liệu của Nexus đang chạy trực tiếp trên **Supabase PostgreSQL**. Dự án đã có tiền lệ đau đớn về mất mát dữ liệu dẫn đến quy tắc nghiêm ngặt: Tuyệt đối cấm chạy `prisma migrate dev` tự do, mọi thay đổi schema phải được kiểm soát qua `--create-only` và không được phép chứa các câu lệnh phá hủy (destructive).
-   * Việc tạo mới cùng lúc 3 bảng có quan hệ ràng buộc khóa ngoại phức tạp đòi hỏi phải có migration script được kiểm thử kỹ lưỡng, không thể làm ẩu.
+1. **Vi phạm Quy tắc An toàn Database Production (`.agents/rules/prisma-migration-safety.md` & `Makefile`):**
+   * Cơ sở dữ liệu Production của Nexus hiện tại là **Self-hosted PostgreSQL 18.4 chạy trong Docker container `nexus-db` trên VPS** (theo `docker-compose.prod.yml` và `docs/db-query-guide.md`, đã chuyển toàn bộ từ Supabase sang VPS).
+   * Hệ thống vận hành với dữ liệu người dùng thật, backup định kỳ qua lệnh `pg_dump` vào `prisma/backup/` (`Makefile:80`) và deploy migration bằng lệnh `npx prisma migrate deploy` (`Makefile:64`).
+   * Quy tắc an toàn bắt buộc: Tuyệt đối cấm chạy `prisma migrate dev` tự do trên production, cấm mọi lệnh destructive (DROP TABLE/COLUMN), mọi thay đổi schema phải được kiểm soát qua `--create-only` và kiểm thử migration script kỹ lưỡng trước khi deploy.
+   * Việc tạo mới cùng lúc 3 bảng có quan hệ ràng buộc khóa ngoại phức tạp đòi hỏi phải có migration script an toàn, không thể làm ẩu trên VPS Production.
 2. **Nguy cơ sập Foreign Key (P2003 Constraint Failure) do LLM Hallucination:**
    * Trong mô hình đề xuất, bảng `case_audit_violations` có foreign key trỏ trực tiếp đến `evaluation_indicators.id`.
    * LLM là mô hình xác suất. Dù có ép prompt hay dùng JSON Schema, vẫn luôn có tỷ lệ LLM tự bịa ra một mã `indicator_id` không tồn tại trong DB (ví dụ: `ERR_TARGET_STUDENT_V2` thay vì `ERR_TARGET_GENERIC_STUDENT`).
@@ -727,18 +729,17 @@ Khi xâu chuỗi và so khớp các phát hiện từ cả 6 subagent scout đ�
   * *Ưu điểm:* Cách ly hoàn toàn rủi ro, không làm ảnh hưởng đến mã nguồn của gói Supporter 149k.
 
 #### Quyết định 2: Chiến lược Lưu trữ Bộ Tiêu chí & Chỉ báo (Criteria & Indicators Storage)
-* **Bối cảnh:** Cần cân bằng giữa tính linh hoạt của AI và sự an toàn tuyệt đối cho DB Supabase Production.
+* **Bối cảnh:** Cần cân bằng giữa tính linh hoạt của AI và sự an toàn tuyệt đối cho DB Production trên VPS (PostgreSQL 18.4).
 * **Phương án 2A (An toàn tuyệt đối — Static Code Configuration - Khuyên dùng giai đoạn 1):**
   * Chưa tạo 3 bảng SQL vội. Toàn bộ Bộ 13 trường, Tiêu chí (Criteria), và Chỉ báo lỗi (Indicators) được định nghĩa dưới dạng **File cấu hình TypeScript tĩnh có gán mã Code chuẩn** đặt tại `apps/api/src/modules/ai-engine/config/cp1-rubrics.ts`.
   * AI Service nạp trực tiếp file config này vào RAM (latency = 0ms). Khi đối chiếu, AI chỉ việc map mã vi phạm theo danh mục tĩnh.
   * Kết quả vi phạm được lưu thẳng vào cột JSONB của bản ghi `reports.content_md`.
-  * *Ưu điểm:* **Bằng 0 rủi ro sập DB**, không cần chạy migration trên Supabase, không bao giờ sợ lỗi Foreign Key Violation (P2003), triển khai cực nhanh.
+  * *Ưu điểm:* **Bằng 0 rủi ro sập DB**, không cần chạy migration trên VPS Production, không bao giờ sợ lỗi Foreign Key Violation (P2003), triển khai cực nhanh.
 * **Phương án 2B (Database Dynamic Tables — "Strong Spine, Flexible Ribs"):**
   * Chạy Prisma Migration tạo 3 bảng `evaluation_criteria`, `evaluation_indicators`, `case_audit_violations`.
   * Nạp seed data vào DB qua migration.
   * *Ưu điểm:* Cho phép viết trang Admin UI để thêm bớt từ cấm/bẫy lỗi mà không cần redeploy code.
-  * *Nhược điểm:* Nguy cơ cao gặp lỗi P2003 khi LLM hallucinate; phức tạp hóa khâu migration trên Supabase.
-
+  * *Nhược điểm:* Nguy cơ cao gặp lỗi P2003 khi LLM hallucinate; phức tạp hóa khâu migration và bảo trì dữ liệu trên VPS Production.
 #### Quyết định 3: Cơ chế Quản lý Hạn mức Quét Lại 24H (Resubmission Quota Mechanism)
 * **Bối cảnh:** Cần một nơi lưu trữ xác thực và đáng tin cậy để quản lý 1 lượt quét lại miễn phí của gói 79k.
 * **Phương án 3A (Thêm cột trực tiếp vào bảng `cases`):**
