@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { walletService } from "../../wallet/application/wallet.service.js";
 import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
@@ -9,45 +8,12 @@ import type { CreateOrderItem, CreateOrderRequest } from "../domain/order.types.
 import type { CreateOrderResponse } from "./orders.dto.js";
 import { transitionInTx } from "../../../services/case-transition.service.js";
 import { prisma } from "../../../db.js";
-import type { Prisma } from "@prisma/client";
-
-function generateOrderIdempotencyKey(userId: string, items: CreateOrderItem[]): string {
-  const parts = items
-    .map((i) => `${i.service_type}:${i.quantity}:${(i.metadata_json as any)?.case_id ?? ""}`)
-    .sort()
-    .join(",");
-  return `order-${userId}-${crypto.createHash("sha256").update(parts).digest("hex").slice(0, 12)}`;
-}
-
-async function resolveCreditAuditPrice(caseId: string): Promise<number> {
-  const caseRecord = await prisma.case.findUnique({
-    where: { id: caseId },
-    select: { package_id: true },
-  });
-  if (!caseRecord?.package_id) {
-    throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
-  }
-  const pkg = await prisma.servicePackage.findUnique({
-    where: { id: caseRecord.package_id },
-    include: { pricing_tiers: { where: { is_current: true }, take: 1 } },
-  });
-  if (!pkg) {
-    throw new AppError(404, "PACKAGE_NOT_FOUND", "Không tìm thấy gói dịch vụ");
-  }
-  const price = pkg.pricing_tiers[0]?.price ?? pkg.price;
-  if (!price || price <= 0) {
-    throw new AppError(400, "INVALID_PRICE", "Gói dịch vụ chưa có giá");
-  }
-  return price;
-}
-
-async function getCreditBalanceInTx(tx: Prisma.TransactionClient, caseId: string): Promise<number> {
-  const result = await tx.creditLedger.aggregate({
-    where: { case_id: caseId },
-    _sum: { amount: true },
-  });
-  return result._sum.amount ?? 0;
-}
+import {
+  resolveCreditAuditPrice,
+  getCreditBalanceInTx,
+  applyPaidCreditCaseUpdate,
+  generateOrderIdempotencyKey,
+} from "./credit-audit-order.helpers.js";
 
 export async function createOrderUseCase(
   userId: string,
@@ -154,7 +120,12 @@ export async function createOrderUseCase(
 
         const caseRecord = await tx.case.findUnique({
           where: { id: caseId },
-          select: { owner_auth_user_id: true, internal_status: true },
+          select: {
+            owner_auth_user_id: true,
+            internal_status: true,
+            package_id: true,
+            locked_price: true,
+          },
         });
         if (!caseRecord) {
           throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án liên quan đến đơn hàng");
@@ -163,11 +134,11 @@ export async function createOrderUseCase(
           throw new AppError(403, "FORBIDDEN", "Không thể mua credit cho dự án của người khác");
         }
 
-        await tx.case.update({
-          where: { id: caseId },
-          data: {
-            payment_status: "paid",
-          },
+        await applyPaidCreditCaseUpdate(tx, {
+          caseId,
+          userId,
+          unitPrice,
+          caseRecord,
         });
 
         if (caseRecord.internal_status === "done") {

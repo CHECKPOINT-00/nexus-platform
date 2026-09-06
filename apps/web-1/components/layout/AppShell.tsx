@@ -65,7 +65,7 @@ export default function AppShell({ children }: AppShellProps) {
               href="/"
               className="flex items-center"
             >
-              <Logo height={52} />
+              <Logo height={62} />
             </Link>
 
 

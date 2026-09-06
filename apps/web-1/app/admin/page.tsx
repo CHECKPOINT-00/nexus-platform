@@ -383,7 +383,7 @@ function AdminHubPageInner() {
                 </UnstyledButton>
               </Tooltip>
 
-              <Tooltip label="Cấu hình giá gói" position="right" withArrow>
+              <Tooltip label="Cài đặt giá gói" position="right" withArrow>
                 <UnstyledButton
                   onClick={() => setActiveSection("packages")}
                   className={classes.mainLink}
@@ -408,7 +408,7 @@ function AdminHubPageInner() {
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={4} className="font-heading font-semibold text-text-app">
-                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : "Cấu hình gói"}
+                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : "Cài đặt gói"}
               </Title>
               <Text size="xs" className="text-text-muted font-body mt-0.5">
                 {activeSection === "stats"
@@ -421,7 +421,7 @@ function AdminHubPageInner() {
                   ? "Danh mục tài liệu trên hệ thống."
                   : activeSection === "users"
                   ? "Quản lý tài khoản & phân quyền."
-                  : "Cấu hình đơn giá gói dịch vụ."}
+                  : "Cài đặt đơn giá gói dịch vụ."}
               </Text>
             </div>
 

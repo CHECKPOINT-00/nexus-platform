@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, Tabs } from "@mantine/core";
 import { Plus } from "lucide-react";
@@ -8,6 +8,7 @@ import { WalletBalanceCard } from "./_components/WalletBalanceCard";
 import { WalletTransactionList } from "./_components/WalletTransactionList";
 import { WalletProofTable } from "./_components/WalletProofTable";
 import { WalletTopupModal } from "./_components/WalletTopupModal";
+import { clearAllBuyCreditAfterDepositIntents } from "@/app/dashboard/payment/credit-after-deposit-intent";
 
 export default function WalletPage() {
   const searchParams = useSearchParams();
@@ -15,6 +16,10 @@ export default function WalletPage() {
   const initialTopupAmount = amountParam ? Number(amountParam) : undefined;
   const [topupOpened, setTopupOpened] = useState(!!initialTopupAmount);
   const [topupAmount, setTopupAmount] = useState<number | undefined>(initialTopupAmount);
+
+  useEffect(() => {
+    clearAllBuyCreditAfterDepositIntents();
+  }, []);
 
   const openTopup = (amount?: number) => {
     setTopupAmount(amount);
