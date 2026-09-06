@@ -42,7 +42,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="flex items-center gap-4 min-w-0">
           <Link href={getHomeLink()} className="flex items-center shrink-0">
-            <Logo height={52} />
+            <Logo height={62} />
           </Link>
         </div>
 
