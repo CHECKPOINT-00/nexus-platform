@@ -36,7 +36,7 @@ Dự án Nexus Platform trước đây sử dụng `npm@11.11.1` làm package ma
 - `package-lock.json.backup` (sao lưu từ `package-lock.json` của `npm@11.11.1`)
 - `apps/api/Dockerfile.npm` (sao lưu Dockerfile API dùng npm + Node.js runner)
 - `apps/web-1/Dockerfile.npm` (sao lưu Dockerfile Web dùng npm + Node.js runner)
-- `.github/workflows/ci.npm.yml` (sao lưu workflow GitHub Actions dùng npm)
+- `.github/workflows/ci.npm.yml.backup` (sao lưu workflow GitHub Actions dùng npm, đuôi .backup để GitHub Actions không chạy nhầm)
 
 ### 3.2. Cập nhật Root Monorepo
 - `package.json`: Đổi `"packageManager": "npm@11.11.1"` thành `"packageManager": "bun@1.3.14"`.
@@ -78,7 +78,7 @@ Nếu cần hoàn tác khẩn cấp về môi trường npm cũ, thực hiện l
 cp package-lock.json.backup package-lock.json && \
 cp apps/api/Dockerfile.npm apps/api/Dockerfile && \
 cp apps/web-1/Dockerfile.npm apps/web-1/Dockerfile && \
-cp .github/workflows/ci.npm.yml .github/workflows/ci.yml && \
+cp .github/workflows/ci.npm.yml.backup .github/workflows/ci.yml && \
 npm install
 ```
 
