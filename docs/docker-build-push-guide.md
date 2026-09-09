@@ -29,25 +29,20 @@ Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 Dùng Turborepo `turbo prune --docker` trong Dockerfile — chỉ prune workspace cần thiết + lockfile:
 
 ```
-turbo prune → npm ci (pruned deps) → build → runner (minimal)
+turbo prune → bun install (pruned deps) → build → runner (minimal)
 ```
 
 Build context là **repo root**, Dockerfile nằm trong `apps/*`.
 
-### ⚠️ npm Workspace Hoisting
+### ⚠️ Workspace Node Modules & Hoisting
 
-Trong builder stage, Dockerfile copy thêm workspace-level `node_modules/` vì npm **không hoist** được tất cả package lên root:
+Trong builder stage, Dockerfile copy thêm workspace-level `node_modules/` để đảm bảo resolve đầy đủ dependencies của từng app:
 
 ```dockerfile
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 ```
 
-Lý do: npm workspaces chỉ hoist package lên root `node_modules/` khi không có version conflict. Các package sau bị giữ ở workspace-level:
-
-- `@ai-sdk/google` — conflict `@ai-sdk/provider` version với `@ai-sdk/openai`
-- `next` — conflict version giữa lockfile và package.json (`16.2.0` vs `16.2.9`)
-- Các transitive dependency khác có version conflict
-
+Lý do: Trong cấu trúc monorepo với Turborepo và Bun workspaces, một số dependencies hoặc binaries được đặt tại workspace-level (ví dụ `@ai-sdk/google` hoặc binary `next`). Tại deps stage, Dockerfile chạy `bun install --frozen-lockfile && mkdir -p /app/apps/<workspace>/node_modules` để layer này luôn tồn tại kể cả khi toàn bộ dependencies đã được hoist lên root.
 Nếu thiếu dòng COPY này, build sẽ fail với lỗi:
 - **API**: `TS2307: Cannot find module '@ai-sdk/google'`
 - **Web**: `sh: next: not found`
@@ -78,7 +73,7 @@ docker login
 docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
 ```
 
-> **Why `--no-cache`?** Prisma Client generate phụ thuộc vào `schema.prisma`. Docker cache layer `npm run build` không invalidate khi chỉ schema thay đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument` hoặc missing field. Luôn `--no-cache` cho API build.
+> **Why `--no-cache`?** Prisma Client generate phụ thuộc vào `schema.prisma`. Docker cache layer build không invalidate khi chỉ schema thay đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument` hoặc missing field. Luôn `--no-cache` cho API build.
 
 ### 3. Build Web Image
 
@@ -173,7 +168,7 @@ src/services/google-provider.ts: TS2307: Cannot find module '@ai-sdk/google'
 sh: next: not found
 ```
 
-**Nguyên nhân:** npm workspaces không hoist được package lên root `node_modules/` do version conflict. Dockerfile builder stage chỉ copy root `node_modules/`, thiếu workspace-level `node_modules/`.
+**Nguyên nhân:** Monorepo workspaces có thể giữ package/binary ở workspace-level `node_modules/`. Dockerfile builder stage nếu chỉ copy root `node_modules/` sẽ thiếu workspace-level `node_modules/`.
 
 **Fix:** Thêm dòng COPY workspace node_modules trong builder stage:
 ```dockerfile

@@ -10,7 +10,7 @@ Monorepo cho `apps/api`, `apps/web-1`, và shared `packages/*`. Nền tảng wor
 - **Backend:** Hono 4.12, Better Auth 1.4 (email/password + Google OAuth), Vercel AI SDK (`@ai-sdk/google`, `@ai-sdk/openai`)
 - **Database:** Prisma 7 + PostgreSQL (PgBouncer adapter)
 - **Tooling:** TypeScript, Turborepo, Tailwind CSS v4, next-themes, dayjs, axios
-- **Monorepo:** npm workspaces, Turbo 2.10
+- **Monorepo:** Bun workspaces, Turbo 2.10
 
 ## Structure
 
@@ -32,7 +32,7 @@ root/
 ## Setup
 
 ```bash
-npm install
+bun install
 ```
 
 Tạo root `.env` từ `.env.example`, set:
@@ -63,7 +63,7 @@ Notifications/realtime chi tiết: [`docs/realtime-centrifugo-guide.md`](docs/re
 ## Run
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Ports:
@@ -74,11 +74,11 @@ Ports:
 ## Build và checks
 
 ```bash
-npm run build
-npm run lint
-npm run check-types
-npm run prisma:generate
-npm run prisma:migrate
+bun run build
+bun run lint
+bun run check-types
+bun run prisma:generate
+bun run prisma:migrate
 ```
 
 ## Quy ước
