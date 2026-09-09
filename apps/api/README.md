@@ -76,14 +76,14 @@ Payment proof uploads use Cloudinary public URLs; local `/uploads/*` serving rem
 ## Run
 
 ```bash
-bun run dev --workspace=apps/api
+bun run --filter nexus-platform-api dev
 ```
 
 ## Build and checks
 
 ```bash
-bun run build --workspace=apps/api
-bun run check-types --workspace=apps/api
+bun run --filter nexus-platform-api build
+bun run --filter nexus-platform-api check-types
 ```
 
 ## Docker

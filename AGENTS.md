@@ -105,7 +105,7 @@ bun run build                  # prisma generate → tsc (API) + next build (Web
 bun run lint                   # ESLint zero-warnings (Web + UI)
 bun run check-types            # tsc --noEmit all workspaces
 bun run prisma:generate        # Root Prisma schema → client
-bun run test --workspace=apps/api # API test suite (tsx --test)
+bun run --filter nexus-platform-api test # API test suite (tsx --test)
 bun run format                 # Prettier (not in CI pipeline)
 ```
 ## DOCKER BUILD & DEPLOY

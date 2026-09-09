@@ -56,7 +56,7 @@ Dự án Nexus Platform trước đây sử dụng `npm@11.11.1` làm package ma
    - Base stage: `oven/bun:1.4.0-alpine`
    - Turbo prune stage: `oven/bun:1.4.0-alpine` (chạy `bun add -g turbo@^2` và `turbo prune nexus-platform-api --docker`)
    - Deps stage: `bun install --frozen-lockfile && mkdir -p /app/apps/api/node_modules`
-   - Builder stage: `bun run build --workspace=nexus-platform-api`
+   - Builder stage: `bun run --filter nexus-platform-api build`
    - Runner stage: `oven/bun:1.4.0-alpine`, chạy `CMD ["bun", "apps/api/dist/index.js"]`
 
 ### 3.4. Cập nhật `apps/web-1`

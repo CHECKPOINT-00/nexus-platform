@@ -31,6 +31,7 @@ RUN bun install --frozen-lockfile && mkdir -p /app/apps/api/node_modules
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=turbo /app/out/full/ .
+COPY --from=turbo /app/out/bun.lock ./bun.lock
 
 # Copy Prisma schema + config from root (not captured by turbo prune for workspace deps)
 COPY prisma/ ./prisma/
@@ -40,7 +41,7 @@ COPY prisma.config.ts ./prisma.config.ts
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 # Build the API (includes devDeps needed for prisma migrate in migrate service)
-RUN bun run build --workspace=nexus-platform-api
+RUN bun run --filter nexus-platform-api build
 
 # -----------------------------------------------------------------------------
 # Stage 5: Runner

@@ -31,6 +31,7 @@ RUN bun install --frozen-lockfile && mkdir -p /app/apps/web-1/node_modules
 FROM bun-base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=turbo /app/out/full/ .
+COPY --from=turbo /app/out/bun.lock ./bun.lock
 
 # Copy workspace-level node_modules (ensured by mkdir -p in deps)
 COPY --from=deps /app/apps/web-1/node_modules ./apps/web-1/node_modules
@@ -42,7 +43,7 @@ ARG NEXT_PUBLIC_CENTRIFUGO_URL
 ENV NEXT_PUBLIC_CENTRIFUGO_URL=$NEXT_PUBLIC_CENTRIFUGO_URL
 ENV NODE_ENV=production
 
-RUN bun run build --workspace=nexus-platform-web-1
+RUN bun run --filter nexus-platform-web-1 build
 
 # -----------------------------------------------------------------------------
 # Stage 5: Runner (Node.js runtime for Next.js standalone stability)

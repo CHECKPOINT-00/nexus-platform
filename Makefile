@@ -46,7 +46,7 @@ check-types: ## TypeScript type check
 	@bun run check-types
 
 test: ## Run API tests
-	@bun run test --workspace=apps/api
+	@bun run --filter nexus-platform-api test
 
 # ──────────────────────────────────────────
 # Docker DB
