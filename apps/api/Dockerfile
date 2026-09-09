@@ -7,15 +7,14 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Base
 # -----------------------------------------------------------------------------
-FROM oven/bun:1.3.14-alpine AS base
+FROM oven/bun:1.4.0-alpine AS base
 WORKDIR /app
 
 # -----------------------------------------------------------------------------
 # Stage 2: Turbo prune
 # -----------------------------------------------------------------------------
-FROM node:24.18.0-alpine AS turbo
-RUN npm install -g turbo@^2
-WORKDIR /app
+FROM base AS turbo
+RUN bun add -g turbo@^2
 COPY . .
 RUN turbo prune nexus-platform-api --docker
 
@@ -46,7 +45,7 @@ RUN bun run build --workspace=nexus-platform-api
 # -----------------------------------------------------------------------------
 # Stage 5: Runner
 # -----------------------------------------------------------------------------
-FROM oven/bun:1.3.14-alpine AS runner
+FROM oven/bun:1.4.0-alpine AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && \

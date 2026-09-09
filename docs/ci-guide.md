@@ -22,7 +22,7 @@ Job env:
 ## Steps
 
 1. `actions/checkout@v4`
-2. `oven-sh/setup-bun@v2` — Bun 1.3.14
+2. `oven-sh/setup-bun@v2` — Bun 1.4.0
 3. `bun install --frozen-lockfile` — clean install dependencies theo `bun.lock`
 4. `bun run build` — turbo build (kèm prisma generate)
 5. `bun run check-types` — turbo type check

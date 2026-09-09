@@ -19,13 +19,13 @@ Dự án Nexus Platform trước đây sử dụng `npm@11.11.1` làm package ma
 
 | Thành phần | Trước chuyển đổi | Sau chuyển đổi |
 | :--- | :--- | :--- |
-| **Package Manager (Toàn repo)** | `npm@11.11.1` (`package-lock.json`) | **`bun@1.3.14`** (`bun.lock`) |
+| **Package Manager (Toàn repo)** | `npm@11.11.1` (`package-lock.json`) | **`bun@1.4.0`** (`bun.lock`) |
 | **API Runtime (Dev & Prod)** | Node.js (`tsx watch` / `node dist`) | **Bun** (`bun --watch` / `bun dist`) |
-| **API Docker Runner Image** | `node:24.18.0-alpine` | `oven/bun:1.3.14-alpine` |
+| **API Docker Runner Image** | `node:24.18.0-alpine` | `oven/bun:1.4.0-alpine` |
 | **Web Runtime (Prod Runner)** | Node.js (`node server.js`) | **Node.js** (`node server.js`) *(Giữ nguyên)* |
 | **Web Docker Runner Image** | `node:24.18.0-alpine` | `node:24.18.0-alpine` *(Giữ nguyên)* |
 | **Web Docker Builder Stage** | npm (`npm ci` / `npm run build`) | **Bun** (`bun install` / `bun run build`) |
-| **CI Engine (GitHub Actions)** | `actions/setup-node@v4` (Node 22) | `oven-sh/setup-bun@v2` (Bun 1.3.14) |
+| **CI Engine (GitHub Actions)** | `actions/setup-node@v4` (Node 22) | `oven-sh/setup-bun@v2` (Bun 1.4.0) |
 
 ---
 
@@ -39,7 +39,7 @@ Dự án Nexus Platform trước đây sử dụng `npm@11.11.1` làm package ma
 - `.github/workflows/ci.npm.yml.backup` (sao lưu workflow GitHub Actions dùng npm, đuôi .backup để GitHub Actions không chạy nhầm)
 
 ### 3.2. Cập nhật Root Monorepo
-- `package.json`: Đổi `"packageManager": "npm@11.11.1"` thành `"packageManager": "bun@1.3.14"`.
+- `package.json`: Đổi `"packageManager": "npm@11.11.1"` thành `"packageManager": "bun@1.4.0"`.
 - Chạy `bun install` sinh ra file `bun.lock` (209KB).
 - Xóa `package-lock.json` khỏi git tracking (đã có bản `.backup`).
 
@@ -53,19 +53,19 @@ Dự án Nexus Platform trước đây sử dụng `npm@11.11.1` làm package ma
    - `"build"`: `bun run prisma:generate && tsc`
    - `"check-types"`: `bun run prisma:generate && tsc --noEmit`
 3. **Dockerfile (`apps/api/Dockerfile`)**:
-   - Base stage: `oven/bun:1.3.14-alpine`
-   - Turbo prune stage: `node:24.18.0-alpine` (chạy `turbo prune nexus-platform-api --docker`)
+   - Base stage: `oven/bun:1.4.0-alpine`
+   - Turbo prune stage: `oven/bun:1.4.0-alpine` (chạy `bun add -g turbo@^2` và `turbo prune nexus-platform-api --docker`)
    - Deps stage: `bun install --frozen-lockfile && mkdir -p /app/apps/api/node_modules`
    - Builder stage: `bun run build --workspace=nexus-platform-api`
-   - Runner stage: `oven/bun:1.3.14-alpine`, chạy `CMD ["bun", "apps/api/dist/index.js"]`
+   - Runner stage: `oven/bun:1.4.0-alpine`, chạy `CMD ["bun", "apps/api/dist/index.js"]`
 
 ### 3.4. Cập nhật `apps/web-1`
 1. **Dockerfile (`apps/web-1/Dockerfile`)**:
-   - Base/Deps/Builder: Dùng `oven/bun:1.3.14-alpine` để cài đặt dependencies và build standalone cực nhanh.
+   - Base/Turbo/Deps/Builder: Dùng `oven/bun:1.4.0-alpine` (`bun add -g turbo@^2`) để prune, cài đặt dependencies và build standalone cực nhanh.
    - Runner stage: Giữ nguyên `node:24.18.0-alpine`, chạy `CMD ["node", "apps/web-1/server.js"]` đảm bảo tương thích 100% với Next.js 16 standalone output.
 
 ### 3.5. Cập nhật CI/CD & Developer Tooling
-- `.github/workflows/ci.yml`: Đổi sang `oven-sh/setup-bun@v2` (version `1.3.14`), thay `npm ci` bằng `bun install --frozen-lockfile`.
+- `.github/workflows/ci.yml`: Đổi sang `oven-sh/setup-bun@v2` (version `1.4.0`), thay `npm ci` bằng `bun install --frozen-lockfile`.
 - `Makefile`: Đổi toàn bộ các target `dev`, `build`, `lint`, `check-types`, `test` sang `bun run ...`.
 - `AGENTS.md` & `README.md`: Cập nhật toàn bộ hướng dẫn cài đặt và chạy lệnh sang `bun`.
 
@@ -87,10 +87,10 @@ npm install
 ## 5. Verification Checklist
 
 - [x] 4 file backup tồn tại và nguyên vẹn.
-- [x] Root `package.json` khai báo `bun@1.3.14`.
+- [x] Root `package.json` khai báo `bun@1.4.0`.
 - [x] Lockfile `bun.lock` sinh chuẩn xác từ monorepo.
 - [x] `apps/api/src/index.ts` hỗ trợ native `Bun.serve` và fallback Node.js.
-- [x] Dockerfile API chạy `oven/bun:1.3.14-alpine`.
+- [x] Dockerfile API chạy `oven/bun:1.4.0-alpine`.
 - [x] Dockerfile Web runner chạy `node:24.18.0-alpine`.
 - [x] CI workflow cấu hình `setup-bun@v2`.
 - [x] TypeScript type checking pass trên toàn bộ monorepo.

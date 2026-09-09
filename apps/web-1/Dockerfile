@@ -7,15 +7,14 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Bun Base (for deps & build)
 # -----------------------------------------------------------------------------
-FROM oven/bun:1.3.14-alpine AS bun-base
+FROM oven/bun:1.4.0-alpine AS bun-base
 WORKDIR /app
 
 # -----------------------------------------------------------------------------
 # Stage 2: Turbo prune
 # -----------------------------------------------------------------------------
-FROM node:24.18.0-alpine AS turbo
-RUN npm install -g turbo@^2
-WORKDIR /app
+FROM bun-base AS turbo
+RUN bun add -g turbo@^2
 COPY . .
 RUN turbo prune nexus-platform-web-1 --docker
 
