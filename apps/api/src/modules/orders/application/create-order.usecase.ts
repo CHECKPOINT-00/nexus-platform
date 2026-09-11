@@ -152,16 +152,27 @@ export async function createOrderUseCase(
         }
       }
 
+      const creditAuditItem = resolvedItems.find((i) => i.item.service_type === CREDIT_AUDIT_SERVICE);
+      const caseIdFromMeta =
+        creditAuditItem?.item.metadata_json &&
+        typeof creditAuditItem.item.metadata_json === "object" &&
+        "case_id" in creditAuditItem.item.metadata_json &&
+        typeof (creditAuditItem.item.metadata_json as Record<string, unknown>).case_id === "string"
+          ? ((creditAuditItem.item.metadata_json as Record<string, unknown>).case_id as string)
+          : undefined;
+
       await insertOutboxEvent(tx, {
         event_type: DOMAIN_EVENTS.ORDER_PAID,
         payload_json: {
           orderId: order.id,
           userId,
+          caseId: caseIdFromMeta,
           totalAmount,
           totalCredits: resolvedItems.reduce((sum, { item }) => sum + item.quantity, 0),
           items: request.items.map((i) => ({
             service_type: i.service_type,
             quantity: i.quantity,
+            metadata_json: i.metadata_json,
           })),
         },
       });

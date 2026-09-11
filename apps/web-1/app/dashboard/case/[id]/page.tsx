@@ -18,6 +18,7 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
+import TabReportFindings from "./_components/TabReportFindings";
 
 
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
@@ -40,6 +41,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     intakeSnapshot,
     teamFitReport,
     documentWorkspace,
+    latestReport,
     isLoading,
     error,
     allowedTransitions,
@@ -198,6 +200,13 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               </div>
               <DocumentWorkspace workspace={documentWorkspace} />
             </>
+          )}
+
+          {activeTab === "report" && (
+            <TabReportFindings
+              report={(latestReport as { content_md: string }) || null}
+              caseId={caseData.id}
+            />
           )}
 
           {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
