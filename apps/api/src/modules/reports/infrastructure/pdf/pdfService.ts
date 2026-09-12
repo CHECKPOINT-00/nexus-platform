@@ -51,6 +51,35 @@ export interface GeneratePdfOptions {
 }
 
 /**
+ * Chuyển đổi timestamp (ISO string / Date) thành định dạng ngày giờ tiếng Việt
+ * thân thiện cho người đọc trên báo cáo A4.
+ * Ví dụ: "2026-09-12T07:31:24.457Z" → "14:31, 12/09/2026" (giờ Việt Nam GMT+7)
+ */
+export function formatReportDateTime(dateInput?: string | Date): string {
+  if (!dateInput) return "";
+  const d = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  if (isNaN(d.getTime())) return String(dateInput);
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour12: false,
+    }).formatToParts(d);
+
+    const map: Record<string, string> = {};
+    for (const p of parts) map[p.type] = p.value;
+    return `${map.hour}:${map.minute}, ${map.day}/${map.month}/${map.year}`;
+  } catch {
+    return d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+  }
+}
+
+/**
  * Chuyển tên dự án tiếng Việt (có dấu, ký tự đặc biệt) thành slug an toàn
  * cho filename tải về. Ví dụ: "BeautyHub — Nền tảng TMĐT" → "beautyhub-nen-tang-tmdt"
  */
@@ -157,7 +186,7 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
     project_name: opts.meta.projectName,
     job_id: jobId,
     agent_name: agent,
-    created_at: opts.meta.createdAt,
+    created_at: formatReportDateTime(opts.meta.createdAt),
     overall_score: opts.meta.overallScore,
     verdict: opts.meta.verdict,
     scores: opts.meta.categoryScores,

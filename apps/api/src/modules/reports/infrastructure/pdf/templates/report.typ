@@ -78,9 +78,7 @@
   #text(size: 9.5pt, fill: rgb(100, 116, 139))[
     Job ID: #text(fill: rgb(71, 85, 105))[#meta.job_id]
     #h(12pt) #text(fill: rgb(203, 213, 225))[|] #h(12pt)
-    Hội đồng AI: #text(fill: rgb(71, 85, 105))[#upper(meta.agent_name)]
-    #h(12pt) #text(fill: rgb(203, 213, 225))[|] #h(12pt)
-    Thời gian: #text(fill: rgb(71, 85, 105))[#meta.created_at]
+    Thời điểm xuất tài liệu: #text(fill: rgb(71, 85, 105))[#meta.created_at]
   ]
 ]
 

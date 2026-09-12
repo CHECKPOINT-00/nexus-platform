@@ -25,6 +25,7 @@ import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
+import type { Report } from "@/types/case";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -236,7 +237,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
           {activeTab === "report" && (
             <TabReportFindings
-              report={(latestReport as { content_md: string }) || null}
+              report={(latestReport as Report) || null}
               caseId={caseData.id}
             />
           )}

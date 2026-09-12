@@ -135,33 +135,41 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       competitiveMoat: 60,
       executionFeasibility: 70,
     };
-    let parsed: Record<string, unknown> | null = null;
+    let parsed: Record<string, unknown> | null =
+      report.metadata_json && typeof report.metadata_json === "object"
+        ? (report.metadata_json as Record<string, unknown>)
+        : null;
 
-    try {
-      const maybeParsed = JSON.parse(report.content_md) as Record<string, unknown>;
-      if (maybeParsed && typeof maybeParsed === "object") {
-        parsed = maybeParsed;
-        if (typeof maybeParsed["reportMarkdown"] === "string") {
-          reportMarkdown = maybeParsed["reportMarkdown"] as string;
+    if (!parsed) {
+      try {
+        const maybeParsed = JSON.parse(report.content_md) as Record<string, unknown>;
+        if (maybeParsed && typeof maybeParsed === "object") {
+          parsed = maybeParsed;
+          if (typeof maybeParsed["reportMarkdown"] === "string") {
+            reportMarkdown = maybeParsed["reportMarkdown"] as string;
+          }
         }
-        if (typeof maybeParsed["overallScore"] === "number") {
-          overallScore = maybeParsed["overallScore"] as number;
-        }
-        if (typeof maybeParsed["verdict"] === "string") {
-          verdict = maybeParsed["verdict"] as string;
-        }
-        if (maybeParsed["categoryScores"] && typeof maybeParsed["categoryScores"] === "object") {
-          categoryScores = maybeParsed["categoryScores"] as {
-            problemClarity: number;
-            marketViability: number;
-            businessModel: number;
-            competitiveMoat: number;
-            executionFeasibility: number;
-          };
-        }
+      } catch {
+        // Content is plain markdown
       }
-    } catch {
-      // Content is plain markdown
+    }
+
+    if (parsed) {
+      if (typeof parsed["overallScore"] === "number") {
+        overallScore = parsed["overallScore"] as number;
+      }
+      if (typeof parsed["verdict"] === "string") {
+        verdict = parsed["verdict"] as string;
+      }
+      if (parsed["categoryScores"] && typeof parsed["categoryScores"] === "object") {
+        categoryScores = parsed["categoryScores"] as {
+          problemClarity: number;
+          marketViability: number;
+          businessModel: number;
+          competitiveMoat: number;
+          executionFeasibility: number;
+        };
+      }
     }
 
     const rootDir = resolveRepoRoot();
@@ -232,12 +240,17 @@ export async function downloadCaseReportPdfHandler(c: Context) {
         "raw",
         true,
       );
-      if (uploadRes?.fileUrl && parsed) {
-        parsed["pdfUrl"] = uploadRes.fileUrl;
-        parsed["pdfPublicId"] = uploadRes.publicId;
+      if (uploadRes?.fileUrl) {
+        const updatedMeta = {
+          ...((report.metadata_json as Record<string, unknown>) || parsed || {}),
+          pdfUrl: uploadRes.fileUrl,
+          pdfPublicId: uploadRes.publicId,
+        };
         await prisma.report.update({
           where: { id: report.id },
-          data: { content_md: JSON.stringify(parsed) },
+          data: {
+            metadata_json: updatedMeta as any,
+          },
         });
         await upsertReportArtifactDocumentRecord(
           caseId,

@@ -110,15 +110,15 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
     }
   }
 
-  const contentToStore = JSON.stringify({
+  const metadataJson: Record<string, unknown> = {
     ...reportJson,
-    reportMarkdown: reportMd,
     pdfUrl,
     pdfPublicId,
-  });
+  };
+  delete metadataJson.reportMarkdown;
 
-  // Save report into Postgres via repository
-  const savedReport = await saveOmpAuditReport(caseId, contentToStore);
+  // Save report into Postgres via repository (pure Markdown in content_md, structured stats in metadata_json)
+  const savedReport = await saveOmpAuditReport(caseId, reportMd, metadataJson);
 
   // Sync artifact record so it appears in "Tài liệu" tab
   try {

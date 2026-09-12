@@ -136,7 +136,11 @@ export async function findApprovedReports(caseId: string) {
 /**
  * Persist or update OMP automated audit report in Postgres.
  */
-export async function saveOmpAuditReport(caseId: string, contentToStore: string) {
+export async function saveOmpAuditReport(
+  caseId: string,
+  contentMd: string,
+  metadataJson?: Record<string, unknown> | null,
+) {
   const existingReport = await prisma.report.findFirst({
     where: { case_id: caseId },
     select: { id: true },
@@ -146,7 +150,8 @@ export async function saveOmpAuditReport(caseId: string, contentToStore: string)
     return await prisma.report.update({
       where: { id: existingReport.id },
       data: {
-        content_md: contentToStore,
+        content_md: contentMd,
+        ...(metadataJson !== undefined ? { metadata_json: metadataJson as any } : {}),
         status: "APPROVED",
         sent_at: new Date(),
       },
@@ -175,7 +180,8 @@ export async function saveOmpAuditReport(caseId: string, contentToStore: string)
       case_id: caseId,
       checkpoint_id: checkpoint.id,
       report_type: "input_clarification",
-      content_md: contentToStore,
+      content_md: contentMd,
+      metadata_json: (metadataJson as any) ?? undefined,
       status: "APPROVED",
       created_by: "omp_worker",
       sent_at: new Date(),

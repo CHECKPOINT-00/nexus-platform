@@ -8,11 +8,9 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
-  CheckCircle,
   Lightbulb,
   Play,
   ShieldAlert,
-  AlertTriangle,
   Award,
   Sparkles,
   CheckCircle2,
@@ -60,7 +58,10 @@ export interface RichReportData {
 }
 
 interface TabReportFindingsProps {
-  report: { content_md: string } | null;
+  report: {
+    content_md: string;
+    metadata_json?: Record<string, unknown> | null;
+  } | null;
   caseId?: string;
 }
 
@@ -75,6 +76,9 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
   };
 
   const parsedReport = useMemo<RichReportData | null>(() => {
+    if (report?.metadata_json && typeof report.metadata_json === "object") {
+      return report.metadata_json as unknown as RichReportData;
+    }
     if (!report?.content_md) return null;
     try {
       const data = JSON.parse(report.content_md) as unknown;
@@ -85,7 +89,7 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
       // Content is plain markdown or unparsed string
     }
     return null;
-  }, [report?.content_md]);
+  }, [report]);
 
   const { mutate: downloadPdf, isPending: isDownloadingPdf } = useDownloadReportPdf(caseId || "");
 
@@ -113,7 +117,6 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
   // 1. Trường hợp có dữ liệu cấu trúc chuẩn Checkpoint 1 (OMP Rich Report)
   if (parsedReport && (typeof parsedReport.overallScore === "number" || parsedReport.categoryScores)) {
     const score = parsedReport.overallScore ?? 65;
-    const verdict = parsedReport.verdict || (score >= 80 ? "READY FOR REALITY CHECK" : score >= 60 ? "PARTIALLY READY FOR REALITY CHECK" : "NOT READY FOR REALITY CHECK");
 
     const getVerdictBadge = () => {
       if (score >= 80) {
@@ -354,6 +357,24 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
               ))}
             </Stack>
           </Card>
+        )}
+
+        {/* Full Detailed Markdown Content (Collapsible) */}
+        {report?.content_md && !report.content_md.trim().startsWith("{") && (
+          <Accordion variant="separated" radius="md">
+            <Accordion.Item value="full-report-content" className="bg-surface-app border-border-app">
+              <Accordion.Control icon={<FileText className="w-4 h-4 text-brand" />}>
+                <Text fw={600} size="sm" className="font-heading text-text-app">
+                  Xem Toàn Bộ Báo Cáo Phản Biện Đầy Đủ (Bản Phân Tích Chi Tiết)
+                </Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <div className="prose prose-sm max-w-none text-text-app leading-relaxed whitespace-pre-wrap p-2 font-body text-xs border-t border-border-app/50 pt-4">
+                  {report.content_md}
+                </div>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
         )}
 
         {/* Bottom Download PDF Button */}
