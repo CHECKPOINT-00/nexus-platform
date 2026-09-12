@@ -100,15 +100,14 @@ bun run prisma:migrate
 
 ```bash
 # Dev
-bun run dev                    # parallel: API (tsx watch :8000) + Web (next dev :3001)
+bun run dev                    # parallel: API (bun --watch :8000) + Web (next dev :3001)
 bun run build                  # prisma generate → tsc (API) + next build (Web)
 bun run lint                   # ESLint zero-warnings (Web + UI)
 bun run check-types            # tsc --noEmit all workspaces
 bun run prisma:generate        # Root Prisma schema → client
-bun test                       # Only in apps/api: tsx --test (Node built-in runner)
+bun run --filter nexus-platform-api test # API test suite (tsx --test)
 bun run format                 # Prettier (not in CI pipeline)
 ```
-
 ## DOCKER BUILD & DEPLOY
 
 > Full guide: `docs/docker-build-push-guide.md` — troubleshooting, Makefile shortcuts, CI/CD template.

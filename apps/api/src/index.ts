@@ -191,6 +191,15 @@ process.on("SIGINT", () => {
 
 export { app }
 
+interface BunRuntime {
+  serve: (options: {
+    fetch: typeof app.fetch;
+    port: number;
+  }) => unknown;
+}
+
+declare const Bun: BunRuntime | undefined;
+
 if (process.env.NODE_ENV !== 'test') {
   registerNotificationListener();
   initAiAuditOrderListener();
@@ -198,10 +207,18 @@ if (process.env.NODE_ENV !== 'test') {
   startOutboxRelay();
   startAutoDoneSweep();
 
-  serve({
-    fetch: app.fetch,
-    port
-  }, (info) => {
-    logger.info({ port: info.port }, 'server started')
-  })
+  if (typeof Bun !== 'undefined') {
+    Bun.serve({
+      fetch: app.fetch,
+      port,
+    });
+    logger.info({ port }, 'server started (bun native runtime)');
+  } else {
+    serve({
+      fetch: app.fetch,
+      port
+    }, (info) => {
+      logger.info({ port: info.port }, 'server started (node server runtime)');
+    });
+  }
 }

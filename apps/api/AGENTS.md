@@ -36,9 +36,9 @@ src/
 
 ## COMMANDS
 ```bash
-bun --filter apps/api run dev
-bun --filter apps/api run build
-bun --filter apps/api run check-types
+bun run --filter nexus-platform-api dev
+bun run --filter nexus-platform-api build
+bun run --filter nexus-platform-api check-types
 ```
 
 ## NOTES

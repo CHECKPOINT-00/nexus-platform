@@ -7,14 +7,15 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Base
 # -----------------------------------------------------------------------------
-FROM oven/bun:1.4.0-alpine AS base
+FROM node:24.18.0-alpine AS base
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # -----------------------------------------------------------------------------
 # Stage 2: Turbo prune
 # -----------------------------------------------------------------------------
 FROM base AS turbo
-RUN bun add -g turbo@^2
+RUN npm install -g turbo@^2
 COPY . .
 RUN turbo prune nexus-platform-api --docker
 
@@ -23,7 +24,8 @@ RUN turbo prune nexus-platform-api --docker
 # -----------------------------------------------------------------------------
 FROM base AS deps
 COPY --from=turbo /app/out/json/ .
-RUN bun install --frozen-lockfile && mkdir -p /app/apps/api/node_modules
+COPY --from=turbo /app/out/package-lock.json ./package-lock.json
+RUN npm ci
 
 # -----------------------------------------------------------------------------
 # Stage 4: Build
@@ -31,24 +33,22 @@ RUN bun install --frozen-lockfile && mkdir -p /app/apps/api/node_modules
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=turbo /app/out/full/ .
-COPY --from=turbo /app/out/bun.lock ./bun.lock
+COPY --from=turbo /app/out/package-lock.json ./package-lock.json
 
 # Copy Prisma schema + config from root (not captured by turbo prune for workspace deps)
 COPY prisma/ ./prisma/
 COPY prisma.config.ts ./prisma.config.ts
 
-# Copy workspace-level node_modules (ensured by mkdir -p in deps)
+# Copy workspace-level node_modules (npm hoists only non-conflicting deps to root)
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 # Build the API (includes devDeps needed for prisma migrate in migrate service)
-RUN bun run --filter nexus-platform-api build
+RUN npm run build --workspace=nexus-platform-api
 
 # -----------------------------------------------------------------------------
 # Stage 5: Runner
 # -----------------------------------------------------------------------------
-FROM oven/bun:1.4.0-alpine AS runner
-WORKDIR /app
-
+FROM base AS runner
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nexus && \
     mkdir -p /app/logs && \
@@ -59,7 +59,7 @@ USER nexus
 # ── Stable layers (cached unless deps change) ──
 # Root node_modules — copy from deps stage (cached when lockfile unchanged)
 COPY --from=deps --chown=nexus:nodejs /app/node_modules ./node_modules
-# Workspace-level node_modules
+# Workspace-level node_modules (npm hoisting fails for conflicting deps: @ai-sdk/google, etc.)
 COPY --from=deps --chown=nexus:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 # Shared packages needed at runtime (exports raw TS, referenced via symlink)
 COPY --from=builder --chown=nexus:nodejs /app/packages ./packages
@@ -82,4 +82,4 @@ EXPOSE 8000
 ENV NODE_ENV=production
 ENV LOG_LEVEL=info
 
-CMD ["bun", "apps/api/dist/index.js"]
+CMD ["node", "apps/api/dist/index.js"]
