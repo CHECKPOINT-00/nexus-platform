@@ -89,24 +89,24 @@ root/
 ## COMMANDS
 
 ```bash
-npm run dev
-npm run build
-npm run check-types
-npm run prisma:generate
-npm run prisma:migrate
+bun run dev
+bun run build
+bun run check-types
+bun run prisma:generate
+bun run prisma:migrate
 ```
 
 ## BUILD & CI
 
 ```bash
 # Dev
-npm run dev                    # parallel: API (tsx watch :8000) + Web (next dev :3001)
-npm run build                  # prisma generate → tsc (API) + next build (Web)
-npm run lint                   # ESLint zero-warnings (Web + UI)
-npm run check-types            # tsc --noEmit all workspaces
-npm run prisma:generate        # Root Prisma schema → client
-npm test                       # Only in apps/api: tsx --test (Node built-in runner)
-npm run format                 # Prettier (not in CI pipeline)
+bun run dev                    # parallel: API (tsx watch :8000) + Web (next dev :3001)
+bun run build                  # prisma generate → tsc (API) + next build (Web)
+bun run lint                   # ESLint zero-warnings (Web + UI)
+bun run check-types            # tsc --noEmit all workspaces
+bun run prisma:generate        # Root Prisma schema → client
+bun test                       # Only in apps/api: tsx --test (Node built-in runner)
+bun run format                 # Prettier (not in CI pipeline)
 ```
 
 ## DOCKER BUILD & DEPLOY

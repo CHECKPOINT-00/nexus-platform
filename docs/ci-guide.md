@@ -37,8 +37,8 @@ Tự động fail nếu build hoặc type check lỗi.
 ## Local Run
 
 ```bash
-npm run build
-npm run check-types
+bun run build
+bun run check-types
 ```
 
 Yêu cầu `DATABASE_URL` trong `.env` (Prisma client cần để generate).

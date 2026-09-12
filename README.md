@@ -63,7 +63,7 @@ Notifications/realtime chi tiết: [`docs/realtime-centrifugo-guide.md`](docs/re
 ## Run
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Ports:
@@ -74,11 +74,11 @@ Ports:
 ## Build và checks
 
 ```bash
-npm run build
-npm run lint
-npm run check-types
-npm run prisma:generate
-npm run prisma:migrate
+bun run build
+bun run lint
+bun run check-types
+bun run prisma:generate
+bun run prisma:migrate
 ```
 
 ## Quy ước

@@ -36,9 +36,9 @@ src/
 
 ## COMMANDS
 ```bash
-npm run dev --workspace=apps/api
-npm run build --workspace=apps/api
-npm run check-types --workspace=apps/api
+bun --filter apps/api run dev
+bun --filter apps/api run build
+bun --filter apps/api run check-types
 ```
 
 ## NOTES
