@@ -1,7 +1,11 @@
 import { existsSync, readFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import logger from "../../../shared/infrastructure/logger.js";
-import { generateReportPdfBuffer, makeDownloadSlug } from "../../reports/infrastructure/pdf/pdfService.js";
+import {
+  generateReportPdfBuffer,
+  makeDownloadSlug,
+  buildReportPdfFilename,
+} from "../../reports/infrastructure/pdf/pdfService.js";
 import {
   findCaseDetailForPdf,
   updateAiJobStatus,
@@ -122,7 +126,10 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
 
   // Sync artifact record so it appears in "Tài liệu" tab
   try {
-    const slug = makeDownloadSlug(projectName);
+    const reportFilename = buildReportPdfFilename({
+      projectName,
+      createdAt: savedReport.created_at,
+    });
     await upsertReportArtifactDocumentRecord(
       caseId,
       savedReport.checkpoint_id,
@@ -135,7 +142,7 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
         fileUrl: pdfUrl,
         downloadUrl: pdfUrl,
         cloudinaryPublicId: pdfPublicId,
-        originalName: `${slug}_audit_report.pdf`,
+        originalName: reportFilename,
         extension: "pdf",
         mimeType: "application/pdf",
       },

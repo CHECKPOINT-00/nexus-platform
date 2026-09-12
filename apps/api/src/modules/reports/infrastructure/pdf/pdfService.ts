@@ -127,6 +127,28 @@ export function resolveReportType(opts?: {
 }
 
 /**
+ * Tạo tên file PDF chuẩn hóa: {slug}_{report_type}_{timestamp}.pdf
+ * Ví dụ: "wayvee_input_clarification_20260912143124.pdf"
+ */
+export function buildReportPdfFilename(opts: {
+  projectName: string;
+  reportType?: string;
+  markdown?: string;
+  createdAt?: Date | string | null;
+}): string {
+  const slug = makeDownloadSlug(opts.projectName);
+  const type = resolveReportType({
+    reportType: opts.reportType,
+    markdown: opts.markdown,
+  });
+  const d = opts.createdAt ? new Date(opts.createdAt) : new Date();
+  const validDate = isNaN(d.getTime()) ? new Date() : d;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const timestamp = `${validDate.getFullYear()}${pad(validDate.getMonth() + 1)}${pad(validDate.getDate())}${pad(validDate.getHours())}${pad(validDate.getMinutes())}${pad(validDate.getSeconds())}`;
+  return `${slug}_${type}_${timestamp}.pdf`;
+}
+
+/**
  * Compile báo cáo Typst → PDF, lưu kết quả vào storage, trả về Buffer.
  *
  * Storage layout (timestamped — multiple versions coexist, newest served):

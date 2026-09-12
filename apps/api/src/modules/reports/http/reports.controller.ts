@@ -11,8 +11,12 @@ import { getDraftReportUseCase } from "../application/get-draft-report.usecase.j
 import { editReportUseCase } from "../application/edit-report.usecase.js";
 import { approveReportUseCase } from "../application/approve-report.usecase.js";
 import { getLatestReportUseCase } from "../application/get-latest-report.usecase.js";
-import { findLatestApprovedReport } from "../infrastructure/persistence/report.repository.js";
-import { generateReportPdfBuffer, makeDownloadSlug, resolveReportType } from "../infrastructure/pdf/pdfService.js";
+import {
+  generateReportPdfBuffer,
+  makeDownloadSlug,
+  resolveReportType,
+  buildReportPdfFilename,
+} from "../infrastructure/pdf/pdfService.js";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { resolve } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
@@ -120,7 +124,7 @@ export async function downloadCaseReportPdfHandler(c: Context) {
   }
 
   try {
-    const report = await findLatestApprovedReport(caseId);
+    const report = await getLatestReportUseCase(caseId);
     if (!report) {
       throw new AppError(404, "REPORT_NOT_FOUND", "Chưa có báo cáo nào được xuất bản cho hồ sơ này");
     }
@@ -232,6 +236,13 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       force: true,
     });
 
+    const filename = buildReportPdfFilename({
+      projectName,
+      reportType,
+      createdAt: report.created_at,
+    });
+    const safeFilename = filename.replace(/["\r\n\\]/g, "");
+
     try {
       const uploadRes = await uploadFile(
         pdfBuffer,
@@ -264,7 +275,7 @@ export async function downloadCaseReportPdfHandler(c: Context) {
             fileUrl: uploadRes.fileUrl,
             downloadUrl: uploadRes.fileUrl,
             cloudinaryPublicId: uploadRes.publicId,
-            originalName: `${makeDownloadSlug(projectName)}_audit_report.pdf`,
+            originalName: safeFilename,
             extension: "pdf",
             mimeType: "application/pdf",
           },
@@ -274,12 +285,11 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       logger.warn({ err: uploadErr, caseId }, "Cloudinary sync in download handler");
     }
 
-    const slug = makeDownloadSlug(projectName);
-    const filename = `${slug}_audit_report.pdf`;
-    const safeFilename = filename.replace(/["\r\n\\]/g, "");
+    const isInline = c.req.query("view") === "inline" || c.req.query("inline") === "true";
+    const disposition = isInline ? "inline" : "attachment";
 
     c.header("Content-Type", "application/pdf");
-    c.header("Content-Disposition", `attachment; filename="${safeFilename}"; filename*=UTF-8''${encodeURIComponent(safeFilename)}`);
+    c.header("Content-Disposition", `${disposition}; filename="${safeFilename}"; filename*=UTF-8''${encodeURIComponent(safeFilename)}`);
     c.header("Content-Length", pdfBuffer.length.toString());
     c.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
     return c.body(new Uint8Array(pdfBuffer));

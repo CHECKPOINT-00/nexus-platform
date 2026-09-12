@@ -42,6 +42,8 @@ casesRouter.get("/document-types", listDocumentTypesHandler);
 casesRouter.post("/uploads/managed-document", uploadManagedDocumentHandler);
 casesRouter.get("/:id", getCaseDetailHandler);
 casesRouter.get("/:id/report/pdf", downloadCaseReportPdfHandler);
+casesRouter.get("/:id/report.pdf", downloadCaseReportPdfHandler);
+casesRouter.get("/:id/report/:filename", downloadCaseReportPdfHandler);
 casesRouter.get("/:id/documents", getCaseDocumentsHandler);
 casesRouter.post("/:id/revisions", submitRevisionHandler);
 casesRouter.post("/:id/revisions/upload", submitRevisionUploadHandler);
