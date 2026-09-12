@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { streamSSE } from "hono/streaming";
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
-import { handleError } from "../../../shared/infrastructure/http-helpers.js";
+import { handleError, readJsonBody } from "../../../shared/infrastructure/http-helpers.js";
 import { jobStore } from "../../ai-engine/infrastructure/persistence/job-store.repository.js";
 import { getCaseAiAuditStatus } from "../../ai-engine/application/omp-audit-status.js";
 import {
@@ -136,6 +136,7 @@ export async function cancelCaseAiAuditHandler(c: Context) {
 
 /**
  * POST /api/cases/:id/ai-retry — Retry OMP Audit for case
+ * Body: { submission_type: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string }
  */
 export async function retryCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
@@ -145,8 +146,16 @@ export async function retryCaseAiAuditHandler(c: Context) {
   }
 
   try {
-    await triggerOmpAuditForCase(caseId);
-    return c.json({ success: true, message: "Đã kích hoạt lại thẩm định AI OMP" });
+    const body = await readJsonBody(c);
+    const submissionType = body?.submission_type;
+    const lifecycleUnitId = body?.lifecycle_unit_id;
+
+    await triggerOmpAuditForCase(caseId, {
+      submission_type: submissionType,
+      lifecycle_unit_id: lifecycleUnitId,
+    });
+
+    return c.json({ success: true, message: "Đã kích hoạt thẩm định AI OMP" });
   } catch (err) {
     return handleError(c, err);
   }

@@ -107,7 +107,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         {isAiAudit ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Badge variant="light" color="blue" size="lg">Basic AI Audit ({formatPrice(unitPrice)} / Lượt)</Badge>
+              <Badge variant="light" color="blue" size="lg">Basic AI Audit ({formatPrice(unitPrice)} / 2 lượt)</Badge>
               <span className="text-xs text-text-muted">Hoàn thành dưới 2 phút</span>
             </div>
             <Paper p="sm" withBorder radius="md" className="bg-surface-app/50 border-border-app space-y-2 text-xs">
@@ -151,7 +151,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             </div>
           )}
           <div className="border-t border-border-app pt-2 flex justify-between">
-            <span className="font-semibold">Tổng thanh toán</span>
+            <span className="font-semibold">{isAiAudit ? "Tổng thanh toán (2 lượt đánh giá)" : "Tổng thanh toán"}</span>
             <span className="font-semibold text-brand text-base">{formatPrice(totalAmount)}</span>
           </div>
         </div>
@@ -178,7 +178,11 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             disabled={mutation.isPending || isShortagePending}
             rightSection={<ArrowRight className="w-4 h-4" />}
           >
-            {hasSufficientBalance ? `Thanh toán (${formatPrice(totalAmount)})` : `Nạp & Thanh toán qua VietQR`}
+            {hasSufficientBalance
+              ? isAiAudit
+                ? `Thanh toán ${formatPrice(totalAmount)} (2 lượt)`
+                : `Thanh toán (${formatPrice(totalAmount)})`
+              : `Nạp & Thanh toán qua VietQR`}
           </Button>
         </Group>
         {mutation.isError && (

@@ -14,6 +14,7 @@ export interface OmpAuditOptions {
   projectName: string;
   inputFiles: OmpAuditInputFile[];
   model?: string;
+  submissionType?: "initial" | "resubmit" | "logic_check";
 }
 
 export interface OmpAuditResult {
@@ -130,9 +131,35 @@ export async function runOmpAudit(opts: OmpAuditOptions): Promise<OmpAuditResult
 
   const { command, baseArgs } = resolveOmpCommand();
   const selectedModel = opts.model || process.env.OMP_MODEL || "cheapkeyai/gemini-3.8-flash";
+  const promptFilesDir = resolve(projectRoot, "data/system-prompts");
+  const submissionType = opts.submissionType ?? "initial";
+
+  let promptFileName: string;
+  switch (submissionType) {
+    case "resubmit":
+      promptFileName = "input_clarification_gate_v4_1_resubmit.md";
+      break;
+    case "logic_check":
+      promptFileName = "input_clarification_gate_v4_1_logic.md";
+      break;
+    default:
+      promptFileName = "input_clarification_gate_v4_1.md";
+      break;
+  }
+
+  const promptFilePath = resolve(promptFilesDir, promptFileName);
+  const promptInstructions = existsSync(promptFilePath)
+    ? readFileSync(promptFilePath, "utf-8").trim()
+    : "";
+
   const promptText =
     "Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). " +
-    "Đọc toàn bộ tài liệu nhóm trong input/, tra cứu đối chiếu kiến thức trong knowledge/startup_knowledge.db. " +
+    `Đọc kỹ tài liệu chuẩn trong: system_prompt/${promptFileName}. ` +
+    "Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), " +
+    "tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json). " +
+    (promptInstructions
+      ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${promptInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
+      : "") +
     "Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.";
 
   const args = [
