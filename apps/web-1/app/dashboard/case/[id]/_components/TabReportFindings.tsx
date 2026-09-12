@@ -18,6 +18,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button, Badge, Progress, Paper, Text, Group, Stack, Card, Accordion } from "@mantine/core";
+import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";
 
 export interface RichReportData {
   projectName?: string;
@@ -86,9 +87,11 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
     return null;
   }, [report?.content_md]);
 
+  const { mutate: downloadPdf, isPending: isDownloadingPdf } = useDownloadReportPdf(caseId || "");
+
   const handleDownloadPdf = () => {
     if (!caseId) return;
-    window.open(`/api/reports/${caseId}/pdf`, "_blank");
+    downloadPdf();
   };
 
   if (!report) {
@@ -144,6 +147,7 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
                 leftSection={<Download size={16} />}
                 color="brand"
                 size="sm"
+                loading={isDownloadingPdf}
                 onClick={handleDownloadPdf}
                 className="font-semibold cursor-pointer"
               >
@@ -386,7 +390,13 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
             </div>
           </div>
           {caseId && (
-            <Button size="xs" color="brand" leftSection={<Download size={14} />} onClick={handleDownloadPdf}>
+            <Button
+              size="xs"
+              color="brand"
+              leftSection={<Download size={14} />}
+              loading={isDownloadingPdf}
+              onClick={handleDownloadPdf}
+            >
               Tải PDF
             </Button>
           )}
@@ -468,7 +478,13 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
       <Group justify="space-between" mb="md">
         <Text fw={700} size="md">Báo Cáo Phản Biện</Text>
         {caseId && (
-          <Button size="xs" color="brand" leftSection={<Download size={14} />} onClick={handleDownloadPdf}>
+          <Button
+            size="xs"
+            color="brand"
+            leftSection={<Download size={14} />}
+            loading={isDownloadingPdf}
+            onClick={handleDownloadPdf}
+          >
             Tải PDF
           </Button>
         )}

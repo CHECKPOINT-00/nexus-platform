@@ -128,7 +128,19 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
   const templatePath = join(TEMPLATES_DIR, "report.typ");
   const templateRaw = readFileSync(templatePath, "utf-8");
 
-  const cleanMd = localizeAndCleanMarkdown(opts.markdown);
+  let markdownToUse = opts.markdown || "";
+  if (markdownToUse.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(markdownToUse) as Record<string, unknown>;
+      if (parsed && typeof parsed["reportMarkdown"] === "string" && parsed["reportMarkdown"].trim().length > 0) {
+        markdownToUse = parsed["reportMarkdown"] as string;
+      }
+    } catch {
+      // not valid json, keep as is
+    }
+  }
+
+  const cleanMd = localizeAndCleanMarkdown(markdownToUse);
   const bodyTypst = markdownToTypst(cleanMd);
   const filledTypst = templateRaw.replace("{{BODY_CONTENT}}", bodyTypst);
 

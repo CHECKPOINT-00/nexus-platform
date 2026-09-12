@@ -31,6 +31,7 @@ import {
   cancelCaseAiAuditHandler,
   retryCaseAiAuditHandler,
 } from "./cases-ai.controller.js";
+import { downloadCaseReportPdfHandler } from "../../reports/http/reports.controller.js";
 
 export const casesRouter = new Hono();
 
@@ -40,6 +41,7 @@ casesRouter.get("/supporters", listSupportersHandler);
 casesRouter.get("/document-types", listDocumentTypesHandler);
 casesRouter.post("/uploads/managed-document", uploadManagedDocumentHandler);
 casesRouter.get("/:id", getCaseDetailHandler);
+casesRouter.get("/:id/report/pdf", downloadCaseReportPdfHandler);
 casesRouter.get("/:id/documents", getCaseDocumentsHandler);
 casesRouter.post("/:id/revisions", submitRevisionHandler);
 casesRouter.post("/:id/revisions/upload", submitRevisionUploadHandler);

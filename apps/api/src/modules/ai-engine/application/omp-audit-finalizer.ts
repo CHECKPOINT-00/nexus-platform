@@ -1,14 +1,17 @@
 import { existsSync, readFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import logger from "../../../shared/infrastructure/logger.js";
-import { generateReportPdfBuffer } from "../../reports/infrastructure/pdf/pdfService.js";
+import { generateReportPdfBuffer, makeDownloadSlug } from "../../reports/infrastructure/pdf/pdfService.js";
 import {
   findCaseDetailForPdf,
   updateAiJobStatus,
   updateCaseAuditStage,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
+import { upsertReportArtifactDocumentRecord } from "../../documents/infrastructure/persistence/document.repository.js";
+import { uploadFile } from "../../../services/cloudinary.js";
 import { resolveRepoRoot } from "../omp-audit.service.js";
+import { prisma } from "../../../db.js";
 
 /**
  * Read OMP outputs from sandbox disk, compile Typst PDF, and persist report in Postgres.
@@ -48,6 +51,7 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   const reportMdPath = resolve(outputDir, "input_clarification_audit.md");
 
   if (!existsSync(reportJsonPath) || !existsSync(reportMdPath)) {
+    logger.error({ caseId }, "OMP output files missing, cannot finalize report");
     return false;
   }
 
@@ -57,7 +61,7 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
 
   // Compile Typst PDF
   const caseRecord = await findCaseDetailForPdf(caseId);
-  const projectName = caseRecord?.team_name || caseRecord?.case_code || reportJson.projectName || "Dự án khởi nghiệp";
+  const projectName = reportJson.projectName || caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
 
   let pdfBuffer: Buffer | null = null;
   try {
@@ -85,13 +89,60 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
     logger.error({ caseId, pdfErr }, "Failed to generate Typst PDF during finalization");
   }
 
+  // Upload PDF to Cloudinary if generated
+  let pdfUrl: string | null = null;
+  let pdfPublicId: string | null = null;
+  if (pdfBuffer) {
+    try {
+      const uploadRes = await uploadFile(
+        pdfBuffer,
+        `nexus/reports/${caseId}`,
+        "audit_report_a4",
+        "raw",
+      );
+      if (uploadRes?.fileUrl) {
+        pdfUrl = uploadRes.fileUrl;
+        pdfPublicId = uploadRes.publicId;
+        logger.info({ caseId, pdfUrl }, "Uploaded A4 PDF report to Cloudinary");
+      }
+    } catch (uploadErr) {
+      logger.warn({ caseId, uploadErr }, "Cloudinary upload failed during finalization, continuing with local PDF");
+    }
+  }
+
   const contentToStore = JSON.stringify({
     ...reportJson,
     reportMarkdown: reportMd,
+    pdfUrl,
+    pdfPublicId,
   });
 
   // Save report into Postgres via repository
-  await saveOmpAuditReport(caseId, contentToStore);
+  const savedReport = await saveOmpAuditReport(caseId, contentToStore);
+
+  // Sync artifact record so it appears in "Tài liệu" tab
+  try {
+    const slug = makeDownloadSlug(projectName);
+    await upsertReportArtifactDocumentRecord(
+      caseId,
+      savedReport.checkpoint_id,
+      savedReport.lifecycle_unit_id,
+      null,
+      savedReport.id,
+      savedReport.created_by,
+      prisma,
+      {
+        fileUrl: pdfUrl,
+        downloadUrl: pdfUrl,
+        cloudinaryPublicId: pdfPublicId,
+        originalName: `${slug}_audit_report.pdf`,
+        extension: "pdf",
+        mimeType: "application/pdf",
+      },
+    );
+  } catch (docErr) {
+    logger.warn({ caseId, docErr }, "Failed to upsert report artifact document record");
+  }
 
   // Update AI Job status via repository
   await updateAiJobStatus(caseId, "completed", reportJson);
