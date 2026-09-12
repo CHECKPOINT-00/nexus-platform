@@ -100,23 +100,11 @@ export async function createOrderUseCase(
         },
       });
 
+      const grantedByItem: number[] = [];
       for (const { item, unitPrice } of resolvedItems) {
         if (item.service_type !== CREDIT_AUDIT_SERVICE) continue;
         const caseId = (item.metadata_json as Record<string, unknown>)["case_id"] as string;
         const currentBalance = await getCreditBalanceInTx(tx, caseId);
-
-        await tx.creditLedger.create({
-          data: {
-            case_id: caseId,
-            amount: item.quantity,
-            balance_after: currentBalance + item.quantity,
-            type: "purchase",
-            reference_type: "order",
-            reference_id: order.id,
-            idempotency_key: `credit-purchase-${order.id}-${item.service_type}-${caseId}`,
-            metadata_json: { order_id: order.id, quantity: item.quantity, unit_price: unitPrice },
-          },
-        });
 
         const caseRecord = await tx.case.findUnique({
           where: { id: caseId },
@@ -133,6 +121,30 @@ export async function createOrderUseCase(
         if (caseRecord.owner_auth_user_id !== userId) {
           throw new AppError(403, "FORBIDDEN", "Không thể mua credit cho dự án của người khác");
         }
+
+        // Resolve credits granted from package features (default to item.quantity for backward compat)
+        let creditsGranted = item.quantity;
+        if (caseRecord.package_id) {
+          const pkg = await tx.servicePackage.findUnique({ where: { id: caseRecord.package_id } });
+          const features = pkg?.features as Record<string, unknown> | undefined;
+          if (features && typeof features === "object" && typeof features["credits_granted"] === "number") {
+            creditsGranted = features["credits_granted"];
+          }
+        }
+        grantedByItem.push(creditsGranted);
+
+        await tx.creditLedger.create({
+          data: {
+            case_id: caseId,
+            amount: creditsGranted,
+            balance_after: currentBalance + creditsGranted,
+            type: "purchase",
+            reference_type: "order",
+            reference_id: order.id,
+            idempotency_key: `credit-purchase-${order.id}-${item.service_type}-${caseId}`,
+            metadata_json: { order_id: order.id, quantity: item.quantity, unit_price: unitPrice, credits_granted: creditsGranted },
+          },
+        });
 
         await applyPaidCreditCaseUpdate(tx, {
           caseId,
@@ -168,7 +180,7 @@ export async function createOrderUseCase(
           userId,
           caseId: caseIdFromMeta,
           totalAmount,
-          totalCredits: resolvedItems.reduce((sum, { item }) => sum + item.quantity, 0),
+          totalCredits: grantedByItem.reduce((sum, g) => sum + g, 0),
           items: request.items.map((i) => ({
             service_type: i.service_type,
             quantity: i.quantity,

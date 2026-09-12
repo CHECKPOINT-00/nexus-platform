@@ -3,14 +3,15 @@ import { resolve } from "node:path";
 import logger from "../../../shared/infrastructure/logger.js";
 import {
   generateReportPdfBuffer,
-  makeDownloadSlug,
   buildReportPdfFilename,
 } from "../../reports/infrastructure/pdf/pdfService.js";
 import {
   findCaseDetailForPdf,
+  findLatestAiJobByCase,
   updateAiJobStatus,
   updateCaseAuditStage,
 } from "../infrastructure/persistence/ai-job.repository.js";
+import { AppError } from "../../../shared/domain/app-error.js";
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { upsertReportArtifactDocumentRecord } from "../../documents/infrastructure/persistence/document.repository.js";
 import { uploadFile } from "../../../services/cloudinary.js";
@@ -28,7 +29,6 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
 
   const candidateDirs = [
     jobDir,
-    "E:/Workspace/test-agent-sanbox-web/storage/jobs/" + caseId,
     resolve(projectRoot, "apps", "api", "storage", "jobs", caseId),
   ];
 
@@ -67,6 +67,45 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   const caseRecord = await findCaseDetailForPdf(caseId);
   const projectName = reportJson.projectName || caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
 
+  // Read submission metadata from AiJob.input_json
+  const aiJob = await findLatestAiJobByCase(caseId);
+  const aiJobInput = (aiJob?.input_json ?? null) as Record<string, unknown> | null;
+
+  // Resolve target lifecycle_unit_id early (needed for PDF versioning)
+  let lifecycleUnitId: string | null =
+    (aiJobInput?.lifecycle_unit_id as string | undefined) ?? null;
+
+  if (!lifecycleUnitId) {
+    const latestUnit = await prisma.lifecycleUnit.findFirst({
+      where: { case_id: caseId },
+      orderBy: { version_no: "desc" },
+    });
+    if (latestUnit) {
+      const existingReport = await prisma.report.findFirst({
+        where: { lifecycle_unit_id: latestUnit.id },
+        select: { id: true },
+      });
+      if (existingReport) {
+        throw new AppError(
+          409,
+          "RESUBMIT_REQUIRES_UPLOAD",
+          "Cần nộp tài liệu sửa trước khi audit lại.",
+        );
+      }
+      lifecycleUnitId = latestUnit.id;
+    }
+  }
+
+  // Resolve version_no for PDF filename versioning
+  let versionNo: number | null = null;
+  if (lifecycleUnitId) {
+    const unit = await prisma.lifecycleUnit.findUnique({
+      where: { id: lifecycleUnitId },
+      select: { version_no: true },
+    });
+    versionNo = unit?.version_no ?? null;
+  }
+
   let pdfBuffer: Buffer | null = null;
   try {
     pdfBuffer = await generateReportPdfBuffer({
@@ -98,10 +137,12 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   let pdfPublicId: string | null = null;
   if (pdfBuffer) {
     try {
+      const versionSuffix = versionNo != null ? `_v${String(versionNo).padStart(2, "0")}` : "";
+      const cloudinaryName = `audit_report${versionSuffix}`;
       const uploadRes = await uploadFile(
         pdfBuffer,
         `nexus/reports/${caseId}`,
-        "audit_report_a4",
+        cloudinaryName,
         "raw",
       );
       if (uploadRes?.fileUrl) {
@@ -118,17 +159,47 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
     ...reportJson,
     pdfUrl,
     pdfPublicId,
+    submission_type: (aiJobInput?.submission_type as string) ?? "initial",
   };
   delete metadataJson.reportMarkdown;
 
-  // Save report into Postgres via repository (pure Markdown in content_md, structured stats in metadata_json)
-  const savedReport = await saveOmpAuditReport(caseId, reportMd, metadataJson);
+  // Save report into Postgres — always creates a new row (never upserts).
+  // The duplicate-report check and the insert run in one transaction, with
+  // the case row locked (SELECT FOR UPDATE) so concurrent finalizers for
+  // the same case serialize instead of double-inserting. Code-level guard
+  // only — no unique constraint, no migration.
+  const savedReport = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "cases" WHERE id = ${caseId} FOR UPDATE`;
+    if (lifecycleUnitId) {
+      const existing = await tx.report.findFirst({
+        where: { lifecycle_unit_id: lifecycleUnitId },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new AppError(
+          409,
+          "RESUBMIT_REQUIRES_UPLOAD",
+          "Cần nộp tài liệu sửa trước khi audit lại.",
+        );
+      }
+    }
+    return saveOmpAuditReport(
+      {
+        caseId,
+        lifecycleUnitId,
+        contentMd: reportMd,
+        metadataJson,
+      },
+      tx,
+    );
+  });
 
   // Sync artifact record so it appears in "Tài liệu" tab
   try {
     const reportFilename = buildReportPdfFilename({
       projectName,
       createdAt: savedReport.created_at,
+      versionNo,
     });
     await upsertReportArtifactDocumentRecord(
       caseId,

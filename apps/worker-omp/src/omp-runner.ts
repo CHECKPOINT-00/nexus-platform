@@ -19,6 +19,7 @@ export interface OmpJobPayload {
   model?: string;
   ompModel?: string;
   promptMode?: "full" | "lite";
+  submissionType?: "initial" | "resubmit" | "logic_check";
 }
 
 export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecutionResult> {
@@ -47,11 +48,42 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const runCmd = isDirectCli ? "bun" : OMP_BIN;
   const baseArgs = isDirectCli ? [OMP_CLI] : [];
   const mode = data.promptMode === "lite" ? "lite" : "full";
+  const submissionType = data.submissionType ?? "initial";
+
+  // Select prompt file based on submissionType
+  let submissionPromptFile: string;
+  switch (submissionType) {
+    case "resubmit":
+      submissionPromptFile = "input_clarification_gate_v4_1_resubmit.md";
+      break;
+    case "logic_check":
+      submissionPromptFile = "input_clarification_gate_v4_1_logic.md";
+      break;
+    default:
+      submissionPromptFile = "input_clarification_gate_v4_1.md";
+      break;
+  }
+
   const promptFilesDesc = PROMPT_CONFIG[mode]
     .map((fileName) => `system_prompt/${fileName}`)
+    .concat(`system_prompt/${submissionPromptFile}`)
     .join(", ");
+
+  // Read submission-specific prompt instructions if available
+  const promptFilePath = resolve(jobDir, "system_prompt", submissionPromptFile);
+  let submissionInstructions = "";
+  if (existsSync(promptFilePath)) {
+    try {
+      submissionInstructions = readFileSync(promptFilePath, "utf-8").trim();
+    } catch { /* ignore */ }
+  }
+
   const prompt =
-    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json). Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`;
+    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json).` +
+    (submissionInstructions
+      ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${submissionInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
+      : "") +
+    ` Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`;
   const args = [
     ...baseArgs,
     "--mode",

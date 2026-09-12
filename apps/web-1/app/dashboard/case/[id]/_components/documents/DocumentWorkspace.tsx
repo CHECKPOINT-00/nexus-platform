@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Select } from "@mantine/core";
+import { Select, Button, Tooltip } from "@mantine/core";
+import { FileText, Download, Clock } from "lucide-react";
 import {
   DocumentWorkspaceProps,
   WorkspaceTab,
@@ -11,8 +12,35 @@ import {
 } from "./document-workspace.types";
 import { buildCategoryGroups } from "./document-groups";
 import DocumentRowsTable from "./DocumentRowsTable";
+import type { RoundHistoryEntry } from "@/types/case";
 
-export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps) {
+interface DocumentWorkspaceWithReportsProps extends DocumentWorkspaceProps {
+  roundHistory?: RoundHistoryEntry[] | null;
+  caseId?: string;
+}
+
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  initial: "Lần đầu",
+  resubmit: "Đã sửa",
+  logic_check: "Soi logic",
+};
+
+function formatDateShort(dateStr?: string | null): string {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+export default function DocumentWorkspace({ workspace, roundHistory, caseId }: DocumentWorkspaceWithReportsProps) {
   const [activeCheckpoint, setActiveCheckpoint] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
@@ -144,6 +172,32 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
               {feedbackRows.length}
             </span>
           </button>
+
+          {roundHistory && roundHistory.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("assessment-reports");
+                setFilterRole("all");
+              }}
+              className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === "assessment-reports"
+                  ? "bg-brand text-white font-semibold"
+                  : "text-text-muted hover:text-text-app hover:bg-surface-soft"
+              }`}
+            >
+              <span>Báo cáo phản biện</span>
+              <span
+                className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
+                  activeTab === "assessment-reports"
+                    ? "bg-white/20 text-white"
+                    : "bg-surface-soft text-text-muted"
+                }`}
+              >
+                {roundHistory.length}
+              </span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
@@ -178,7 +232,57 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
         </div>
       </div>
 
-      {displayedRows.length === 0 ? (
+      {activeTab === "assessment-reports" ? (
+        <div className="divide-y divide-border-app">
+          {roundHistory && roundHistory.length > 0 ? (
+            roundHistory.map((round) => (
+              <div
+                key={round.report_id}
+                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-soft/30 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-text-app truncate">
+                      {round.version_no
+                        ? `Báo cáo v${String(round.version_no).padStart(2, "0")}`
+                        : "Báo cáo"}
+                      {" — "}
+                      <span className="text-text-muted font-normal">
+                        {SUBMISSION_TYPE_LABELS[round.submission_type] || round.submission_type}
+                      </span>
+                    </p>
+                    <p className="text-xs text-text-muted flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatDateShort(round.submitted_at)}
+                    </p>
+                  </div>
+                </div>
+                <Tooltip label="Tải PDF">
+                  <Button
+                    component="a"
+                    href={`/api/reports/${round.report_id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="compact-sm"
+                    variant="subtle"
+                    color="gray"
+                    className="cursor-pointer shrink-0"
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </Tooltip>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-base font-medium text-text-muted">Chưa có báo cáo phản biện.</p>
+            </div>
+          )}
+        </div>
+      ) : displayedRows.length === 0 ? (
         <div className="p-8 text-center">
           <p className="text-base font-medium text-text-muted">
             {activeTab === "documents"

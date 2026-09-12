@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Download, ExternalLink, FileText } from "lucide-react";
-import { Button, Group, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
-import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";
+import { Download, ExternalLink, FileText, ChevronDown, ChevronUp, Clock, Zap, Search, RotateCcw } from "lucide-react";
+import { Button, Group, Stack, Tooltip, LoadingOverlay, Badge, Collapse } from "@mantine/core";
+import { useDownloadReportPdf, useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
+import type { RoundHistoryEntry, Report } from "@/types/case";
 
 export interface RichReportData {
   projectName?: string;
@@ -20,7 +21,26 @@ interface TabReportFindingsProps {
     created_at?: string | Date | null;
   } | null;
   caseId?: string;
+  roundHistory?: RoundHistoryEntry[] | null;
 }
+
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  initial: "Lần đầu",
+  resubmit: "Đã sửa",
+  logic_check: "Soi logic",
+};
+
+const SUBMISSION_TYPE_COLORS: Record<string, string> = {
+  initial: "blue",
+  resubmit: "orange",
+  logic_check: "violet",
+};
+
+const SUBMISSION_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  initial: Zap,
+  resubmit: RotateCcw,
+  logic_check: Search,
+};
 
 function makeDownloadSlug(name: string): string {
   return (
@@ -44,7 +64,127 @@ function getReportPdfFilename(projectName: string, createdAt?: string | Date | n
   return `${slug}_input_clarification_${timestamp}.pdf`;
 }
 
-export default function TabReportFindings({ report, caseId }: TabReportFindingsProps) {
+function formatDateShort(dateStr?: string | null): string {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseId: string; isFirst: boolean }) {
+  const [expanded, setExpanded] = useState(isFirst);
+  const [pdfLoading, setPdfLoading] = useState(true);
+
+  const parsedReport = useMemo<RichReportData | null>(() => {
+    if (!round.report) return null;
+    const r = round.report;
+    if (r.metadata_json && typeof r.metadata_json === "object") {
+      return r.metadata_json as unknown as RichReportData;
+    }
+    if (!r.content_md) return null;
+    try {
+      const data = JSON.parse(r.content_md) as unknown;
+      if (data && typeof data === "object") return data as RichReportData;
+    } catch {
+      // plain markdown
+    }
+    return null;
+  }, [round.report]);
+
+  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
+  const reportFilename = useMemo(
+    () => getReportPdfFilename(projectName, round.report?.created_at),
+    [projectName, round.report?.created_at],
+  );
+
+  const pdfViewUrl = round.pdfUrl || (caseId ? `/api/cases/${caseId}/report/${reportFilename}?view=inline` : "");
+
+  const { mutate: downloadReportPdf, isPending: isDownloadingPdf } = useDownloadReportPdfById();
+
+  const handleDownload = () => {
+    downloadReportPdf({ reportId: round.report_id, caseShort: caseId, versionNo: round.version_no });
+  };
+
+  const SubIcon = SUBMISSION_TYPE_ICONS[round.submission_type] || Zap;
+  const typeLabel = SUBMISSION_TYPE_LABELS[round.submission_type] || round.submission_type;
+  const typeColor = SUBMISSION_TYPE_COLORS[round.submission_type] || "gray";
+
+  return (
+    <div className="border border-border-app rounded-xl overflow-hidden bg-surface-app animate-fade-in">
+      {/* Header — always visible */}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-soft/50 cursor-pointer transition-colors text-left"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <Badge variant="light" color={typeColor} size="sm" leftSection={<SubIcon className="w-3 h-3" />}>
+            {typeLabel}
+          </Badge>
+          <span className="text-sm font-semibold text-text-app">
+            {round.version_no ? `Phiên bản ${round.version_no}` : "Phiên bản —"}
+          </span>
+          <span className="text-xs text-text-muted flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {formatDateShort(round.submitted_at)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Tooltip label="Tải PDF phiên bản này">
+            <Button
+              size="compact-xs"
+              variant="subtle"
+              color="gray"
+              loading={isDownloadingPdf}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload();
+              }}
+              className="cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </Button>
+          </Tooltip>
+          {expanded ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
+        </div>
+      </button>
+
+      {/* Collapsible content */}
+      <Collapse expanded={expanded}>
+        <div className="border-t border-border-app">
+          {round.report ? (
+            <div className="relative w-full h-[600px]">
+              <LoadingOverlay visible={pdfLoading} />
+              <iframe
+                src={pdfViewUrl}
+                className="w-full h-full border-0"
+                title={`Báo cáo - ${typeLabel} - v${round.version_no ?? "?"}`}
+                onLoad={() => setPdfLoading(false)}
+              />
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <FileText className="w-8 h-8 text-text-subtle mx-auto mb-2" />
+              <p className="text-sm text-text-muted">Chưa có báo cáo cho phiên bản này.</p>
+            </div>
+          )}
+        </div>
+      </Collapse>
+    </div>
+  );
+}
+
+export default function TabReportFindings({ report, caseId, roundHistory }: TabReportFindingsProps) {
   const [pdfLoading, setPdfLoading] = useState(true);
   const parsedReport = useMemo<RichReportData | null>(() => {
     if (report?.metadata_json && typeof report.metadata_json === "object") {
@@ -62,10 +202,8 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
     return null;
   }, [report]);
 
-  // Reset loading state when PDF URL changes (e.g., new report selected)
-
-
-  if (!report) {
+  // If no report at all, show empty state
+  if (!report && (!roundHistory || roundHistory.length === 0)) {
     return (
       <div className="bg-surface-app border border-border-app rounded-lg p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
         <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
@@ -81,15 +219,38 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
     );
   }
 
-  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
+  // Has round history — render round list
+  if (roundHistory && roundHistory.length > 0) {
+    return (
+      <Stack gap="md" className="animate-fade-in font-body pb-8">
+        <div className="flex items-center justify-between">
+          <h3 className="font-heading font-semibold text-sm text-text-app">
+            Lịch sử đánh giá ({roundHistory.length} lượt)
+          </h3>
+        </div>
 
+        <Stack gap="sm">
+          {roundHistory.map((round, idx) => (
+            <RoundCard
+              key={round.report_id}
+              round={round}
+              caseId={caseId || ""}
+              isFirst={idx === 0}
+            />
+          ))}
+        </Stack>
+      </Stack>
+    );
+  }
+
+  // Fallback: has report but no round history — show legacy single-report view
+  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
   const reportFilename = useMemo(() => {
     return getReportPdfFilename(projectName, report?.created_at);
   }, [projectName, report?.created_at]);
 
   const pdfViewUrl = caseId ? `/api/cases/${caseId}/report/${reportFilename}?view=inline` : "";
 
-  // Reset loading state when PDF URL changes (e.g., new report selected)
   React.useEffect(() => {
     if (pdfViewUrl) {
       setPdfLoading(true);
@@ -104,11 +265,8 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
     downloadPdf(reportFilename);
   };
 
-
-
   return (
     <Stack gap="md" className="animate-fade-in font-body pb-8">
-      {/* Action Buttons */}
       {caseId && (
         <Group gap="xs" justify="flex-end">
           <Tooltip label="Mở file PDF trong tab mới để in ấn hoặc đọc toàn màn hình">
@@ -139,20 +297,17 @@ export default function TabReportFindings({ report, caseId }: TabReportFindingsP
         </Group>
       )}
 
-      {/* Embedded PDF Viewer */}
-        {/* Embedded PDF Viewer with lazy loading */}
-        {caseId && (
-          <div className="relative w-full h-[820px] rounded-xl overflow-hidden border border-border-app bg-surface-app">
-            <LoadingOverlay visible={pdfLoading} />
-            <iframe
-              src={pdfViewUrl}
-              className="w-full h-full border-0"
-              title={`Báo cáo phản biện - ${projectName}`}
-              onLoad={() => setPdfLoading(false)}
-            />
-          </div>
-        )}
-
+      {caseId && (
+        <div className="relative w-full h-[820px] rounded-xl overflow-hidden border border-border-app bg-surface-app">
+          <LoadingOverlay visible={pdfLoading} />
+          <iframe
+            src={pdfViewUrl}
+            className="w-full h-full border-0"
+            title={`Báo cáo phản biện - ${projectName}`}
+            onLoad={() => setPdfLoading(false)}
+          />
+        </div>
+      )}
     </Stack>
   );
 }
