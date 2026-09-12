@@ -153,10 +153,27 @@ export async function saveOmpAuditReport(caseId: string, contentToStore: string)
     });
   }
 
+  // Find checkpoint for this case
+  let checkpoint = await prisma.checkpoint.findFirst({
+    where: { case_id: caseId },
+    orderBy: { created_at: "asc" },
+  });
+
+  if (!checkpoint) {
+    checkpoint = await prisma.checkpoint.create({
+      data: {
+        case_id: caseId,
+        checkpoint_code: "CP1",
+        checkpoint_status: "submitted",
+        latest_version_no: 1,
+      },
+    });
+  }
+
   return await prisma.report.create({
     data: {
       case_id: caseId,
-      checkpoint_id: "cp1",
+      checkpoint_id: checkpoint.id,
       report_type: "input_clarification",
       content_md: contentToStore,
       status: "APPROVED",
