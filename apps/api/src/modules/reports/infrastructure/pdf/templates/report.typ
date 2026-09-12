@@ -16,7 +16,7 @@
     line(length: 100%, stroke: 0.4pt + rgb(180, 180, 180))
     v(4pt)
     set text(size: 9pt, fill: rgb(130, 130, 130))
-    [Báo cáo bảo mật — FPT Startup Benchmark]
+    
     h(1fr)
     [Trang #counter(page).display("1 / 1", both: true)]
   },
@@ -68,6 +68,11 @@
 #set enum(spacing: 1.0em)
 // ── Load metadata from JSON sidecar (safe injection) ────────────────────────
 #let meta = json("meta.json")
+
+#set document(
+  title: "Báo Cáo Phản Biện — " + meta.project_name,
+  author: "FPT Startup Benchmark",
+)
 
 // ── Title & Document Header ──────────────────────────────────────────────────
 #align(center)[
