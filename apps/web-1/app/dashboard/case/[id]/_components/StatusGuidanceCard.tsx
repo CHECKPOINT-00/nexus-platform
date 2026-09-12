@@ -59,8 +59,13 @@ export default function StatusGuidanceCard({
   onConfirmComplete,
   isConfirmingComplete,
 }: StatusGuidanceCardProps) {
-  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
-  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
+  const isFree = isCaseFree(caseData);
+  const targetPackageId = isFree
+    ? PACKAGE_KEYS.AI_AUDIT
+    : caseData.package_id || caseData.package?.id || PACKAGE_KEYS.AI_AUDIT;
+  const { data: pkgData } = usePackagePrice(targetPackageId);
+  const effectivePrice = pkgData?.price ?? (isFree ? 79000 : caseData.locked_price ?? caseData.package?.price ?? 79000);
+  const auditPriceLabel = formatPrice(effectivePrice);
 
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = !!openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -177,7 +182,7 @@ export default function StatusGuidanceCard({
       );
     }
 
-    const isFree = isCaseFree(caseData);
+
     return (
       <Alert
         variant="light"
@@ -214,7 +219,7 @@ export default function StatusGuidanceCard({
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {onOpenPayment && (
               <Button size="sm" color="brand" leftSection={<Coins className="w-4 h-4" />} className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
-                {isFree ? `Mua credit đánh giá ngay (${auditPriceLabel})` : "Thanh toán ngay"}
+                {isFree ? `Mua lượt thẩm định ngay (${auditPriceLabel})` : `Thanh toán ngay (${auditPriceLabel})`}
               </Button>
             )}
             {onOpenIntake && canOpenIntake && (

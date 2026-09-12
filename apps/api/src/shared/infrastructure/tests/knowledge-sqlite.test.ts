@@ -5,8 +5,12 @@ import { existsSync } from "node:fs";
 // @ts-expect-error node:sqlite is natively supported in Node 22+
 import { DatabaseSync } from "node:sqlite";
 test("knowledge-sqlite: startup_knowledge.db exists and contains complete 12 groups dataset", () => {
-  const dbPath = resolve(process.cwd(), "data/knowledge/startup_knowledge.db");
-  assert.ok(existsSync(dbPath), `Database file must exist at ${dbPath}`);
+  const candidates = [
+    resolve(process.cwd(), "data/knowledge/startup_knowledge.db"),
+    resolve(process.cwd(), "../../data/knowledge/startup_knowledge.db"),
+  ];
+  const dbPath = candidates.find(existsSync);
+  assert.ok(dbPath, "Database file must exist");
 
   const db = new DatabaseSync(dbPath, { readOnly: true });
 
