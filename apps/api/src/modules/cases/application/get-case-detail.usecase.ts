@@ -118,9 +118,10 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     const reportMeta = (report.metadata_json && typeof report.metadata_json === "object")
       ? report.metadata_json as Record<string, unknown>
       : null;
-    const pdfUrl = reportMeta && typeof reportMeta["pdfUrl"] === "string"
-      ? reportMeta["pdfUrl"] as string
-      : null;
+    // View via API (inline disposition + versioned .pdf filename). Never expose raw
+    // Cloudinary URLs: raw assets have no .pdf suffix and serve octet-stream,
+    // which makes browsers auto-download with a wrong name instead of viewing.
+    const pdfUrl = `/api/reports/${report.id}/download?view=inline`;
     const submissionType = reportMeta && typeof reportMeta["submission_type"] === "string"
       ? reportMeta["submission_type"] as string
       : null;

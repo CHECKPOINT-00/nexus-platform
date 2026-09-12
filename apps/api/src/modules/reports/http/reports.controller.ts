@@ -255,9 +255,12 @@ export async function downloadCaseReportPdfHandler(c: Context) {
     });
     const safeFilename = filename.replace(/["\r\n\\]/g, "");
 
-    try {
+    const isInline = c.req.query("view") === "inline" || c.req.query("inline") === "true";
+    // Upload to Cloudinary (best-effort, downloads only — inline views skip the sync).
+    // public_id keeps the .pdf suffix so the stored URL carries a proper filename.
+    if (!isInline) try {
       const versionSuffix = reportVersionNo != null ? `_v${String(reportVersionNo).padStart(2, "0")}` : "";
-      const cloudinaryName = `audit_report${versionSuffix}`;
+      const cloudinaryName = `audit_report${versionSuffix}.pdf`;
       const uploadRes = await uploadFile(
         pdfBuffer,
         `nexus/reports/${caseId}`,
@@ -299,7 +302,6 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       logger.warn({ err: uploadErr, caseId }, "Cloudinary sync in download handler");
     }
 
-    const isInline = c.req.query("view") === "inline" || c.req.query("inline") === "true";
     const disposition = isInline ? "inline" : "attachment";
 
     c.header("Content-Type", "application/pdf");
@@ -443,10 +445,12 @@ export async function downloadReportPdfByIdHandler(c: Context) {
     });
     const safeFilename = filename.replace(/["\r\n\\]/g, "");
 
-    // Upload to Cloudinary (best-effort)
-    try {
+    const isInline = c.req.query("view") === "inline" || c.req.query("inline") === "true";
+    // Upload to Cloudinary (best-effort, downloads only — inline views skip the sync).
+    // public_id keeps the .pdf suffix so the stored URL carries a proper filename.
+    if (!isInline) try {
       const versionSuffix = versionNo != null ? `_v${String(versionNo).padStart(2, "0")}` : "";
-      const cloudinaryName = `audit_report${versionSuffix}`;
+      const cloudinaryName = `audit_report${versionSuffix}.pdf`;
       const uploadRes = await uploadFile(
         pdfBuffer,
         `nexus/reports/${caseId}`,
@@ -469,7 +473,6 @@ export async function downloadReportPdfByIdHandler(c: Context) {
       logger.warn({ err: uploadErr, reportId }, "Cloudinary sync in report-by-id handler");
     }
 
-    const isInline = c.req.query("view") === "inline" || c.req.query("inline") === "true";
     const disposition = isInline ? "inline" : "attachment";
 
     c.header("Content-Type", "application/pdf");

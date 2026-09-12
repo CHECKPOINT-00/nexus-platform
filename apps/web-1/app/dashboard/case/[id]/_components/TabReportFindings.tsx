@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Download, ExternalLink, FileText, ChevronDown, ChevronUp, Clock, Zap, Search, RotateCcw } from "lucide-react";
+import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { Button, Group, Stack, Tooltip, LoadingOverlay, Badge, Collapse } from "@mantine/core";
 import { useDownloadReportPdf, useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry, Report } from "@/types/case";
@@ -36,11 +36,6 @@ const SUBMISSION_TYPE_COLORS: Record<string, string> = {
   logic_check: "violet",
 };
 
-const SUBMISSION_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  initial: Zap,
-  resubmit: RotateCcw,
-  logic_check: Search,
-};
 
 function makeDownloadSlug(name: string): string {
   return (
@@ -115,55 +110,67 @@ function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseI
     downloadReportPdf({ reportId: round.report_id, caseShort: caseId, versionNo: round.version_no });
   };
 
-  const SubIcon = SUBMISSION_TYPE_ICONS[round.submission_type] || Zap;
   const typeLabel = SUBMISSION_TYPE_LABELS[round.submission_type] || round.submission_type;
   const typeColor = SUBMISSION_TYPE_COLORS[round.submission_type] || "gray";
 
   return (
     <div className="border border-border-app rounded-xl overflow-hidden bg-surface-app animate-fade-in">
       {/* Header — always visible */}
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setExpanded(!expanded)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded(!expanded);
+          }
+        }}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-soft/50 cursor-pointer transition-colors text-left"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <Badge variant="light" color={typeColor} size="sm" leftSection={<SubIcon className="w-3 h-3" />}>
+          <Badge variant="light" color={typeColor} size="sm">
             {typeLabel}
           </Badge>
           <span className="text-sm font-semibold text-text-app">
             {round.version_no ? `Phiên bản ${round.version_no}` : "Phiên bản —"}
           </span>
-          <span className="text-xs text-text-muted flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+          <span className="text-xs text-text-muted">
             {formatDateShort(round.submitted_at)}
           </span>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Tooltip label="Tải PDF phiên bản này">
-            <Button
-              size="compact-xs"
-              variant="subtle"
-              color="gray"
-              loading={isDownloadingPdf}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownload();
-              }}
-              className="cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-            </Button>
-          </Tooltip>
+        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+          <Button
+            component="a"
+            href={pdfViewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="default"
+            size="sm"
+            leftSection={<ExternalLink size={15} />}
+            className="font-medium"
+          >
+            Mở tab mới
+          </Button>
+          <Button
+            leftSection={<Download size={15} />}
+            color="brand"
+            size="sm"
+            loading={isDownloadingPdf}
+            onClick={handleDownload}
+            className="font-semibold cursor-pointer"
+          >
+            Tải PDF
+          </Button>
           {expanded ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
         </div>
-      </button>
+      </div>
 
       {/* Collapsible content */}
       <Collapse expanded={expanded}>
         <div className="border-t border-border-app">
           {round.report ? (
-            <div className="relative w-full h-[600px]">
+            <div className="relative w-full h-[calc(100vh-440px)] min-h-[480px]">
               <LoadingOverlay visible={pdfLoading} />
               <iframe
                 src={pdfViewUrl}
@@ -298,7 +305,7 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
       )}
 
       {caseId && (
-        <div className="relative w-full h-[820px] rounded-xl overflow-hidden border border-border-app bg-surface-app">
+        <div className="relative w-full h-[calc(100vh-380px)] min-h-[480px] rounded-xl overflow-hidden border border-border-app bg-surface-app">
           <LoadingOverlay visible={pdfLoading} />
           <iframe
             src={pdfViewUrl}
