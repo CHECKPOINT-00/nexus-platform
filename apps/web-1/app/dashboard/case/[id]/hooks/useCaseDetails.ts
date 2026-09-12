@@ -33,7 +33,10 @@ export function useCaseDetails(id: string) {
       return response.data;
     },
     enabled: !!id,
-    refetchInterval: 10000,
+    refetchInterval: (query) => {
+      const stage = (query.state.data?.case as Case | undefined)?.user_facing_stage;
+      return stage === "under_review" ? 2500 : 10000;
+    },
   });
 
   useEffect(() => {

@@ -1,0 +1,153 @@
+import type { Context } from "hono";
+import { streamSSE } from "hono/streaming";
+import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
+import { handleError } from "../../../shared/infrastructure/http-helpers.js";
+import { jobStore } from "../../ai-engine/infrastructure/persistence/job-store.repository.js";
+import { getCaseAiAuditStatus } from "../../ai-engine/application/omp-audit-status.js";
+import {
+  triggerOmpAuditForCase,
+  cancelOmpAuditForCase,
+} from "../../ai-engine/application/omp-audit-coordinator.js";
+
+/**
+ * GET /api/cases/:id/ai-status — Current audit status, Job ID, and latest logs
+ */
+export async function getCaseAiStatusHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const status = await getCaseAiAuditStatus(caseId);
+    return c.json(status);
+  } catch (err) {
+    return handleError(c, err);
+  }
+}
+
+/**
+ * GET /api/cases/:id/ai-events — Live SSE log stream & state updates
+ */
+export async function streamCaseAiEventsHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  const job = jobStore.get(caseId);
+
+  return streamSSE(c, async (stream) => {
+    // 1. Initial status handshake
+    const initialStatus = await getCaseAiAuditStatus(caseId);
+    await stream.writeSSE({
+      event: "job_state",
+      data: JSON.stringify(initialStatus),
+    });
+
+    // 2. Initial existing logs replay
+    if (job?.logs?.length) {
+      for (const log of job.logs) {
+        await stream.writeSSE({
+          event: "log",
+          data: JSON.stringify(log),
+        });
+      }
+    }
+
+    // 3. EventEmitter listeners
+    const onJobUpdate = (updatedJob: any) => {
+      if (updatedJob.id === caseId) {
+        stream.writeSSE({
+          event: "job_state",
+          data: JSON.stringify(updatedJob),
+        });
+      }
+    };
+
+    const onLog = (logEntry: any) => {
+      stream.writeSSE({
+        event: "log",
+        data: JSON.stringify(logEntry),
+      });
+    };
+
+    jobStore.on(`job:${caseId}`, onJobUpdate);
+    jobStore.on(`log:${caseId}`, onLog);
+
+    stream.onAbort(() => {
+      jobStore.off(`job:${caseId}`, onJobUpdate);
+      jobStore.off(`log:${caseId}`, onLog);
+    });
+
+    // 4. File-sync polling fallback for cross-process worker logs
+    let lastStatus = initialStatus.status;
+    let lastLogCount = job?.logs?.length || 0;
+
+    while (!stream.aborted) {
+      await stream.sleep(1000);
+      const current = jobStore.get(caseId);
+      if (current) {
+        const curLogCount = current.logs?.length || 0;
+        if (curLogCount > lastLogCount) {
+          const newLogs = current.logs!.slice(lastLogCount);
+          lastLogCount = curLogCount;
+          for (const nl of newLogs) {
+            await stream.writeSSE({
+              event: "log",
+              data: JSON.stringify(nl),
+            });
+          }
+        }
+        if (current.status !== lastStatus) {
+          lastStatus = current.status as any;
+          await stream.writeSSE({
+            event: "job_state",
+            data: JSON.stringify(current),
+          });
+        }
+        if (current.status === "completed" || current.status === "failed" || current.status === "cancelled") {
+          break;
+        }
+      }
+    }
+  });
+}
+
+/**
+ * POST /api/cases/:id/ai-cancel — Cancel running OMP audit job
+ */
+export async function cancelCaseAiAuditHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const result = await cancelOmpAuditForCase(caseId);
+    return c.json(result);
+  } catch (err) {
+    return handleError(c, err);
+  }
+}
+
+/**
+ * POST /api/cases/:id/ai-retry — Retry OMP Audit for case
+ */
+export async function retryCaseAiAuditHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    await triggerOmpAuditForCase(caseId);
+    return c.json({ success: true, message: "Đã kích hoạt lại thẩm định AI OMP" });
+  } catch (err) {
+    return handleError(c, err);
+  }
+}

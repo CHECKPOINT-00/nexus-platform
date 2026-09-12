@@ -132,3 +132,59 @@ export async function findApprovedReports(caseId: string) {
     orderBy: { created_at: "desc" },
   });
 }
+
+/**
+ * Persist or update OMP automated audit report in Postgres.
+ */
+export async function saveOmpAuditReport(
+  caseId: string,
+  contentMd: string,
+  metadataJson?: Record<string, unknown> | null,
+) {
+  const existingReport = await prisma.report.findFirst({
+    where: { case_id: caseId },
+    select: { id: true },
+  });
+
+  if (existingReport) {
+    return await prisma.report.update({
+      where: { id: existingReport.id },
+      data: {
+        content_md: contentMd,
+        ...(metadataJson !== undefined ? { metadata_json: metadataJson as any } : {}),
+        status: "APPROVED",
+        sent_at: new Date(),
+      },
+    });
+  }
+
+  // Find checkpoint for this case
+  let checkpoint = await prisma.checkpoint.findFirst({
+    where: { case_id: caseId },
+    orderBy: { created_at: "asc" },
+  });
+
+  if (!checkpoint) {
+    checkpoint = await prisma.checkpoint.create({
+      data: {
+        case_id: caseId,
+        checkpoint_code: "CP1",
+        checkpoint_status: "submitted",
+        latest_version_no: 1,
+      },
+    });
+  }
+
+  return await prisma.report.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpoint.id,
+      report_type: "input_clarification",
+      content_md: contentMd,
+      metadata_json: (metadataJson as any) ?? undefined,
+      status: "APPROVED",
+      created_by: "omp_worker",
+      sent_at: new Date(),
+    },
+  });
+}

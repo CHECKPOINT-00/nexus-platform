@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, use } from "react";
-import { useRouter } from "next/navigation";
-import { PACKAGE_KEYS, caseRequiresPayment } from "@/lib/pricing";
+import { useState, useEffect, useRef, use } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { PACKAGE_KEYS, caseRequiresPayment, isCaseFree } from "@/lib/pricing";
 import { useSession } from "@/lib/auth-client";
 import { filterTransitions } from "@/_types/transitions";
 import { useCaseDetails } from "./hooks/useCaseDetails";
@@ -18,13 +18,14 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
-
-
+import TabReportFindings from "./_components/TabReportFindings";
+import ActiveRadarScanning from "./_components/ActiveRadarScanning";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
+import type { Report } from "@/types/case";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,19 +34,24 @@ interface PageProps {
 export default function CaseWorkspacePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const checkoutParam = searchParams.get("checkout") === "true";
+  const checkoutHandledRef = useRef(false);
 
   const {
     caseData,
     intakeSnapshot,
     teamFitReport,
     documentWorkspace,
+    latestReport,
     isLoading,
     error,
     allowedTransitions,
     openRequestsForMoreInfo,
     confirmComplete,
     isConfirmingComplete,
+    refetch,
   } = useCaseDetails(id);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const { unreadCount, markAsRead } = useCaseUnreadCount(id);
@@ -54,10 +60,26 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
 
+  const stage = caseData?.user_facing_stage;
   const creditBalance = caseData?.credit_balance ?? null;
   const creditLedger = caseData?.credit_ledger ?? undefined;
   const packageName = caseData?.package?.name ?? undefined;
   const pricePerCredit = caseData?.package?.price ?? undefined;
+
+  useEffect(() => {
+    if (checkoutParam && caseData && caseData.payment_status === "unpaid" && !checkoutHandledRef.current) {
+      checkoutHandledRef.current = true;
+      setCreditBuyOpened(true);
+    }
+  }, [checkoutParam, caseData]);
+
+  const prevStageRef = useRef(stage);
+  useEffect(() => {
+    if (prevStageRef.current === "under_review" && stage === "report_ready") {
+      setActiveTab("report");
+    }
+    prevStageRef.current = stage;
+  }, [stage]);
 
   if (isLoading) {
     return (
@@ -78,7 +100,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
-  const stage = caseData.user_facing_stage;
+
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
 
@@ -154,13 +176,26 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
         <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-8"}`}>
           {activeTab === "overview" && (
-            <CaseOverviewPanel
-              caseData={caseData}
-              intakeSnapshot={intakeSnapshot}
-              teamFitReport={teamFitReport}
-              onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
-            />
+            <div className="space-y-6">
+              {stage === "under_review" && caseData?.package_id === "pkg_ai_audit" && (
+                <ActiveRadarScanning
+                  caseId={id}
+                  caseCode={caseData.case_code}
+                  projectName={caseData.team_name || undefined}
+                  onAuditCompleted={() => {
+                    refetch();
+                    setActiveTab("report");
+                  }}
+                />
+              )}
+              <CaseOverviewPanel
+                caseData={caseData}
+                intakeSnapshot={intakeSnapshot}
+                teamFitReport={teamFitReport}
+                onSelectTab={(tab) => setActiveTab(tab)}
+                onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+              />
+            </div>
           )}
 
           {activeTab === "documents" && (
@@ -200,6 +235,13 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             </>
           )}
 
+          {activeTab === "report" && (
+            <TabReportFindings
+              report={(latestReport as Report) || null}
+              caseId={caseData.id}
+            />
+          )}
+
           {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
 
           {activeTab === "credits" && (
@@ -231,7 +273,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         caseId={id}
         opened={creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
-        packageId={PACKAGE_KEYS.AUDIT}
+        packageId={
+          isCaseFree(caseData)
+            ? PACKAGE_KEYS.AI_AUDIT
+            : caseData?.package_id || caseData?.package?.id || PACKAGE_KEYS.AI_AUDIT
+        }
       />
     </div>
   );
