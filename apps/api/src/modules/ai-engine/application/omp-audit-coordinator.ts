@@ -303,7 +303,8 @@ export async function triggerOmpAuditForCase(
   cleanDirectory(resolve(jobDir, "input"));
   cleanDirectory(resolve(jobDir, "output"));
 
-  const sandboxStorage = "E:/Workspace/test-agent-sanbox-web/storage";
+  // Optional local-dev mirror (e.g. a second checkout's storage). Unset = skip.
+  const sandboxStorage = process.env.OMP_SANDBOX_MIRROR_ROOT || "";
   if (existsSync(sandboxStorage)) {
     cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "input"));
     cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "output"));
