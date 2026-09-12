@@ -6,15 +6,12 @@ import {
   Building2,
   Target,
   Lightbulb,
-  Mail,
-  Phone,
   CheckCircle2,
   AlertTriangle,
   Sparkles,
   UserCheck,
   Layers,
   MessageSquareCode,
-  Send,
   HelpCircle,
   FileText,
 } from "lucide-react";
@@ -126,17 +123,11 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, teamFitRep
             </div>
             <div>
               <span className="text-text-muted text-xs font-medium block">Email liên hệ:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5 truncate">
-                <Mail className="w-4 h-4 text-text-muted shrink-0" />
-                <span className="truncate">{contactEmail}</span>
-              </p>
+              <p className="font-semibold text-text-app mt-1 truncate">{contactEmail}</p>
             </div>
             <div>
               <span className="text-text-muted text-xs font-medium block">Số điện thoại / Zalo:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5">
-                <Phone className="w-4 h-4 text-text-muted shrink-0" />
-                <span>{contactPhone}</span>
-              </p>
+              <p className="font-semibold text-text-app mt-1">{contactPhone}</p>
             </div>
             <div>
               <span className="text-text-muted text-xs font-medium block">Vai trò trong nhóm:</span>
@@ -144,10 +135,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, teamFitRep
             </div>
             <div>
               <span className="text-text-muted text-xs font-medium block">Telegram Username:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5">
-                <Send className="w-4 h-4 text-brand shrink-0" />
-                <span>{contactTelegram || "Chưa cập nhật"}</span>
-              </p>
+              <p className="font-semibold text-text-app mt-1">{contactTelegram || "Chưa cập nhật"}</p>
             </div>
           </div>
         </div>
