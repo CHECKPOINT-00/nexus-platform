@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "dev:worker-omp": "bun --filter @app/worker-omp dev",
     "knip": "knip"
   },
   "devDependencies": {

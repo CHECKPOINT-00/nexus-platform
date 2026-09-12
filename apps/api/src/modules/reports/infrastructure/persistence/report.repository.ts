@@ -132,3 +132,36 @@ export async function findApprovedReports(caseId: string) {
     orderBy: { created_at: "desc" },
   });
 }
+
+/**
+ * Persist or update OMP automated audit report in Postgres.
+ */
+export async function saveOmpAuditReport(caseId: string, contentToStore: string) {
+  const existingReport = await prisma.report.findFirst({
+    where: { case_id: caseId },
+    select: { id: true },
+  });
+
+  if (existingReport) {
+    return await prisma.report.update({
+      where: { id: existingReport.id },
+      data: {
+        content_md: contentToStore,
+        status: "APPROVED",
+        sent_at: new Date(),
+      },
+    });
+  }
+
+  return await prisma.report.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: "cp1",
+      report_type: "input_clarification",
+      content_md: contentToStore,
+      status: "APPROVED",
+      created_by: "omp_worker",
+      sent_at: new Date(),
+    },
+  });
+}

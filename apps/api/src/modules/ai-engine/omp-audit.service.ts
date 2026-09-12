@@ -40,10 +40,24 @@ function resolveOmpCommand(): { command: string; baseArgs: string[] } {
   return { command: "omp", baseArgs: [] };
 }
 
+export function resolveRepoRoot(): string {
+  let current = process.cwd();
+  for (let i = 0; i < 4; i++) {
+    if (existsSync(resolve(current, "data/knowledge/startup_knowledge.db"))) {
+      return current;
+    }
+    const parent = resolve(current, "..");
+    if (parent === current) break;
+    current = parent;
+  }
+  return process.cwd();
+}
+
 /**
  * Prepare job sandbox directory layout and copy SQLite DB + Prompts + Input files.
  */
-function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]): void {
+export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]): void {
+  const projectRoot = resolveRepoRoot();
   const inputDir = resolve(jobDir, "input");
   const knowledgeDir = resolve(jobDir, "knowledge");
   const promptDir = resolve(jobDir, "system_prompt");
@@ -55,7 +69,6 @@ function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]): void {
   );
 
   // 1. Copy SQLite database and AGENTS.md
-  const projectRoot = process.cwd();
   const masterDb = resolve(projectRoot, "data/knowledge/startup_knowledge.db");
   const agentsMd = resolve(projectRoot, "data/knowledge/AGENTS.md");
   const masterJson = resolve(projectRoot, "data/knowledge/startup_knowledge.json");
@@ -81,9 +94,17 @@ function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]): void {
 
   // 3. Setup models.json for OMP
   const providersPath = resolve(projectRoot, "data/providers.json");
-  if (existsSync(providersPath)) {
-    copyFileSync(providersPath, resolve(jobDir, "models.json"));
-    copyFileSync(providersPath, resolve(agentDir, "models.json"));
+  const userProfile = process.env.USERPROFILE || "";
+  const globalModelsPath = resolve(userProfile, ".omp/agent/models.json");
+  const sourceModelsPath = existsSync(providersPath)
+    ? providersPath
+    : existsSync(globalModelsPath)
+      ? globalModelsPath
+      : null;
+
+  if (sourceModelsPath) {
+    copyFileSync(sourceModelsPath, resolve(jobDir, "models.json"));
+    copyFileSync(sourceModelsPath, resolve(agentDir, "models.json"));
   }
 
   // 4. Write input files
@@ -135,6 +156,7 @@ export async function runOmpAudit(opts: OmpAuditOptions): Promise<OmpAuditResult
   await new Promise<void>((res, rej) => {
     const proc = spawn(command, args, {
       cwd: jobDir,
+      stdio: ["pipe", "pipe", "pipe"],
       env: {
         ...process.env,
         LANG: "C.UTF-8",
@@ -143,6 +165,7 @@ export async function runOmpAudit(opts: OmpAuditOptions): Promise<OmpAuditResult
       },
       shell: false,
     });
+    proc.stdin?.end();
 
     let stdoutData = "";
     let stderrData = "";
